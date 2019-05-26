@@ -45,13 +45,13 @@ class FNtoFNNode(Src: FType, Des: FType, NumOuts: Int, ID: Int)
    *            Registers                      *
    *===========================================*/
   // Left Input
-  val Input_R = Reg(new CustomDataBundle((UInt((Src.ieeeWidth).W))))
+  val Input_R = RegInit(CustomDataBundle.default((UInt((Src.ieeeWidth).W))))
   val Input_valid_R = RegInit(false.B)
 
   val task_ID_R = RegNext(next = enable_R.taskID)
 
   //Output register
-  val out_data_R = Reg(new CustomDataBundle((UInt((Src.ieeeWidth).W))))
+  val out_data_R = RegInit(CustomDataBundle.default((UInt((Src.ieeeWidth).W))))
 
   val s_IDLE :: s_COMPUTE :: Nil = Enum(2)
   val state = RegInit(s_IDLE)
