@@ -45,8 +45,8 @@ abstract trait CoreParams {
   val mshrlen = p(MSHRLEN)
   val Ftyp    = p(FTYP)
   // Debugging dumps
-  val log      = p(TRACE)
-  val clog     = p(CTRACE)
+  val log     = p(TRACE)
+  val clog    = p(CTRACE)
   val verb    = p(VERBOSITY)
   val comp    = p(COMPONENTS)
 
@@ -56,38 +56,95 @@ abstract class CoreBundle(implicit val p: Parameters) extends ParameterizedBundl
 
 
 class MiniConfig extends Config((site, here, up) => {
-    // Core
-    case XLEN       => 32
-    case TLEN       => 10
-    case GLEN       => 16
-    // # Max bits of cache request tag.
-    case MSHRLEN  => 8
-    case TYPSZ      => 64
-    case VERBOSITY  => "low"
-    //    case COMPONENTS => "TYPLOAD;TYPOP;TYPSTORE"
-    case COMPONENTS => ""
-    // Max size of type memory system may see
-    case TRACE => true
-    case CTRACE => false
-    case BuildRFile => (p: Parameters) => Module(new RFile(32)(p))
+  // Core
+  case XLEN => 32
+  case TLEN => 10
+  case GLEN => 16
+  // # Max bits of cache request tag.
+  case MSHRLEN => 8
+  case TYPSZ => 64
+  case VERBOSITY => "low"
+  //    case COMPONENTS => "TYPLOAD;TYPOP;TYPSTORE"
+  case COMPONENTS => ""
+  // Max size of type memory system may see
+  case TRACE => true
+  case CTRACE => false
+  case BuildRFile => (p: Parameters) => Module(new RFile(32)(p))
 
-    //-------------------------
-    // Cache
-    case NWays => 1 // TODO: set-associative
-    case NSets => 256
-    case CacheBlockBytes => 4 * (here(XLEN) >> 3) // 4 x 32 bits = 16B
-    // NastiIO
-    case NastiKey => new NastiParameters(
-      idBits   = 12,
-      dataBits = 32,
-      addrBits = 32)
+  //-------------------------
+  // Cache
+  case NWays => 1 // TODO: set-associative
+  case NSets => 256
+  case CacheBlockBytes => 4 * (here(XLEN) >> 3) // 4 x 32 bits = 16B
+  // NastiIO
+  case NastiKey => new NastiParameters(
+    idBits = 12,
+    dataBits = 32,
+    addrBits = 32)
 
-       case FTYP => site(XLEN) match {
-        case 32 => S
-        case 64 => D
-        case 16 => H
-        case _ => S
-    }
+  case FTYP => site(XLEN) match {
+    case 32 => S
+    case 64 => D
+    case 16 => H
+    case _ => S
+  }
+
+  //-------------------------
+  // Cache
+  case NWays => 1 // TODO: set-associative
+  case NSets => 256
+  case CacheBlockBytes => 4 * (here(XLEN) >> 3) // 4 x 32 bits = 16B
+  // NastiIO
+  case NastiKey => new NastiParameters(
+    idBits = 12,
+    dataBits = 32,
+    addrBits = 32)
+
+  case FTYP => site(XLEN) match {
+    case 32 => S
+    case 64 => D
+    case 16 => H
+    case _ => S
+  }
+
+}
+
+)
+
+
+class Mat_VecConfig extends Config((site, here, up) => {
+  // Core
+  case XLEN => 16
+  case TLEN => 10
+  case GLEN => 16
+  // # Max bits of cache request tag.
+  case MSHRLEN => 8
+  case TYPSZ => 64
+  case VERBOSITY => "low"
+  //    case COMPONENTS => "TYPLOAD;TYPOP;TYPSTORE"
+  case COMPONENTS => ""
+  // Max size of type memory system may see
+  case TRACE => true
+  case CTRACE => false
+  case BuildRFile => (p: Parameters) => Module(new RFile(32)(p))
+
+  //-------------------------
+  // Cache
+  case NWays => 1 // TODO: set-associative
+  case NSets => 256
+  case CacheBlockBytes => 4 * (here(XLEN) >> 3) // 4 x 32 bits = 16B
+  // NastiIO
+  case NastiKey => new NastiParameters(
+    idBits = 12,
+    dataBits = 32,
+    addrBits = 32)
+
+  case FTYP => site(XLEN) match {
+    case 32 => S
+    case 64 => D
+    case 16 => H
+    case _ => S
+  }
 
   //-------------------------
   // Cache

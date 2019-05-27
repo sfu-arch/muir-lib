@@ -13,6 +13,19 @@ import muxes._
 import util._
 
 
+class scalar()(implicit p: Parameters) extends Numbers {
+  val data = UInt(xlen.W)
+
+  override def cloneType = new scalar( ).asInstanceOf[this.type]
+}
+
+class FPscalar(val t: FType)(implicit p: Parameters) extends Numbers {
+  val data = UInt(t.ieeeWidth.W)
+
+  override def cloneType = new FPscalar(t).asInstanceOf[this.type]
+}
+
+
 object Mat_X_OpCode {
   val Add = 1
   val Sub = 2
@@ -78,6 +91,7 @@ object operation_mixed_matNxN {
       }
     }
 
+
   }
 
   def addition[T](l: matNxN, r: T)(implicit op: OperatorMat_X[T], p: Parameters): matNxN = op.addition(l, r)
@@ -86,31 +100,22 @@ object operation_mixed_matNxN {
 
   def multiplication[T](l: matNxN, r: T)(implicit op: OperatorMat_X[T], p: Parameters): T = op.multiplication(l, r)
 
-  def getWidth[T <: Numbers](opCode: String, l: T, r: T)(implicit p: Parameters): T = {
-    require(!Mat_X_OpCode.opMap.get(opCode).isEmpty)
-    Mat_X_OpCode.opMap.getOrElse(opCode, 0) match {
-      case Mat_X_OpCode.Add => l
-      case Mat_X_OpCode.Sub => l
-      case Mat_X_OpCode.Mul => r
-      case 0 => l
-    }
-  }
 }
 
 import operation_mixed_matNxN._
 
-class OperatorMat_XModule[T <: Numbers : OperatorMat_X](left: => matNxN, right: => T, val opCode: String)(implicit val p: Parameters) extends Module {
+class OperatorMat_XModule[T <: Numbers : OperatorMat_X, T2 <: Numbers](left: => matNxN, right: => T, output: => T2, val opCode: String)(implicit val p: Parameters) extends Module {
   val io          = IO(new Bundle {
     val a = Flipped(Valid(left))
     val b = Flipped(Valid(right))
-    val o = Some(Output(Valid(operation_mixed_matNxN.getWidth(opCode, left, right))))
+    val o = Output(Valid(output))
   })
   val ScalarOrVec = right.getClass.getName
-  if (!(ScalarOrVec.contains("vec") || ScalarOrVec.contains("UInt"))) {
+  if (!(ScalarOrVec.contains("vec") || ScalarOrVec.contains("scalar"))) {
     assert(false, "Right operand. Only scalar or vector!")
   }
 
-  io.o.get.valid := io.a.valid && io.b.valid
+  io.o.valid := io.a.valid && io.b.valid
 
 
   val aluOp = Array(
@@ -121,7 +126,7 @@ class OperatorMat_XModule[T <: Numbers : OperatorMat_X](left: => matNxN, right: 
 
   assert(!AluOpCode.opMap.get(opCode).isEmpty, "Wrong matrix OP. Check operator!")
 
-  io.o.get.bits := AluGenerator(AluOpCode.opMap(opCode), aluOp)
+  io.o.bits := AluGenerator(AluOpCode.opMap(opCode), aluOp)
 
 }
 
@@ -137,7 +142,7 @@ class Mat_X_ComputeIO[T <: Numbers : OperatorMat_X, T2 <: Numbers](NumOuts: Int)
 }
 
 class Mat_X_Compute[T <: Numbers : OperatorMat_X, T2 <: Numbers](NumOuts: Int, ID: Int, opCode: String)(sign: Boolean)(left: => matNxN, right: => T)(output: => T2)(implicit p: Parameters)
-  extends HandShakingNPS(NumOuts, ID)(new CustomDataBundle(UInt(output.getWidth)))(p) {
+  extends HandShakingNPS(NumOuts, ID)(new CustomDataBundle(UInt(output.getWidth.W)))(p) {
   override lazy val io = IO(new Mat_X_ComputeIO(NumOuts)(left, right)(output))
 
   /*===========================================*
@@ -201,15 +206,16 @@ class Mat_X_Compute[T <: Numbers : OperatorMat_X, T2 <: Numbers](NumOuts: Int, I
    *            ACTIONS (possibly dangerous)    *
    *============================================*/
 
-  val FU = Module(new OperatorMat_XModule(left, right, opCode))
+  val FU = Module(new OperatorMat_XModule(left, right, output, opCode))
 
   FU.io.a.bits := (left_R.data).asTypeOf(left)
   FU.io.b.bits := (right_R.data).asTypeOf(right)
-  data_R.data := (FU.io.o.get.bits).asTypeOf(UInt(output.getWidth.W))
+  data_R.data := (FU.io.o.bits).asTypeOf(UInt(output.getWidth.W))
+  data_R.predicate := predicate
   pred_R := predicate
   FU.io.a.valid := left_R.valid
   FU.io.b.valid := right_R.valid
-  data_R.valid := FU.io.o.get.valid
+  data_R.valid := FU.io.o.valid
   //  This is written like this to enable FUs that are dangerous in the future.
   // If you don't start up then no value passed into function
   when(start & predicate & state =/= s_COMPUTE) {
@@ -229,10 +235,8 @@ class Mat_X_Compute[T <: Numbers : OperatorMat_X, T2 <: Numbers](NumOuts: Int, I
     state := s_idle
   }
 
+  printf(p"\n Predicate ${predicate} Left ${left_R} Right ${right_R} Output: ${data_R}")
 
-  printf(p"${
-    left_R
-  }")
   var classname: String = (left.getClass).toString
   var signed            = if (sign == true) "S" else "U"
   override val printfSigil =

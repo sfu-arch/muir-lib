@@ -32,7 +32,13 @@ class matNxN(val N: Int)(implicit p: Parameters) extends Numbers {
 }
 
 class FPmatNxN(val N: Int, val t: FType)(implicit p: Parameters) extends Numbers {
-  val data = Vec(N, Vec(N, UInt(xlen.W)))
+  val data = Vec(N, Vec(N, UInt(t.ieeeWidth.W)))
+
+  override def cloneType = new FPmatNxN(N, t).asInstanceOf[this.type]
+}
+
+class FPvecN(val N: Int, val t: FType)(implicit p: Parameters) extends Numbers {
+  val data = Vec(N, UInt(t.ieeeWidth.W))
 
   override def cloneType = new FPmatNxN(N, t).asInstanceOf[this.type]
 }
