@@ -4,6 +4,7 @@ import FPU.{FPUALU, FType}
 import chisel3._
 import chisel3.iotesters.{ChiselFlatSpec, Driver, OrderedDecoupledHWIOTester, PeekPokeTester}
 import chisel3.Module
+import chisel3.core.FixedPoint
 import chisel3.testers._
 import chisel3.util._
 import org.scalatest.{FlatSpec, Matchers}
@@ -30,6 +31,19 @@ class matNxN(val N: Int)(implicit p: Parameters) extends Numbers {
 
   override def cloneType = new matNxN(N).asInstanceOf[this.type]
 }
+
+class FXmatNxN(val N: Int, val fraction: Int)(implicit p: Parameters) extends Numbers {
+  val data = Vec(N, Vec(N, FixedPoint(xlen.W, fraction.BP)))
+
+  override def cloneType = new matNxN(N).asInstanceOf[this.type]
+}
+
+class FXvecN(val N: Int, val fraction: Int)(implicit p: Parameters) extends Numbers {
+  val data = Vec(N, FixedPoint(xlen.W, fraction.BP))
+
+  override def cloneType = new FXvecN(N, fraction).asInstanceOf[this.type]
+}
+
 
 class FPmatNxN(val N: Int, val t: FType)(implicit p: Parameters) extends Numbers {
   val data = Vec(N, Vec(N, UInt(t.ieeeWidth.W)))

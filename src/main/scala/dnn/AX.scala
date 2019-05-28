@@ -1,9 +1,11 @@
-package node
+package dnn
 
 import FPU.{FPUALU, FType}
 import chisel3._
+import chisel3.experimental.FixedPoint
 import chisel3.iotesters.{ChiselFlatSpec, Driver, OrderedDecoupledHWIOTester, PeekPokeTester}
 import chisel3.Module
+import chisel3.core.FixedPoint
 import chisel3.testers._
 import chisel3.util._
 import org.scalatest.{FlatSpec, Matchers}
@@ -11,12 +13,25 @@ import config._
 import interfaces._
 import muxes._
 import util._
+import node._
+
+class scalar()(implicit p: Parameters) extends Numbers {
+  val data = UInt(xlen.W)
+
+  override def cloneType = new scalar( ).asInstanceOf[this.type]
+}
 
 
-object Mat_X_OpCode {
-  val Add = 1
-  val Sub = 2
-  val Mul = 3
+object MatOrVec_Scalar_OpCode {
+  val Add   = 1
+  val Sub   = 2
+  val Mul   = 3
+  val Magic = 4
+
+  def foo(a: UInt, b: UInt): UInt = {
+    a + b
+  }
+
 
   val opMap  = Map(
     "Add" -> Add,
@@ -24,91 +39,106 @@ object Mat_X_OpCode {
     "Sub" -> Sub,
     "sub" -> Sub,
     "Mul" -> Mul,
-    "mul" -> Mul
+    "mul" -> Mul,
+    "magic" -> Magic,
+    "Magic" -> Magic
   )
-  val length = 3
+  val length = 4
 }
 
 import node.AluGenerator
 
-object operation_mixed_matNxN {
+object operation_matNxN {
 
-  trait OperatorMat_X[T] {
-    def addition(l: matNxN, r: T)(implicit p: Parameters): matNxN
+  trait OperatorMatOrVec_Scalar[T] {
+    def addition(l: T, r: scalar)(implicit p: Parameters): T
 
-    def subtraction(l: matNxN, r: T)(implicit p: Parameters): matNxN
+    def subtraction(l: T, r: scalar)(implicit p: Parameters): T
 
-    def multiplication(l: matNxN, r: T)(implicit p: Parameters): T
+    def multiplication(l: T, r: scalar)(implicit p: Parameters): T
+
+    def magic(l: T, r: scalar, f_op: (UInt, UInt) => UInt)(implicit p: Parameters): T
   }
 
-  object OperatorMat_X {
+  object OperatorMatOrVec_Scalar {
 
-    implicit object matNxN_vecN extends OperatorMat_X[vecN] {
-      def addition(l: matNxN, r: vecN)(implicit p: Parameters): matNxN = {
+    implicit object matNxN_scalar extends OperatorMatOrVec_Scalar[matNxN] {
+      def addition(l: matNxN, r: scalar)(implicit p: Parameters): matNxN = {
         val x = Wire(new matNxN(l.N))
         for (i <- 0 until l.N) {
           for (j <- 0 until l.N) {
-            x.data(i)(j) := l.data(i)(j) + r.data(j)
+            x.data(i)(j) := l.data(i)(j) + r.data
           }
         }
         x
       }
 
-      def subtraction(l: matNxN, r: vecN)(implicit p: Parameters): matNxN = {
+      def subtraction(l: matNxN, r: scalar)(implicit p: Parameters): matNxN = {
         val x = Wire(new matNxN(l.N))
         for (i <- 0 until l.N) {
           for (j <- 0 until l.N) {
-            x.data(i)(j) := l.data(i)(j) - r.data(j)
+            x.data(i)(j) := l.data(i)(j) - r.data
           }
         }
         x
       }
 
-      def multiplication(l: matNxN, r: vecN)(implicit p: Parameters): vecN = {
-        val x = Wire(new vecN(l.N))
-        val products = for (i <- 0 until l.N) yield {
-          for (j <- 0 until l.N) yield {
-            l.data(i)(j) * r.data(j)
+      def multiplication(l: matNxN, r: scalar)(implicit p: Parameters): matNxN = {
+        val x = Wire(new matNxN(l.N))
+        for (i <- 0 until l.N) {
+          for (j <- 0 until l.N) {
+            x.data(i)(j) := l.data(i)(j) * r.data
           }
         }
+        x
+      }
+
+      def magic(l: matNxN, r: scalar, f_op: (UInt, UInt) => UInt)(implicit p: Parameters): matNxN = {
+        val x = Wire(new matNxN(l.N))
         for (i <- 0 until l.N) {
-          x.data(i) := products(i).reduceLeft(_ + _)
+          for (j <- 0 until l.N) {
+            x.data(i)(j) := f_op(l.data(i)(j), r.data)
+          }
         }
         x
       }
     }
 
-
   }
 
-  def addition[T](l: matNxN, r: T)(implicit op: OperatorMat_X[T], p: Parameters): matNxN = op.addition(l, r)
+  def addition[T](l: T, r: scalar)(implicit op: OperatorMatOrVec_Scalar[T], p: Parameters): T = op.addition(l, r)
 
-  def subtraction[T](l: matNxN, r: T)(implicit op: OperatorMat_X[T], p: Parameters): matNxN = op.subtraction(l, r)
+  def subtraction[T](l: T, r: scalar)(implicit op: OperatorMatOrVec_Scalar[T], p: Parameters): T = op.subtraction(l, r)
 
-  def multiplication[T](l: matNxN, r: T)(implicit op: OperatorMat_X[T], p: Parameters): T = op.multiplication(l, r)
+  def multiplication[T](l: T, r: scalar)(implicit op: OperatorMatOrVec_Scalar[T], p: Parameters): T = op.multiplication(l, r)
+
+  def magic[T](l: T, r: scalar, f_op: (UInt, UInt) => UInt)(implicit op: OperatorMatOrVec_Scalar[T], p: Parameters): T = op.magic(l, r, f_op)
 
 }
 
-import operation_mixed_matNxN._
 
-class OperatorMat_XModule[T <: Numbers : OperatorMat_X, T2 <: Numbers](left: => matNxN, right: => T, output: => T2, val opCode: String)(implicit val p: Parameters) extends Module {
+import operation_matNxN._
+
+class OperatorMatOrVec_ScalarModule[T <: Numbers : OperatorMatOrVec_Scalar](left: => T, right: => scalar, val opCode: String, f_op: (UInt, UInt) => UInt = MatOrVec_Scalar_OpCode.foo)(implicit val p: Parameters) extends Module {
   val io          = IO(new Bundle {
     val a = Flipped(Valid(left))
     val b = Flipped(Valid(right))
-    val o = Output(Valid(output))
+    val o = Output(Valid(left))
   })
   val ScalarOrVec = right.getClass.getName
-  if (!(ScalarOrVec.contains("vec") || ScalarOrVec.contains("scalar"))) {
-    assert(false, "Right operand. Only scalar or vector!")
+  if (!(ScalarOrVec.contains("scalar"))) {
+    assert(false, "Right operand. Only scalar!")
   }
+  require(right.getWidth == scala.math.sqrt(left.getWidth))
 
   io.o.valid := io.a.valid && io.b.valid
 
-
   val aluOp = Array(
-    AluOpCode.Add -> (addition(io.a.bits, io.b.bits)),
-    AluOpCode.Sub -> (subtraction(io.a.bits, io.b.bits)),
-    AluOpCode.Mul -> (multiplication(io.a.bits, io.b.bits))
+    MatOrVec_Scalar_OpCode.Add -> (addition(io.a.bits, io.b.bits)),
+    MatOrVec_Scalar_OpCode.Sub -> (subtraction(io.a.bits, io.b.bits)),
+    MatOrVec_Scalar_OpCode.Mul -> (multiplication(io.a.bits, io.b.bits)),
+    MatOrVec_Scalar_OpCode.Magic -> (magic(io.a.bits, io.b.bits, f_op)
+      )
   )
 
   assert(!AluOpCode.opMap.get(opCode).isEmpty, "Wrong matrix OP. Check operator!")
@@ -117,7 +147,8 @@ class OperatorMat_XModule[T <: Numbers : OperatorMat_X, T2 <: Numbers](left: => 
 
 }
 
-class Mat_X_ComputeIO[T <: Numbers : OperatorMat_X, T2 <: Numbers](NumOuts: Int)(left: => matNxN, right: => T)(output: => T2)(implicit p: Parameters)
+
+class MatOrVec_Scalar_ComputeIO[T <: Numbers : OperatorMatOrVec_Scalar](NumOuts: Int)(left: => T, right: => scalar)(output: => T)(implicit p: Parameters)
   extends HandShakingIONPS(NumOuts)(new CustomDataBundle(UInt(output.getWidth))) {
   // LeftIO: Left input data for computation
   val LeftIO = Flipped(Decoupled(new CustomDataBundle(UInt((left.getWidth).W))))
@@ -125,12 +156,12 @@ class Mat_X_ComputeIO[T <: Numbers : OperatorMat_X, T2 <: Numbers](NumOuts: Int)
   // RightIO: Right input data for computation
   val RightIO = Flipped(Decoupled(new CustomDataBundle(UInt((right.getWidth).W))))
 
-  override def cloneType = new Mat_X_ComputeIO(NumOuts)(left, right)(output).asInstanceOf[this.type]
+  override def cloneType = new MatOrVec_Scalar_ComputeIO(NumOuts)(left, right)(output).asInstanceOf[this.type]
 }
 
-class Mat_X_Compute[T <: Numbers : OperatorMat_X, T2 <: Numbers](NumOuts: Int, ID: Int, opCode: String)(sign: Boolean)(left: => matNxN, right: => T)(output: => T2)(implicit p: Parameters)
+class MatOrVec_Scalar_Compute[T <: Numbers : OperatorMatOrVec_Scalar, T2 <: Numbers](NumOuts: Int, ID: Int, opCode: String)(sign: Boolean)(left: => T, right: => scalar)(output: => T)(implicit p: Parameters)
   extends HandShakingNPS(NumOuts, ID)(new CustomDataBundle(UInt(output.getWidth.W)))(p) {
-  override lazy val io = IO(new Mat_X_ComputeIO(NumOuts)(left, right)(output))
+  override lazy val io = IO(new MatOrVec_Scalar_ComputeIO(NumOuts)(left, right)(output))
 
   /*===========================================*
  *            Registers                      *
@@ -193,8 +224,7 @@ class Mat_X_Compute[T <: Numbers : OperatorMat_X, T2 <: Numbers](NumOuts: Int, I
    *            ACTIONS (possibly dangerous)    *
    *============================================*/
 
-  val FU = Module(new OperatorMat_XModule(left, right, output, opCode))
-
+  val FU = Module(new OperatorMatOrVec_ScalarModule(left, right, opCode))
   FU.io.a.bits := (left_R.data).asTypeOf(left)
   FU.io.b.bits := (right_R.data).asTypeOf(right)
   data_R.data := (FU.io.o.bits).asTypeOf(UInt(output.getWidth.W))
