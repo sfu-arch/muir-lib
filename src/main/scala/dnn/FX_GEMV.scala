@@ -8,26 +8,28 @@ import chisel3.testers._
 import chisel3.util._
 import org.scalatest.{FlatSpec, Matchers}
 import config._
+import dnn.operation_mixed_FXmatNxN.OperatorFXmat_X.FXmatNxN_FXvecN
 import interfaces._
 import muxes._
 import util._
 import node._
-
 import node.AluGenerator
+import org.antlr.v4.runtime.atn.SemanticContext.Operator
 
 object operation_mixed_FXmatNxN {
 
-  trait OperatorFXmat_X[T] {
-    def addition(l: FXmatNxN, r: T)(implicit p: Parameters): FXmatNxN
+  trait OperatorFXmat_X[T, T2] {
+    def addition(l: T, r: T2)(implicit p: Parameters): T
 
-    def subtraction(l: FXmatNxN, r: T)(implicit p: Parameters): FXmatNxN
+    def subtraction(l: T, r: T2)(implicit p: Parameters): T
 
-    def multiplication(l: FXmatNxN, r: T)(implicit p: Parameters): T
+    def multiplication(l: T, r: T2)(implicit p: Parameters): T2
+
   }
 
   object OperatorFXmat_X {
 
-    implicit object FXmatNxN_FXvecN extends OperatorFXmat_X[FXvecN] {
+    implicit object FXmatNxN_FXvecN extends OperatorFXmat_X[FXmatNxN, FXvecN] {
       def addition(l: FXmatNxN, r: FXvecN)(implicit p: Parameters): FXmatNxN = {
         val x = Wire(new FXmatNxN(l.N, l.fraction))
         for (i <- 0 until l.N) {
@@ -49,7 +51,7 @@ object operation_mixed_FXmatNxN {
       }
 
       def multiplication(l: FXmatNxN, r: FXvecN)(implicit p: Parameters): FXvecN = {
-        val x = Wire(new FXvecN(l.N, l.fraction))
+        val x = Wire(new FXvecN(r.N, r.fraction))
         val products = for (i <- 0 until l.N) yield {
           for (j <- 0 until l.N) yield {
             l.data(i)(j) * r.data(j)
@@ -60,48 +62,58 @@ object operation_mixed_FXmatNxN {
         }
         x
       }
+
     }
 
 
   }
 
-  def addition[T](l: FXmatNxN, r: T)(implicit op: OperatorFXmat_X[T], p: Parameters): FXmatNxN = op.addition(l, r)
+  def addFX[T, U](l: T, r: U)(implicit op: OperatorFXmat_X[T, U], p: Parameters): T = op.addition(l, r)
 
-  def subtraction[T](l: FXmatNxN, r: T)(implicit op: OperatorFXmat_X[T], p: Parameters): FXmatNxN = op.subtraction(l, r)
-
-  def multiplication[T](l: FXmatNxN, r: T)(implicit op: OperatorFXmat_X[T], p: Parameters): T = op.multiplication(l, r)
-
+  def getfns(l: => Numbers, R: => Numbers)(implicit p: Parameters): Array[(Int, Numbers)] = {
+    val aluOp = Array(
+      Mat_X_OpCode.Add -> (implicitly[OperatorFXmat_X[FXmatNxN, FXvecN]].
+        addition(l.asInstanceOf[FXmatNxN], R.asInstanceOf[FXvecN])),
+      Mat_X_OpCode.Sub -> (implicitly[OperatorFXmat_X[FXmatNxN, FXvecN]].
+        subtraction(l.asInstanceOf[FXmatNxN], R.asInstanceOf[FXvecN])),
+      Mat_X_OpCode.Sub -> (implicitly[OperatorFXmat_X[FXmatNxN, FXvecN]].
+        multiplication(l.asInstanceOf[FXmatNxN], R.asInstanceOf[FXvecN])))
+    aluOp
+  }
 }
 
 import operation_mixed_FXmatNxN._
 
-class OperatorFXmat_XModule[T <: Numbers : OperatorFXmat_X, T2 <: Numbers](left: => FXmatNxN, right: => T, output: => T2, val opCode: String)(implicit val p: Parameters) extends Module {
-  val io          = IO(new Bundle {
-    val a = Flipped(Valid(left))
-    val b = Flipped(Valid(right))
-    val o = Output(Valid(output))
+
+class OperatorFXmat_XModule[L <: Numbers, R <: Numbers, O <: Numbers](left: => L, right: => R, output: => O, val opCode: String)(implicit val p: Parameters) extends Module {
+  val io     = IO(new Bundle {
+    val a      = Flipped(Valid(left))
+    val b      = Flipped(Valid(right))
+    val o      = Output(Valid(output))
+    val active = Input(Bool( ))
   })
-  val ScalarOrVec = right.getClass.getName
-  if (!(ScalarOrVec.contains("vec"))) {
+  // Check if right is vec
+  val is_vec = right.getClass.getName
+  if (!(is_vec.contains("vec"))) {
     assert(false, "Right operand. Only vector!")
   }
 
-  io.o.valid := io.a.valid && io.b.valid
 
-
-  val aluOp = Array(
-    Mat_X_OpCode.Add -> (addition(io.a.bits, io.b.bits)),
-    Mat_X_OpCode.Sub -> (subtraction(io.a.bits, io.b.bits)),
-    Mat_X_OpCode.Mul -> (multiplication(io.a.bits, io.b.bits))
-  )
+  val aluOp = operation_mixed_FXmatNxN.getfns(io.a.bits, io.b.bits)
 
   assert(!Mat_X_OpCode.opMap.get(opCode).isEmpty, "Wrong matrix OP. Check operator!")
 
+  // Replace with counter.
+  val (latCnt, latDone) = Counter(io.active, 2)
+  io.o.valid := latDone
+
+  printf(p"\n Count: ${latCnt} ${io.a.valid} ${io.b.valid}")
+  val start = io.a.valid && io.b.valid
   io.o.bits := AluGenerator(Mat_X_OpCode.opMap(opCode), aluOp)
 
 }
 
-class FXmat_X_ComputeIO[T <: Numbers : OperatorFXmat_X, T2 <: Numbers](NumOuts: Int)(left: => FXmatNxN, right: => T)(output: => T2)(implicit p: Parameters)
+class FXMat_X_ComputeIO[L <: Numbers, R <: Numbers, O <: Numbers](NumOuts: Int)(left: => L, right: => R)(output: => O)(implicit p: Parameters)
   extends HandShakingIONPS(NumOuts)(new CustomDataBundle(UInt(output.getWidth))) {
   // LeftIO: Left input data for computation
   val LeftIO = Flipped(Decoupled(new CustomDataBundle(UInt((left.getWidth).W))))
@@ -109,12 +121,12 @@ class FXmat_X_ComputeIO[T <: Numbers : OperatorFXmat_X, T2 <: Numbers](NumOuts: 
   // RightIO: Right input data for computation
   val RightIO = Flipped(Decoupled(new CustomDataBundle(UInt((right.getWidth).W))))
 
-  override def cloneType = new FXmat_X_ComputeIO(NumOuts)(left, right)(output).asInstanceOf[this.type]
+  override def cloneType = new FXMat_X_ComputeIO(NumOuts)(left, right)(output).asInstanceOf[this.type]
 }
 
-class FXmat_X_Compute[T <: Numbers : OperatorFXmat_X, T2 <: Numbers](NumOuts: Int, ID: Int, opCode: String)(sign: Boolean)(left: => FXmatNxN, right: => T)(output: => T2)(implicit p: Parameters)
+class FXMat_X_Compute[L <: Numbers, R <: Numbers, O <: Numbers](NumOuts: Int, ID: Int, opCode: String)(sign: Boolean)(left: => L, right: R)(output: => O)(implicit p: Parameters)
   extends HandShakingNPS(NumOuts, ID)(new CustomDataBundle(UInt(output.getWidth.W)))(p) {
-  override lazy val io = IO(new FXmat_X_ComputeIO(NumOuts)(left, right)(output))
+  override lazy val io = IO(new FXMat_X_ComputeIO(NumOuts)(left, right)(output))
 
   /*===========================================*
  *            Registers                      *
@@ -128,8 +140,8 @@ class FXmat_X_Compute[T <: Numbers : OperatorFXmat_X, T2 <: Numbers](NumOuts: In
   // Output register
   val data_R = RegInit(CustomDataBundle.default(0.U((output.getWidth).W)))
 
-  val s_idle :: s_LATCH :: s_COMPUTE :: Nil = Enum(3)
-  val state                                 = RegInit(s_idle)
+  val s_idle :: s_LATCH :: s_ACTIVE :: s_COMPUTE :: Nil = Enum(4)
+  val state                                             = RegInit(s_idle)
 
   /*==========================================*
    *           Predicate Evaluation           *
@@ -178,26 +190,35 @@ class FXmat_X_Compute[T <: Numbers : OperatorFXmat_X, T2 <: Numbers](NumOuts: In
    *============================================*/
 
   val FU = Module(new OperatorFXmat_XModule(left, right, output, opCode))
-
+  FU.io.active := false.B
   FU.io.a.bits := (left_R.data).asTypeOf(left)
   FU.io.b.bits := (right_R.data).asTypeOf(right)
   data_R.data := (FU.io.o.bits).asTypeOf(UInt(output.getWidth.W))
   data_R.predicate := predicate
   pred_R := predicate
-  FU.io.a.valid := left_R.valid
-  FU.io.b.valid := right_R.valid
+  FU.io.a.valid := false.B
+  FU.io.b.valid := false.B
   data_R.valid := FU.io.o.valid
   //  This is written like this to enable FUs that are dangerous in the future.
   // If you don't start up then no value passed into function
-  when(start & predicate & state =/= s_COMPUTE) {
-    state := s_COMPUTE
+  when(start & predicate && ((state === s_idle) || (state === s_LATCH))) {
+
+    FU.io.a.valid := true.B
+    FU.io.b.valid := true.B
+    state := s_ACTIVE
+    FU.io.active := true.B
     // Next cycle it will become valid.
-    ValidOut( )
-  }.elsewhen(start && !predicate && state =/= s_COMPUTE) {
+  }.elsewhen(start && !predicate && ((state === s_idle) || (state === s_LATCH))) {
     state := s_COMPUTE
     ValidOut( )
   }
-
+  when(state === s_ACTIVE) {
+    FU.io.active := true.B
+    when(FU.io.o.valid) {
+      ValidOut( )
+      state := s_COMPUTE
+    }
+  }
   when(IsOutReady( ) && state === s_COMPUTE) {
     left_R := CustomDataBundle.default(0.U((left.getWidth).W))
     right_R := CustomDataBundle.default(0.U((right.getWidth).W))
@@ -206,7 +227,7 @@ class FXmat_X_Compute[T <: Numbers : OperatorFXmat_X, T2 <: Numbers](NumOuts: In
     state := s_idle
   }
 
-  printf(p"\n Predicate ${predicate} Left ${left_R} Right ${right_R} Output: ${data_R}")
+  printf(p"\n State : ${state} Predicate ${predicate} Left ${left_R} Right ${right_R} Output: ${data_R}")
 
   var classname: String = (left.getClass).toString
   var signed            = if (sign == true) "S" else "U"

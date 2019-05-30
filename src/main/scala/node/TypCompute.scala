@@ -35,7 +35,7 @@ class matNxN(val N: Int)(implicit p: Parameters) extends Numbers {
 class FXmatNxN(val N: Int, val fraction: Int)(implicit p: Parameters) extends Numbers {
   val data = Vec(N, Vec(N, FixedPoint(xlen.W, fraction.BP)))
 
-  override def cloneType = new matNxN(N).asInstanceOf[this.type]
+  override def cloneType = new FXmatNxN(N, fraction).asInstanceOf[this.type]
 }
 
 class FXvecN(val N: Int, val fraction: Int)(implicit p: Parameters) extends Numbers {
