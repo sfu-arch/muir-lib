@@ -38,6 +38,7 @@ class OperatorMatVecModule[L <: Numbers, R <: Numbers, O <: Numbers](left: => L,
 
   printf(p"\n Count: ${latCnt} ${io.a.valid} ${io.b.valid}")
   val start = io.a.valid && io.b.valid
+
   io.o.bits := AluGenerator(Mat_X_OpCode.opMap(opCode), aluOp)
 
 }

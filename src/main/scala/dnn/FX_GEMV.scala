@@ -100,26 +100,56 @@ object operation_GEMV {
 
   }
 
-  def addFX[T, U](l: T, r: U)(implicit op: OperatorMatVec[T, U], p: Parameters): T = op.addition(l, r)
+  def getfns(l: => Numbers, r: => Numbers)(implicit p: Parameters): Array[(Int, Numbers)] = {
+    val lclass = l.getClass.getSimpleName
+    val rclass = r.getClass.getSimpleName
+    val parse = "(.*)(mat|vec|Bit)([a-zA-Z]*)".r
 
-  def getfns(l: => Numbers, R: => Numbers)(implicit p: Parameters): Array[(Int, Numbers)] = {
-    val aluOp = if (true) {
-      Array(
-        Mat_X_OpCode.Add -> (implicitly[OperatorMatVec[FXmatNxN, FXvecN]].
-          addition(l.asInstanceOf[FXmatNxN], R.asInstanceOf[FXvecN])),
-        Mat_X_OpCode.Sub -> (implicitly[OperatorMatVec[FXmatNxN, FXvecN]].
-          subtraction(l.asInstanceOf[FXmatNxN], R.asInstanceOf[FXvecN])),
-        Mat_X_OpCode.Sub -> (implicitly[OperatorMatVec[FXmatNxN, FXvecN]].
-          multiplication(l.asInstanceOf[FXmatNxN], R.asInstanceOf[FXvecN])))
-    } else {
-      Array(
-        Mat_X_OpCode.Add -> (implicitly[OperatorMatVec[matNxN, vecN]].
-          addition(l.asInstanceOf[matNxN], R.asInstanceOf[vecN])),
-        Mat_X_OpCode.Sub -> (implicitly[OperatorMatVec[matNxN, vecN]].
-          subtraction(l.asInstanceOf[matNxN], R.asInstanceOf[vecN])),
-        Mat_X_OpCode.Sub -> (implicitly[OperatorMatVec[matNxN, vecN]].
-          multiplication(l.asInstanceOf[matNxN], R.asInstanceOf[vecN])))
-    }
+    val parse(ltype, lshape, lsize) = lclass
+    val parse(rtype, rshape, rsize) = rclass
+
+    print(ltype + rtype + lshape + rshape + lsize + rsize)
+
+    //    Check the type of left and right operand are the same
+    require(ltype == rtype)
+    //    Check that the left operand is matrix and the right operand is vector.
+    require(lshape == "mat" && (rshape == "vec" || rshape == "Bits"))
+
+    val aluOp =
+      if (ltype == "FX") {
+        Array(
+          Mat_X_OpCode.Add -> (implicitly[OperatorMatVec[FXmatNxN, FXvecN]
+            ].
+            addition(l.asInstanceOf[FXmatNxN], r.asInstanceOf[FXvecN])
+            ),
+          Mat_X_OpCode.Sub -> (implicitly[OperatorMatVec[FXmatNxN, FXvecN]].
+            subtraction(l.asInstanceOf[FXmatNxN], r.asInstanceOf[FXvecN]))
+          ,
+          Mat_X_OpCode.Mul -> (implicitly[OperatorMatVec[FXmatNxN, FXvecN]].
+            multiplication(l.asInstanceOf[FXmatNxN], r.asInstanceOf[FXvecN]))
+        )
+      } else if (ltype == "") {
+        Array(
+          Mat_X_OpCode.Add -> (implicitly[OperatorMatVec[matNxN, vecN]
+            ].
+            addition(l.asInstanceOf[matNxN], r.asInstanceOf[vecN])
+            ),
+          Mat_X_OpCode.Sub -> (implicitly[OperatorMatVec[matNxN, vecN]].
+            subtraction(l.asInstanceOf[matNxN], r.asInstanceOf[vecN]))
+          ,
+          Mat_X_OpCode.Mul -> (implicitly[OperatorMatVec[matNxN, vecN]].
+            multiplication(l.asInstanceOf[matNxN], r.asInstanceOf[vecN]))
+        )
+      } else {
+        Array(
+          0 -> (implicitly[OperatorMatVec[matNxN, vecN]
+            ].
+            addition(l.asInstanceOf[matNxN], r.asInstanceOf[vecN])
+            ),
+          1 -> (implicitly[OperatorMatVec[matNxN, vecN]].
+            multiplication(l.asInstanceOf[matNxN], r.asInstanceOf[vecN]))
+        )
+      }
     aluOp
   }
 }
