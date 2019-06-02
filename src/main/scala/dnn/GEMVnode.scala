@@ -28,9 +28,8 @@ class OperatorMatVecModule[L <: Numbers, R <: Numbers, O <: Numbers](left: => L,
   }
 
 
-  val aluOp = operation_GEMV.getfns(io.a.bits, io.b.bits)
-
-  assert(!Mat_X_OpCode.opMap.get(opCode).isEmpty, "Wrong matrix OP. Check operator!")
+  val aluOp = GEMV_fns.getfns(io.a.bits, io.b.bits)
+  require(!GEMV_OpCode.opMap.get(opCode).isEmpty, "Wrong matrix OP. Check operator!")
 
   // Replace with counter.
   val (latCnt, latDone) = Counter(io.active, 2)
@@ -39,7 +38,7 @@ class OperatorMatVecModule[L <: Numbers, R <: Numbers, O <: Numbers](left: => L,
   printf(p"\n Count: ${latCnt} ${io.a.valid} ${io.b.valid}")
   val start = io.a.valid && io.b.valid
 
-  io.o.bits := AluGenerator(Mat_X_OpCode.opMap(opCode), aluOp)
+  io.o.bits := AluGenerator(GEMV_OpCode.opMap(opCode), aluOp)
 
 }
 
