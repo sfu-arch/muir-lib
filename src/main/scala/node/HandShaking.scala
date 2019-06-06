@@ -144,8 +144,7 @@ class HandShakingCtrlNoMaskIO(val NumOuts: Int)(implicit p: Parameters)
 ==============================================================*/
 
 /**
-  * @brief Handshaking between data nodes with no ordering.
-  * @details Sets up base registers and hand shaking registers
+  * @brief Handshaking between data nodes with no ordering.* @details Sets up base registers and hand shaking registers
   * @param NumOuts Number of outputs
   * @param ID      Node id
   * @return Module

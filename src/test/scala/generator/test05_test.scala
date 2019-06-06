@@ -12,7 +12,7 @@ import helpers._
 class test05Main(implicit p: Parameters) extends AccelIO(List(32), List(32)) {
 
   val cache = Module(new Cache) // Simple Nasti Cache
-  //val memModel = Module(new NastiInitMemSlave()()) // Model of DRAM to connect to Cache
+//  val memModel = Module(new NastiInitMemSlave()()) // Model of DRAM to connect to Cache
   val memModel = Module(new NastiMemSlave()) // Model of DRAM to connect to Cache
 
 

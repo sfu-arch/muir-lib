@@ -12,7 +12,10 @@ import muxes._
 import util._
 import utility.UniformPrintfs
 
-
+import scala.util.parsing.json.JSONFormat
+//////////////////////////////////////////////////////////////////
+import java.io._
+///////////////////////////////////////////////////////////
 class ComputeNodeIO(NumOuts: Int)
                    (implicit p: Parameters)
   extends HandShakingIONPS(NumOuts)(new DataBundle) {
@@ -103,6 +106,10 @@ class ComputeNode(NumOuts: Int, ID: Int, opCode: String)
    *============================================*/
   switch(state) {
     is(s_IDLE) {
+      //if (log) {
+       // printf("[Parmida LOG] " + "[" + module_name + "] " + "State is idle " +
+       //   node_name+"\n")
+      //}
       when(enable_valid_R) {
         when(left_valid_R && right_valid_R) {
           ValidOut()
@@ -120,6 +127,10 @@ class ComputeNode(NumOuts: Int, ID: Int, opCode: String)
       }
     }
     is(s_COMPUTE) {
+      if (log) {
+        printf("[Parmida LOG] " + "[" + module_name + "] " + "ComputeNode Active with the operation" +
+          node_name + "\n")
+      }
       when(IsOutReady()) {
         // Reset data
         //left_R := DataBundle.default
@@ -283,6 +294,12 @@ class ComputeFastNode(NumOuts: Int, ID: Int, opCode: String)
         state := s_fire
 
         if (log) {
+          //////////////////////////////////////////////////////////////////////////////////
+          val pw = new PrintWriter(new File("parmidatest.txt" ))
+          val string = f"[LOG] " + "[" + module_name + "] " + "[TID->%d] " + node_name + ": Output fired @" + task_input + cycleCount + FU.io.out.asSInt() + left_input.asSInt() + right_input.asSInt()
+          pw.write(string)
+          pw.close
+          ///////////////////////////////////////////////////////////////////////////////////////////////////////
           printf(f"[LOG] " + "[" + module_name + "] " + "[TID->%d] "
             + node_name + ": Output fired @ %d, Value: %d (%d + %d)\n",
             task_input, cycleCount, FU.io.out.asSInt(), left_input.asSInt(), right_input.asSInt())
