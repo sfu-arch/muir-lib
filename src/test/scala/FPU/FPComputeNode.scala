@@ -18,12 +18,9 @@ import util._
 import interfaces._
 
 
-
-
-
 // Tester.
 class FPComputeNodeTester(df: FPComputeNode)
-                  (implicit p: config.Parameters) extends PeekPokeTester(df)  {
+                         (implicit p: config.Parameters) extends PeekPokeTester(df) {
 
 
   poke(df.io.LeftIO.bits.data, 0x40800000.U)
@@ -34,7 +31,7 @@ class FPComputeNodeTester(df: FPComputeNode)
   poke(df.io.RightIO.valid, false.B)
   poke(df.io.RightIO.bits.predicate, false.B)
 
-  poke(df.io.enable.bits.control , false.B)
+  poke(df.io.enable.bits.control, false.B)
   poke(df.io.enable.valid, false.B)
   poke(df.io.Out(0).ready, false.B)
   println(s"Output: ${peek(df.io.Out(0))}\n")
@@ -42,7 +39,7 @@ class FPComputeNodeTester(df: FPComputeNode)
 
   step(1)
 
-  poke(df.io.enable.bits.control , true.B)
+  poke(df.io.enable.bits.control, true.B)
   poke(df.io.enable.valid, true.B)
   poke(df.io.Out(0).ready, true.B)
 
@@ -58,23 +55,23 @@ class FPComputeNodeTester(df: FPComputeNode)
   step(1)
 
 
-  for( i <- 0 until 10){
+  for (i <- 0 until 10) {
     println(s"Output: ${peek(df.io.Out(0))}\n")
 
     println(s"t: ${i}\n -------------------------------------")
     step(1)
-  } 
+  }
 }
 
-class FPComputeTests extends  FlatSpec with Matchers {
-   implicit val p = config.Parameters.root((new SinglePrecisionFPConfig).toInstance)
+class FPComputeTests extends FlatSpec with Matchers {
+  implicit val p = config.Parameters.root((new SinglePrecisionFPConfig).toInstance)
   it should "FP MAC tester" in {
-     chisel3.iotesters.Driver(
-       () => new FPComputeNode(NumOuts = 1, ID = 0, opCode = "Mul")(t = S)) {
-       c => new FPComputeNodeTester(c)
-     } should be(true)
-   }
- }
+    chisel3.iotesters.Driver(
+      () => new FPComputeNode(NumOuts = 1, ID = 0, opCode = "Mac")(t = S)) {
+      c => new FPComputeNodeTester(c)
+    } should be(true)
+  }
+}
 
 
 

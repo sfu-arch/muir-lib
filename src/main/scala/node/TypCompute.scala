@@ -19,7 +19,7 @@ import scala.reflect.runtime.universe._
 class Numbers(implicit p: Parameters) extends CoreBundle( )(p) {
 }
 
-class vecN(val N: Int)(implicit p: Parameters) extends Numbers {
+class vecN(val N: Int, val isCol: Int = 0)(implicit p: Parameters) extends Numbers {
   val data = Vec(N, UInt(xlen.W))
 
   override def cloneType = new vecN(N).asInstanceOf[this.type]
@@ -38,7 +38,7 @@ class FXmatNxN(val N: Int, val fraction: Int)(implicit p: Parameters) extends Nu
   override def cloneType = new FXmatNxN(N, fraction).asInstanceOf[this.type]
 }
 
-class FXvecN(val N: Int, val fraction: Int)(implicit p: Parameters) extends Numbers {
+class FXvecN(val N: Int, val fraction: Int, val isCol: Int = 0)(implicit p: Parameters) extends Numbers {
   val data = Vec(N, FixedPoint(xlen.W, fraction.BP))
 
   override def cloneType = new FXvecN(N, fraction).asInstanceOf[this.type]
@@ -51,7 +51,7 @@ class FPmatNxN(val N: Int, val t: FType)(implicit p: Parameters) extends Numbers
   override def cloneType = new FPmatNxN(N, t).asInstanceOf[this.type]
 }
 
-class FPvecN(val N: Int, val t: FType)(implicit p: Parameters) extends Numbers {
+class FPvecN(val N: Int, val t: FType, val isCol: Int = 0)(implicit p: Parameters) extends Numbers {
   val data = Vec(N, UInt(t.ieeeWidth.W))
 
   override def cloneType = new FPmatNxN(N, t).asInstanceOf[this.type]

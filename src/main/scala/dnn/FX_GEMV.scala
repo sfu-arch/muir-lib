@@ -38,6 +38,8 @@ trait OperatorGEMV[T, T2] {
 
   def multiplication(l: T, r: T2)(implicit p: Parameters): T2
 
+  def getfns(l: Numbers, r: Numbers)(implicit p: Parameters): Array[(Int, Numbers)]
+
 }
 
 object OperatorGEMV {
@@ -47,7 +49,11 @@ object OperatorGEMV {
       val x = Wire(new FXmatNxN(l.N, l.fraction))
       for (i <- 0 until l.N) {
         for (j <- 0 until l.N) {
-          x.data(i)(j) := l.data(i)(j) + r.data(j)
+          if (r.isCol == 0) {
+            x.data(i)(j) := l.data(i)(j) + r.data(j)
+          } else {
+            x.data(i)(j) := l.data(i)(j) + r.data(i)
+          }
         }
       }
       x
@@ -57,7 +63,11 @@ object OperatorGEMV {
       val x = Wire(new FXmatNxN(l.N, l.fraction))
       for (i <- 0 until l.N) {
         for (j <- 0 until l.N) {
-          x.data(i)(j) := l.data(i)(j) - r.data(j)
+          if (r.isCol == 0) {
+            x.data(i)(j) := l.data(i)(j) - r.data(j)
+          } else {
+            x.data(i)(j) := l.data(i)(j) - r.data(i)
+          }
         }
       }
       x
@@ -76,6 +86,13 @@ object OperatorGEMV {
       x
     }
 
+    def getfns(l: Numbers, r: Numbers)(implicit p: Parameters): Array[(Int, Numbers)] = {
+      Array(
+        GEMV_OpCode.Add -> addition(l.asInstanceOf[FXmatNxN], r.asInstanceOf[FXvecN]),
+        GEMV_OpCode.Sub -> subtraction(l.asInstanceOf[FXmatNxN], r.asInstanceOf[FXvecN]),
+        GEMV_OpCode.Mul -> multiplication(l.asInstanceOf[FXmatNxN], r.asInstanceOf[FXvecN])
+      )
+    }
   }
 
   implicit object matNxN_vecN extends OperatorGEMV[matNxN, vecN] {
@@ -83,7 +100,11 @@ object OperatorGEMV {
       val x = Wire(new matNxN(l.N))
       for (i <- 0 until l.N) {
         for (j <- 0 until l.N) {
-          x.data(i)(j) := l.data(i)(j) + r.data(j)
+          if (r.isCol == 0) {
+            x.data(i)(j) := l.data(i)(j) + r.data(j)
+          } else {
+            x.data(i)(j) := l.data(i)(j) + r.data(i)
+          }
         }
       }
       x
@@ -93,7 +114,11 @@ object OperatorGEMV {
       val x = Wire(new matNxN(l.N))
       for (i <- 0 until l.N) {
         for (j <- 0 until l.N) {
-          x.data(i)(j) := l.data(i)(j) - r.data(j)
+          if (r.isCol == 0) {
+            x.data(i)(j) := l.data(i)(j) - r.data(j)
+          } else {
+            x.data(i)(j) := l.data(i)(j) - r.data(i)
+          }
         }
       }
       x
@@ -110,6 +135,14 @@ object OperatorGEMV {
         x.data(i) := products(i).reduceLeft(_ + _)
       }
       x
+    }
+
+    def getfns(l: Numbers, r: Numbers)(implicit p: Parameters): Array[(Int, Numbers)] = {
+      Array(
+        GEMV_OpCode.Add -> addition(l.asInstanceOf[matNxN], r.asInstanceOf[vecN]),
+        GEMV_OpCode.Sub -> subtraction(l.asInstanceOf[matNxN], r.asInstanceOf[vecN]),
+        GEMV_OpCode.Mul -> multiplication(l.asInstanceOf[matNxN], r.asInstanceOf[vecN])
+      )
     }
   }
 
@@ -134,46 +167,36 @@ object GEMV_fns {
 
     val aluOp =
       if (ltype == "FX") {
-        Array(
-          GEMV_OpCode.Add -> (implicitly[OperatorGEMV[FXmatNxN, FXvecN]
-            ].
-            addition(l.asInstanceOf[FXmatNxN], r.asInstanceOf[FXvecN])
-            ),
-          GEMV_OpCode.Sub -> (implicitly[OperatorGEMV[FXmatNxN, FXvecN]].
-            subtraction(l.asInstanceOf[FXmatNxN], r.asInstanceOf[FXvecN]))
-          ,
-          GEMV_OpCode.Mul -> (implicitly[OperatorGEMV[FXmatNxN, FXvecN]].
-            multiplication(l.asInstanceOf[FXmatNxN], r.asInstanceOf[FXvecN]))
-        )
+        implicitly[OperatorGEMV[FXmatNxN, FXvecN]].getfns(l, r)
       } else if (ltype == "") {
-        Array(
-          GEMV_OpCode.Add -> (implicitly[OperatorGEMV[matNxN, vecN]
-            ].
-            addition(l.asInstanceOf[matNxN], r.asInstanceOf[vecN])
-            ),
-          GEMV_OpCode.Sub -> (implicitly[OperatorGEMV[matNxN, vecN]].
-            subtraction(l.asInstanceOf[matNxN], r.asInstanceOf[vecN]))
-          ,
-          GEMV_OpCode.Mul -> (implicitly[OperatorGEMV[matNxN, vecN]].
-            multiplication(l.asInstanceOf[matNxN], r.asInstanceOf[vecN]))
-        )
+        implicitly[OperatorGEMV[matNxN, vecN]].getfns(l, r)
+        //        Array(
+        //          GEMV_OpCode.Add -> (implicitly[OperatorGEMV[matNxN, vecN]
+        //            ].
+        //            addition(l.asInstanceOf[matNxN], r.asInstanceOf[vecN])
+        //            ),
+        //          GEMV_OpCode.Sub -> (implicitly[OperatorGEMV[matNxN, vecN]].
+        //            subtraction(l.asInstanceOf[matNxN], r.asInstanceOf[vecN]))
+        //          ,
+        //          GEMV_OpCode.Mul -> (implicitly[OperatorGEMV[matNxN, vecN]].
+        //            multiplication(l.asInstanceOf[matNxN], r.asInstanceOf[vecN]))
+        //        )
       } else if (ltype == "FP") {
+        implicitly[OperatorGEMV[FPmatNxN, FPvecN]].getfns(l, r)
+        //        Array(
+        //          GEMV_OpCode.Add -> (implicitly[OperatorGEMV[FPmatNxN, FPvecN]].
+        //            addition(l.asInstanceOf[FPmatNxN], r.asInstanceOf[FPvecN])),
+        //          GEMV_OpCode.Sub -> (implicitly[OperatorGEMV[FPmatNxN, FPvecN]].
+        //            subtraction(l.asInstanceOf[FPmatNxN], r.asInstanceOf[FPvecN]))
+        //          ,
+        //          GEMV_OpCode.Mul -> (implicitly[OperatorGEMV[FPmatNxN, FPvecN]].
+        //            multiplication(l.asInstanceOf[FPmatNxN], r.asInstanceOf[FPvecN]))
+        //        )
+      } else { // You should never get here. Just a default.
         Array(
-          GEMV_OpCode.Add -> (implicitly[OperatorGEMV[FPmatNxN, FPvecN]].
-            addition(l.asInstanceOf[FPmatNxN], r.asInstanceOf[FPvecN])),
-          GEMV_OpCode.Sub -> (implicitly[OperatorGEMV[FPmatNxN, FPvecN]].
-            subtraction(l.asInstanceOf[FPmatNxN], r.asInstanceOf[FPvecN]))
-          ,
-          GEMV_OpCode.Mul -> (implicitly[OperatorGEMV[FPmatNxN, FPvecN]].
-            multiplication(l.asInstanceOf[FPmatNxN], r.asInstanceOf[FPvecN]))
-        )
-      } else {
-        Array(
-          0 -> (implicitly[OperatorGEMV[matNxN, vecN]
-            ].
-            addition(l.asInstanceOf[matNxN], r.asInstanceOf[vecN])
-            ),
-          1 -> (implicitly[OperatorGEMV[matNxN, vecN]].
+          GEMV_OpCode.Add -> (implicitly[OperatorGEMV[matNxN, vecN]].
+            addition(l.asInstanceOf[matNxN], r.asInstanceOf[vecN])),
+          GEMV_OpCode.Mul -> (implicitly[OperatorGEMV[matNxN, vecN]].
             multiplication(l.asInstanceOf[matNxN], r.asInstanceOf[vecN]))
         )
       }

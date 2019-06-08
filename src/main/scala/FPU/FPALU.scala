@@ -75,7 +75,7 @@ object FPAluOpCode {
   val Mul = 3
   val Mac = 4
 
-  val opMap = Map(
+  val opMap  = Map(
     "Add" -> Add,
     "fadd" -> Add,
     "add" -> Add,
@@ -124,6 +124,9 @@ class FPUALU(val xlen: Int, val opCode: String, t: FType) extends Module {
   val io = IO(new Bundle {
     val in1 = Input(UInt(xlen.W))
     val in2 = Input(UInt(xlen.W))
+    val in3 = if (FPAluOpCode.opMap(opCode) == FPAluOpCode.Mac)
+      Some(Input(UInt(xlen.W))) else None
+
     val out = Output(UInt(xlen.W))
   })
 
@@ -157,7 +160,7 @@ class FPUALU(val xlen: Int, val opCode: String, t: FType) extends Module {
         mulAddRecFN.io.op := 0.U
         mulAddRecFN.io.a := in1RecFN
         mulAddRecFN.io.b := in2RecFN
-        mulAddRecFN.io.c := dummy0.io.out
+        mulAddRecFN.io.c := in3RecFN
       }
     }
   }
@@ -181,14 +184,21 @@ class FPUALU(val xlen: Int, val opCode: String, t: FType) extends Module {
   /* Recode inputs into ieee format */
   val in1RecFN = t.recode(io.in1)
   val in2RecFN = t.recode(io.in2)
+  print(FPAluOpCode.opMap(opCode))
+  print("Opcode    +" + FPAluOpCode.Mac)
 
+  val in3RecFN    = if (FPAluOpCode.opMap(opCode) == FPAluOpCode.Mac) {
+    t.recode(io.in3.get)
+  } else {
+    dummy0.io.out
+  }
   val mulAddRecFN = Module(new MulAddRecFN(t.expWidth, t.sigWidth))
   mulAddRecFN.io.roundingMode := "b110".U(3.W)
   mulAddRecFN.io.detectTininess := 0.U(1.W)
 
   assert(!FPAluOpCode.opMap.get(opCode).isEmpty, "Wrong ALU OP!")
 
-  FPUControl()
+  FPUControl( )
   io.out := t.ieee(mulAddRecFN.io.out)
 
   // printf(p"${Hexadecimal(io.out)}")
