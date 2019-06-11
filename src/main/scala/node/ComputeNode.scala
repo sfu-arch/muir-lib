@@ -11,6 +11,7 @@ import interfaces._
 import muxes._
 import util._
 import utility.UniformPrintfs
+import log._
 
 import scala.util.parsing.json.JSONFormat
 //////////////////////////////////////////////////////////////////
@@ -34,7 +35,7 @@ class ComputeNode(NumOuts: Int, ID: Int, opCode: String)
                  (implicit p: Parameters,
                   name: sourcecode.Name,
                   file: sourcecode.File)
-  extends HandShakingNPS(NumOuts, ID)(new DataBundle())(p) {
+  extends HandShakingNPS(NumOuts, ID)(new DataBundle())(p) with logClass {
   override lazy val io = IO(new ComputeNodeIO(NumOuts))
 
   // Printf debugging
@@ -66,7 +67,7 @@ class ComputeNode(NumOuts: Int, ID: Int, opCode: String)
 
 
   val predicate = enable_R.control
-
+  //printLog()
   /*===============================================*
    *            Latch inputs. Wire up output       *
    *===============================================*/
@@ -127,10 +128,6 @@ class ComputeNode(NumOuts: Int, ID: Int, opCode: String)
       }
     }
     is(s_COMPUTE) {
-      if (log) {
-        printf("[Parmida LOG] " + "[" + module_name + "] " + "ComputeNode Active with the operation" +
-          node_name + "\n")
-      }
       when(IsOutReady()) {
         // Reset data
         //left_R := DataBundle.default
@@ -144,6 +141,7 @@ class ComputeNode(NumOuts: Int, ID: Int, opCode: String)
 
         Reset()
         if (log) {
+          printfLog("THIS is a test\n")
           printf("[LOG] " + "[" + module_name + "] " + "[TID->%d] [COMPUTE] " +
             node_name + ": Output fired @ %d, Value: %d (%d + %d)\n", task_ID_R, cycleCount, FU.io.out, left_R.data, right_R.data)
         }

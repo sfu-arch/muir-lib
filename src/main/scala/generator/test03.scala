@@ -22,9 +22,9 @@ import stack._
 import util._
 
 
-  /* ================================================================== *
-   *                   PRINTING PORTS DEFINITION                        *
-   * ================================================================== */
+/* ================================================================== *
+ *                   PRINTING PORTS DEFINITION                        *
+ * ================================================================== */
 
 abstract class test03DFIO(implicit val p: Parameters) extends Module with CoreParams {
   val io = IO(new Bundle {
@@ -46,7 +46,7 @@ class test03DF(implicit p: Parameters) extends test03DFIO()(p) {
   io.MemReq <> DontCare
   io.MemResp <> DontCare
 
-  val InputSplitter = Module(new SplitCallNew(List(1, 1)))
+  val InputSplitter = Module(new SplitCallNew(List(3, 3)))
   InputSplitter.io.In <> io.in
 
 
@@ -61,7 +61,7 @@ class test03DF(implicit p: Parameters) extends test03DFIO()(p) {
    *                   PRINTING BASICBLOCK NODES                        *
    * ================================================================== */
 
-  val bb_entry0 = Module(new BasicBlockNoMaskFastNode(NumInputs = 1, NumOuts = 2, BID = 0))
+  val bb_0 = Module(new BasicBlockNoMaskFastNode(NumInputs = 1, NumOuts = 9, BID = 0))
 
 
 
@@ -69,11 +69,26 @@ class test03DF(implicit p: Parameters) extends test03DFIO()(p) {
    *                   PRINTING INSTRUCTION NODES                       *
    * ================================================================== */
 
-  //  %0 = add i32 %b, %a, !dbg !22, !UID !23
-  val binaryOp_0 = Module(new ComputeNode(NumOuts = 1, ID = 0, opCode = "add")(sign = false))
+  //  %3 = icmp slt i32 %1, %0, !UID !3
+  val icmp_0 = Module(new IcmpNode(NumOuts = 2, ID = 0, opCode = "ult")(sign = false))
 
-  //  ret i32 %0, !dbg !24, !UID !25, !BB_UID !26
-  val ret_1 = Module(new RetNode2(retTypes = List(32), ID = 1))
+  //  %4 = select i1 %3, i32 %1, i32 0, !UID !4
+  val select_1 = Module(new SelectNode(NumOuts = 1, ID = 1))
+
+  //  %5 = sub nsw i32 %0, %4, !UID !5
+  val binaryOp_2 = Module(new ComputeNode(NumOuts = 1, ID = 2, opCode = "sub")(sign = false))
+
+  //  %6 = select i1 %3, i32 0, i32 %0, !UID !6
+  val select_3 = Module(new SelectNode(NumOuts = 1, ID = 3))
+
+  //  %7 = sub nsw i32 %1, %6, !UID !7
+  val binaryOp_4 = Module(new ComputeNode(NumOuts = 1, ID = 4, opCode = "sub")(sign = false))
+
+  //  %8 = mul nsw i32 %5, %7, !UID !8
+  val binaryOp_5 = Module(new ComputeNode(NumOuts = 1, ID = 5, opCode = "mul")(sign = false))
+
+  //  ret i32 %8, !UID !9, !BB_UID !10
+  val ret_6 = Module(new RetNode2(retTypes = List(32), ID = 6))
 
 
 
@@ -81,13 +96,19 @@ class test03DF(implicit p: Parameters) extends test03DFIO()(p) {
    *                   PRINTING CONSTANTS NODES                         *
    * ================================================================== */
 
+  //i32 0
+  val const0 = Module(new ConstFastNode(value = 0, ID = 0))
+
+  //i32 0
+  val const1 = Module(new ConstFastNode(value = 0, ID = 1))
+
 
 
   /* ================================================================== *
    *                   BASICBLOCK -> PREDICATE INSTRUCTION              *
    * ================================================================== */
 
-  bb_entry0.io.predicateIn(0) <> InputSplitter.io.Out.enable
+  bb_0.io.predicateIn(0) <> InputSplitter.io.Out.enable
 
 
 
@@ -155,10 +176,23 @@ class test03DF(implicit p: Parameters) extends test03DFIO()(p) {
    *                   BASICBLOCK -> ENABLE INSTRUCTION                 *
    * ================================================================== */
 
-  binaryOp_0.io.enable <> bb_entry0.io.Out(0)
+  const0.io.enable <> bb_0.io.Out(0)
 
+  const1.io.enable <> bb_0.io.Out(1)
 
-  ret_1.io.In.enable <> bb_entry0.io.Out(1)
+  icmp_0.io.enable <> bb_0.io.Out(2)
+
+  select_1.io.enable <> bb_0.io.Out(3)
+
+  binaryOp_2.io.enable <> bb_0.io.Out(4)
+
+  select_3.io.enable <> bb_0.io.Out(5)
+
+  binaryOp_4.io.enable <> bb_0.io.Out(6)
+
+  binaryOp_5.io.enable <> bb_0.io.Out(7)
+
+  ret_6.io.In.enable <> bb_0.io.Out(8)
 
 
 
@@ -191,11 +225,35 @@ class test03DF(implicit p: Parameters) extends test03DFIO()(p) {
    *                   CONNECTING DATA DEPENDENCIES                     *
    * ================================================================== */
 
-  ret_1.io.In.data("field0") <> binaryOp_0.io.Out(0)
+  select_1.io.InData2 <> const0.io.Out
 
-  binaryOp_0.io.RightIO <> InputSplitter.io.Out.data.elements("field0")(0)
+  select_3.io.InData1 <> const1.io.Out
 
-  binaryOp_0.io.LeftIO <> InputSplitter.io.Out.data.elements("field1")(0)
+  select_1.io.Select <> icmp_0.io.Out(0)
+
+  select_3.io.Select <> icmp_0.io.Out(1)
+
+  binaryOp_2.io.RightIO <> select_1.io.Out(0)
+
+  binaryOp_5.io.LeftIO <> binaryOp_2.io.Out(0)
+
+  binaryOp_4.io.RightIO <> select_3.io.Out(0)
+
+  binaryOp_5.io.RightIO <> binaryOp_4.io.Out(0)
+
+  ret_6.io.In.data("field0") <> binaryOp_5.io.Out(0)
+
+  icmp_0.io.RightIO <> InputSplitter.io.Out.data.elements("field0")(0)
+
+  binaryOp_2.io.LeftIO <> InputSplitter.io.Out.data.elements("field0")(1)
+
+  select_3.io.InData2 <> InputSplitter.io.Out.data.elements("field0")(2)
+
+  icmp_0.io.LeftIO <> InputSplitter.io.Out.data.elements("field1")(0)
+
+  select_1.io.InData1 <> InputSplitter.io.Out.data.elements("field1")(1)
+
+  binaryOp_4.io.LeftIO <> InputSplitter.io.Out.data.elements("field1")(2)
 
 
 
@@ -203,7 +261,7 @@ class test03DF(implicit p: Parameters) extends test03DFIO()(p) {
    *                   PRINTING OUTPUT INTERFACE                        *
    * ================================================================== */
 
-  io.out <> ret_1.io.Out
+  io.out <> ret_6.io.Out
 
 }
 
@@ -222,3 +280,11 @@ object test03Top extends App {
   verilogWriter.write(compiledStuff.value)
   verilogWriter.close()
 }
+
+
+
+
+
+
+
+
