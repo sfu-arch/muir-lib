@@ -104,17 +104,25 @@ class grid(val N: Int, BP: BinaryPoint = 0.BP, isFloat: Boolean = false, val t: 
       }
 
   /* PE Control */
-  val resetcnt      = WireInit(true.B)
-  val (steps, wrap) = Counter(resetcnt & io.activate, N)
-  val done_input    = RegInit(false.B)
-  when(wrap) {
-    done_input := true.B
-  }
-  resetcnt := true.B
-  when(io.activate & done_input & !io.async_reset) {
-    resetcnt := false.B
-  }
+  val s_idle :: s_ACTIVE :: s_COMPUTE :: Nil = Enum(3)
+  val state                                  = RegInit(s_idle)
 
+  val input_steps = new Counter(3 * N - 1)
+  when(state === s_idle) {
+    when(io.activate) {
+      state := s_ACTIVE
+    }
+  }.elsewhen(state === s_ACTIVE) {
+    input_steps.inc( )
+    when(input_steps.value === (N - 1).U) {
+      state := s_COMPUTE
+    }
+  }.elsewhen(state === s_COMPUTE) {
+    input_steps.inc( )
+    when(input_steps.value === ((3 * N) - 2).U) {
+      state := s_idle
+    }
+  }
 
   val io_lefts = for (i <- 0 until N) yield
     for (j <- 0 until N) yield {
@@ -128,12 +136,12 @@ class grid(val N: Int, BP: BinaryPoint = 0.BP, isFloat: Boolean = false, val t: 
 
 
   val left_muxes = for (i <- 0 until N) yield {
-    val mx = MuxLookup(steps, 0.U, io_lefts(i))
+    val mx = MuxLookup(input_steps.value, 0.U, io_lefts(i))
     mx
   }
 
   val top_muxes = for (i <- 0 until N) yield {
-    val mx = MuxLookup(steps, 0.U, io_rights(i))
+    val mx = MuxLookup(input_steps.value, 0.U, io_rights(i))
     mx
   }
 
@@ -160,21 +168,21 @@ class grid(val N: Int, BP: BinaryPoint = 0.BP, isFloat: Boolean = false, val t: 
     PEs(i)(0).io.Left.valid := false.B
   }
 
-  when(io.activate & !done_input) {
+  when(state === s_ACTIVE) {
     for (i <- 0 until N) {
       PEs(0)(i).io.Top.valid := true.B
       PEs(i)(0).io.Left.valid := true.B
     }
   }
 
-  printf("\nGrid  %d\n ", steps)
+  printf("\nGrid  %d %d\n ", input_steps.value, state)
+  printf(p"1.U, 1.U ${Hexadecimal(PEs(1)(1).io.Out.bits)}")
   for (i <- 0 until N) {
     for (j <- 0 until N) {
       io.output(i * (N) + j) <> PEs(i)(j).io.Out.bits
-      printf(" [%d %d] %x ", i.U, j.U, PEs(i)(j).io.Out.bits)
-      when(io.async_reset) {
+      when(state === s_idle) {
         PEs(i)(j).reset := true.B
-        done_input := false.B
+        //        done_input := false.B
       }
     }
     //    printf("\n")

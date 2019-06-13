@@ -28,14 +28,9 @@ class FX_SystolicTests(df: grid)(implicit p: config.Parameters) extends PeekPoke
   poke(df.io.right(3), 0x140)
 
   poke(df.io.activate, true.B)
-  poke(df.io.async_reset, false.B)
-  step(4)
-  poke(df.io.activate, false.B)
-  poke(df.io.async_reset, true.B)
   step(1)
-  poke(df.io.activate, true.B)
-  poke(df.io.async_reset, false.B)
-  step(4)
+  poke(df.io.activate, false.B)
+  step(6)
   for (i <- 0 until df.N * df.N) {
     //  print(peek(df.io.output(i)) + ",")
   }
