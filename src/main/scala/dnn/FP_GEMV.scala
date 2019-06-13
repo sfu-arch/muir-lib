@@ -14,62 +14,6 @@ import util._
 import node._
 import utility.UniformPrintfs
 
-class PEIO()(implicit p: Parameters) extends CoreBundle( )(p) {
-  // LeftIO: Left input data for computation
-  val Left = Input(UInt(xlen.W))
-
-  // RightIO: Right input data for computation
-  val Top = Input(UInt(xlen.W))
-
-  val Right = Output(UInt(xlen.W))
-
-  val Bottom = Output(UInt(xlen.W))
-
-  val Out = Output(UInt(xlen.W))
-
-}
-
-
-class PE(t: FType, left_delay: Int, top_delay: Int)(implicit val p: Parameters)
-  extends Module with CoreParams with UniformPrintfs {
-  val io = IO(new PEIO)
-
-  val top_reg  = Pipe(true.B, io.Top, latency = top_delay)
-  val left_reg = Pipe(true.B, io.Left, latency = left_delay)
-
-  val FU          = Module(new FPUALU(xlen, "Mac", t))
-  val accumalator = RegNext(next = FU.io.out, init = 0.U)
-
-  FU.io.in1 := top_reg
-  FU.io.in2 := left_reg
-  FU.io.in3.get := accumalator
-
-  io.Right := left_reg
-  io.Bottom := top_reg
-}
-
-class systolic(val N: Int, t: FType)()(implicit val p: Parameters)
-  extends Module with CoreParams with UniformPrintfs {
-
-  val io = IO(new Bundle {})
-
-  val grid = for (i <- 0 until N - 1) yield {
-    for (j <- 0 until N - 1) yield {
-      val FPadd =
-        if (i == 0 && j == 0) {
-          Module(new PE(t, top_delay = 0, left_delay = 0))
-        } else if (i == 0) {
-          Module(new PE(t, top_delay = i, left_delay = 1))
-        } else if (j == 0) {
-          Module(new PE(t, top_delay = 1, left_delay = i))
-        }
-        else {
-          Module(new PE(t, top_delay = 1, left_delay = 1))
-        }
-    }
-  }
-}
-
 object FPOperator_GEMV {
 
   implicit object FPmatNxN_FPvecN extends OperatorGEMV[FPmatNxN, FPvecN] {
