@@ -170,29 +170,10 @@ object GEMV_fns {
         implicitly[OperatorGEMV[FXmatNxN, FXvecN]].getfns(l, r)
       } else if (ltype == "") {
         implicitly[OperatorGEMV[matNxN, vecN]].getfns(l, r)
-        //        Array(
-        //          GEMV_OpCode.Add -> (implicitly[OperatorGEMV[matNxN, vecN]
-        //            ].
-        //            addition(l.asInstanceOf[matNxN], r.asInstanceOf[vecN])
-        //            ),
-        //          GEMV_OpCode.Sub -> (implicitly[OperatorGEMV[matNxN, vecN]].
-        //            subtraction(l.asInstanceOf[matNxN], r.asInstanceOf[vecN]))
-        //          ,
-        //          GEMV_OpCode.Mul -> (implicitly[OperatorGEMV[matNxN, vecN]].
-        //            multiplication(l.asInstanceOf[matNxN], r.asInstanceOf[vecN]))
-        //        )
       } else if (ltype == "FP") {
         implicitly[OperatorGEMV[FPmatNxN, FPvecN]].getfns(l, r)
-        //        Array(
-        //          GEMV_OpCode.Add -> (implicitly[OperatorGEMV[FPmatNxN, FPvecN]].
-        //            addition(l.asInstanceOf[FPmatNxN], r.asInstanceOf[FPvecN])),
-        //          GEMV_OpCode.Sub -> (implicitly[OperatorGEMV[FPmatNxN, FPvecN]].
-        //            subtraction(l.asInstanceOf[FPmatNxN], r.asInstanceOf[FPvecN]))
-        //          ,
-        //          GEMV_OpCode.Mul -> (implicitly[OperatorGEMV[FPmatNxN, FPvecN]].
-        //            multiplication(l.asInstanceOf[FPmatNxN], r.asInstanceOf[FPvecN]))
-        //        )
       } else { // You should never get here. Just a default.
+        require(0 == 1, "Unsupported type of GEMV Operands")
         Array(
           GEMV_OpCode.Add -> (implicitly[OperatorGEMV[matNxN, vecN]].
             addition(l.asInstanceOf[matNxN], r.asInstanceOf[vecN])),

@@ -15,8 +15,8 @@ import interfaces._
 
 
 // Tester.
-class FXMat_X_CompTests(df: FXMat_X_Compute[FXmatNxN, FXvecN, FXmatNxN])
-                       (implicit p: config.Parameters) extends PeekPokeTester(df) {
+class FXGEMVCompTests(df: GEMVCompute[FXmatNxN, FXvecN, FXmatNxN])
+                     (implicit p: config.Parameters) extends PeekPokeTester(df) {
   poke(df.io.enable.valid, true)
   poke(df.io.enable.bits.control, true)
 
@@ -34,12 +34,12 @@ class FXMat_X_CompTests(df: FXMat_X_Compute[FXmatNxN, FXvecN, FXmatNxN])
 }
 
 
-class FXMat_X_CompTester extends FlatSpec with Matchers {
+class FXGEMVCompTester extends FlatSpec with Matchers {
   implicit val p = config.Parameters.root((new Mat_VecConfig).toInstance)
   it should "Typ Compute Tester" in {
     chisel3.iotesters.Driver.execute(Array("--backend-name", "verilator", "--target-dir", "test_run_dir"),
-      () => new FXMat_X_Compute(NumOuts = 1, ID = 0, opCode = "Add")(sign = false)(new FXmatNxN(2, 4), new FXvecN(2, 4))(new FXmatNxN(2, 4))) {
-      c => new FXMat_X_CompTests(c)
+      () => new GEMVCompute(NumOuts = 1, ID = 0, opCode = "Add")(sign = false)(new FXmatNxN(2, 4), new FXvecN(2, 4))(new FXmatNxN(2, 4))) {
+      c => new FXGEMVCompTests(c)
     } should be(true)
   }
 }

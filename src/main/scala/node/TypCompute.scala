@@ -29,11 +29,47 @@ class vecN(val N: Int, val isCol: Int = 0)(implicit p: Parameters) extends Numbe
 class matNxN(val N: Int)(implicit p: Parameters) extends Numbers {
   val data = Vec(N, Vec(N, UInt(xlen.W)))
 
+  def fromVecUInt(input: Vec[UInt]) = {
+    for (i <- 0 until N) {
+      for (j <- 0 until N) {
+        data(i)(j) := input(i * N + j)
+      }
+    }
+  }
+
+  def toVecUInt(): Vec[UInt] = {
+    val x = Wire(Vec(N * N, UInt(xlen.W)))
+    for (i <- 0 until N) {
+      for (j <- 0 until N) {
+        x(i * N + j) := data(i)(j).asUInt
+      }
+    }
+    x
+  }
+
   override def cloneType = new matNxN(N).asInstanceOf[this.type]
 }
 
 class FXmatNxN(val N: Int, val fraction: Int)(implicit p: Parameters) extends Numbers {
   val data = Vec(N, Vec(N, FixedPoint(xlen.W, fraction.BP)))
+
+  def fromVecUInt(input: Vec[UInt]) = {
+    for (i <- 0 until N) {
+      for (j <- 0 until N) {
+        data(i)(j) := input(i * N + j).asFixedPoint(fraction.BP)
+      }
+    }
+  }
+
+  def toVecUInt(): Vec[UInt] = {
+    val x = Wire(Vec(UInt(xlen.W)))
+    for (i <- 0 until N) {
+      for (j <- 0 until N) {
+        x(i * N + j) := data(i)(j).asUInt
+      }
+    }
+    x
+  }
 
   override def cloneType = new FXmatNxN(N, fraction).asInstanceOf[this.type]
 }
