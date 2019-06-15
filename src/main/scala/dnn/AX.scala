@@ -15,7 +15,7 @@ import muxes._
 import util._
 import node._
 
-class scalar()(implicit p: Parameters) extends Numbers {
+class scalar()(implicit p: Parameters) extends Shapes {
   val data = UInt(xlen.W)
 
   override def cloneType = new scalar( ).asInstanceOf[this.type]
@@ -119,7 +119,7 @@ object operation_matNxN {
 
 import operation_matNxN._
 
-class OperatorMatOrVec_ScalarModule[T <: Numbers : OperatorMatOrVec_Scalar](left: => T, right: => scalar, val opCode: String, f_op: (UInt, UInt) => UInt = MatOrVec_Scalar_OpCode.foo)(implicit val p: Parameters) extends Module {
+class OperatorMatOrVec_ScalarModule[T <: Shapes : OperatorMatOrVec_Scalar](left: => T, right: => scalar, val opCode: String, f_op: (UInt, UInt) => UInt = MatOrVec_Scalar_OpCode.foo)(implicit val p: Parameters) extends Module {
   val io          = IO(new Bundle {
     val a = Flipped(Valid(left))
     val b = Flipped(Valid(right))
@@ -148,7 +148,7 @@ class OperatorMatOrVec_ScalarModule[T <: Numbers : OperatorMatOrVec_Scalar](left
 }
 
 
-class MatOrVec_Scalar_ComputeIO[T <: Numbers : OperatorMatOrVec_Scalar](NumOuts: Int)(left: => T, right: => scalar)(output: => T)(implicit p: Parameters)
+class MatOrVec_Scalar_ComputeIO[T <: Shapes : OperatorMatOrVec_Scalar](NumOuts: Int)(left: => T, right: => scalar)(output: => T)(implicit p: Parameters)
   extends HandShakingIONPS(NumOuts)(new CustomDataBundle(UInt(output.getWidth))) {
   // LeftIO: Left input data for computation
   val LeftIO = Flipped(Decoupled(new CustomDataBundle(UInt((left.getWidth).W))))
@@ -159,7 +159,7 @@ class MatOrVec_Scalar_ComputeIO[T <: Numbers : OperatorMatOrVec_Scalar](NumOuts:
   override def cloneType = new MatOrVec_Scalar_ComputeIO(NumOuts)(left, right)(output).asInstanceOf[this.type]
 }
 
-class MatOrVec_Scalar_Compute[T <: Numbers : OperatorMatOrVec_Scalar, T2 <: Numbers](NumOuts: Int, ID: Int, opCode: String)(sign: Boolean)(left: => T, right: => scalar)(output: => T)(implicit p: Parameters)
+class MatOrVec_Scalar_Compute[T <: Shapes : OperatorMatOrVec_Scalar, T2 <: Shapes](NumOuts: Int, ID: Int, opCode: String)(sign: Boolean)(left: => T, right: => scalar)(output: => T)(implicit p: Parameters)
   extends HandShakingNPS(NumOuts, ID)(new CustomDataBundle(UInt(output.getWidth.W)))(p) {
   override lazy val io = IO(new MatOrVec_Scalar_ComputeIO(NumOuts)(left, right)(output))
 

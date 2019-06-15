@@ -60,7 +60,7 @@ object FPOperator_GEMV {
       x
     }
 
-    def getfns(l: Numbers, r: Numbers)(implicit p: Parameters): Array[(Int, Numbers)] = {
+    def getfns(l: Shapes, r: Shapes)(implicit p: Parameters): Array[(Int, Shapes)] = {
       Array(
         GEMV_OpCode.Add -> addition(l.asInstanceOf[FPmatNxN], r.asInstanceOf[FPvecN]),
         GEMV_OpCode.Sub -> subtraction(l.asInstanceOf[FPmatNxN], r.asInstanceOf[FPvecN]),

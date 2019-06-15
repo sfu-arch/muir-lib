@@ -16,27 +16,48 @@ import util._
 import node._
 import utility.UniformPrintfs
 
-trait OperatorMAC[T] {
-  def mac(l: T, r: T, c: T)(implicit p: Parameters): T
-}
+object MAC {
 
-object OperatorMAC {
-
-  implicit object UInt_MAC extends OperatorMAC[UInt] {
-    def mac(l: UInt, r: UInt, c: UInt)(implicit p: Parameters): UInt = {
-      (l * r).+(c)
-    }
+  trait OperatorMAC[T] {
+    def mac(l: T, r: T, c: T)(implicit p: Parameters): T
   }
 
-  implicit object FX_MAC extends OperatorMAC[FixedPoint] {
-    def mac(l: FixedPoint, r: FixedPoint, c: FixedPoint)(implicit p: Parameters): FixedPoint = {
-      print(l.binaryPoint.get)
-      (((l * r).+(c)) >> l.binaryPoint.get.U).asFixedPoint(l.binaryPoint)
+  object OperatorMAC {
+
+    implicit object Scalar_MAC extends OperatorMAC[Scalar] {
+      def mac(l: Scalar, r: Scalar, c: Scalar)(implicit p: Parameters): Scalar = {
+        val x = Wire(new Scalar)
+        x.data := (l.data * r.data).+(c.data)
+        x
+      }
     }
+
+    implicit object FX_MAC extends OperatorMAC[FXScalar] {
+      def mac(l: FXScalar, r: FXScalar, c: FXScalar)(implicit p: Parameters): FXScalar = {
+        val x = Wire(new FXScalar(l.fraction))
+        //        Shift here reduces the bit width.
+        val mul = ((l.data * r.data) >> l.fraction).asFixedPoint(l.fraction.BP)
+        x.data := mul + c.data
+        x
+      }
+    }
+
+    implicit object FP_MAC extends OperatorMAC[FPScalar] {
+      def mac(l: FPScalar, r: FPScalar, c: FPScalar)(implicit p: Parameters): FPScalar = {
+        val x = Wire(new FPScalar(l.Ftyp))
+        val mac = Module(new FPUALU(p(XLEN), opCode = "Mac", t = l.Ftyp))
+        mac.io.in1 := l.data
+        mac.io.in2 := r.data
+        mac.io.in3.get := c.data
+        x.data := mac.io.out
+        x
+      }
+    }
+
   }
 
+  def mac[T](l: T, r: T, c: T)(implicit op: OperatorMAC[T], p: Parameters): T = op.mac(l, r, c)
 }
-
 
 class PEIO(implicit p: Parameters) extends CoreBundle( )(p) {
   // LeftIO: Left input data for computation
@@ -54,7 +75,7 @@ class PEIO(implicit p: Parameters) extends CoreBundle( )(p) {
 }
 
 
-class PE(BP: BinaryPoint = 0.BP, isFloat: Boolean = false, val t: FType = FType.S, left_delay: Int, top_delay: Int, val row: Int, val col: Int)(implicit val p: Parameters)
+class PE[T <: Numbers : MAC.OperatorMAC](gen: T, left_delay: Int, top_delay: Int, val row: Int, val col: Int)(implicit val p: Parameters)
   extends Module with CoreParams with UniformPrintfs {
   val io = IO(new PEIO)
 
@@ -64,8 +85,7 @@ class PE(BP: BinaryPoint = 0.BP, isFloat: Boolean = false, val t: FType = FType.
   val accumalator       = RegInit(init = 0.U(xlen.W))
   val accumalator_valid = RegInit(init = false.B)
   when(top_reg.valid & left_reg.valid) {
-    accumalator := implicitly[OperatorMAC[FixedPoint]].
-      mac(left_reg.bits.asFixedPoint(BP), top_reg.bits.asFixedPoint(BP), accumalator.asFixedPoint(BP)).asUInt
+    accumalator := MAC.mac(left_reg.bits.asTypeOf(gen), top_reg.bits.asTypeOf(gen), accumalator.asTypeOf(gen)).asUInt
     accumalator_valid := top_reg.valid & left_reg.valid
   }
 
@@ -80,7 +100,7 @@ class PE(BP: BinaryPoint = 0.BP, isFloat: Boolean = false, val t: FType = FType.
 }
 
 
-class grid(val N: Int, BP: BinaryPoint = 0.BP, isFloat: Boolean = false, val t: FType = FType.S)(implicit val p: Parameters)
+class grid[T <: Numbers : MAC.OperatorMAC](gen: T, val N: Int)(implicit val p: Parameters)
   extends Module with CoreParams with UniformPrintfs {
   val io = IO(new Bundle {
     val left        = Input(Vec(N * N, UInt(xlen.W)))
@@ -94,13 +114,13 @@ class grid(val N: Int, BP: BinaryPoint = 0.BP, isFloat: Boolean = false, val t: 
     for (i <- 0 until N) yield
       for (j <- 0 until N) yield {
         if (i == 0 & j == 0)
-          Module(new PE(BP, left_delay = 0, top_delay = 0, row = 0, col = 0))
+          Module(new PE(gen, left_delay = 0, top_delay = 0, row = 0, col = 0))
         else if (j == 0)
-          Module(new PE(BP, left_delay = i, top_delay = 1, row = i, col = j))
+          Module(new PE(gen, left_delay = i, top_delay = 1, row = i, col = j))
         else if (i == 0)
-          Module(new PE(BP, left_delay = 1, top_delay = j, row = i, col = j))
+          Module(new PE(gen, left_delay = 1, top_delay = j, row = i, col = j))
         else
-          Module(new PE(BP, left_delay = 1, top_delay = 1, row = i, col = j))
+          Module(new PE(gen, left_delay = 1, top_delay = 1, row = i, col = j))
       }
 
   /* PE Control */

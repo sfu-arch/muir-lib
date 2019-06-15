@@ -14,7 +14,7 @@ import util._
 import node._
 
 
-class OperatorMatVecModule[L <: Numbers, R <: Numbers, O <: Numbers](left: => L, right: => R, output: => O, val opCode: String)(implicit val p: Parameters) extends Module {
+class OperatorMatVecModule[L <: Shapes, R <: Shapes, O <: Shapes](left: => L, right: => R, output: => O, val opCode: String)(implicit val p: Parameters) extends Module {
   val io     = IO(new Bundle {
     val a      = Flipped(Valid(left))
     val b      = Flipped(Valid(right))
@@ -42,7 +42,7 @@ class OperatorMatVecModule[L <: Numbers, R <: Numbers, O <: Numbers](left: => L,
 
 }
 
-class GEMVComputeIO[L <: Numbers, R <: Numbers, O <: Numbers](NumOuts: Int)(left: => L, right: => R)(output: => O)(implicit p: Parameters)
+class GEMVComputeIO[L <: Shapes, R <: Shapes, O <: Shapes](NumOuts: Int)(left: => L, right: => R)(output: => O)(implicit p: Parameters)
   extends HandShakingIONPS(NumOuts)(new CustomDataBundle(UInt(output.getWidth))) {
   // LeftIO: Left input data for computation
   val LeftIO = Flipped(Decoupled(new CustomDataBundle(UInt((left.getWidth).W))))
@@ -53,7 +53,7 @@ class GEMVComputeIO[L <: Numbers, R <: Numbers, O <: Numbers](NumOuts: Int)(left
   override def cloneType = new GEMVComputeIO(NumOuts)(left, right)(output).asInstanceOf[this.type]
 }
 
-class GEMVCompute[L <: Numbers, R <: Numbers, O <: Numbers](NumOuts: Int, ID: Int, opCode: String)(sign: Boolean)(left: => L, right: R)(output: => O)(implicit p: Parameters)
+class GEMVCompute[L <: Shapes, R <: Shapes, O <: Shapes](NumOuts: Int, ID: Int, opCode: String)(sign: Boolean)(left: => L, right: R)(output: => O)(implicit p: Parameters)
   extends HandShakingNPS(NumOuts, ID)(new CustomDataBundle(UInt(output.getWidth.W)))(p) {
   override lazy val io = IO(new GEMVComputeIO(NumOuts)(left, right)(output))
 

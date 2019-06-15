@@ -52,21 +52,22 @@ object GEMM {
   object OperatorGEMM {
 
     //    FX Operations
-    //    implicit object FXmatNxN extends OperatorGEMM[FXmatNxN] {
-    //      def multiplication(l: FXmatNxN, r: FXmatNxN, start: Bool)(implicit p: Parameters): FXmatNxN = {
-    //        val x = Wire(new FXmatNxN(r.N, r.fraction))
-    //        val GEMM = Module(new grid(l.N, l.fraction.BP))
-    //        GEMM.io.activate := start
-    //        l.flatten( ) zip GEMM.io.left foreach { case (a, b) => b := a }
-    //        r.flatten( ) zip GEMM.io.right foreach { case (a, b) => b := a }
-    //        x
-    //      }
-    //    }
+    implicit object FXmatNxN extends OperatorGEMM[FXmatNxN] {
+      def multiplication(l: FXmatNxN, r: FXmatNxN, start: Bool)(implicit p: Parameters): FXmatNxN = {
+        val x = Wire(new FXmatNxN(l.N, l.fraction))
+        val GEMM = Module(new grid(new FXScalar(l.fraction), l.N))
+        GEMM.io.activate := start
+        l.toVecUInt( ) zip GEMM.io.left foreach { case (a, b) => b := a }
+        r.toVecUInt( ) zip GEMM.io.right foreach { case (a, b) => b := a }
+        x.fromVecUInt(GEMM.io.output)
+        x
+      }
+    }
 
     implicit object matNxN extends OperatorGEMM[matNxN] {
       def multiplication(l: matNxN, r: matNxN, start: Bool)(implicit p: Parameters): matNxN = {
-        val x = Wire(new matNxN(r.N))
-        val GEMM = Module(new grid(l.N, 0.BP))
+        val x = Wire(new matNxN(l.N))
+        val GEMM = Module(new grid(new Scalar( ), l.N))
         GEMM.io.activate := start
         GEMM.io.async_reset := false.B
         l.toVecUInt( ) zip GEMM.io.left foreach { case (a, b) => b := a }
@@ -76,6 +77,20 @@ object GEMM {
       }
     }
 
+    implicit object FPmatNxN extends OperatorGEMM[FPmatNxN] {
+      def multiplication(l: FPmatNxN, r: FPmatNxN, start: Bool)(implicit p: Parameters): FPmatNxN = {
+        val x = Wire(new FPmatNxN(l.N, l.Ftyp))
+        val GEMM = Module(new grid(new FPScalar(l.Ftyp), l.N))
+        GEMM.io.activate := start
+        GEMM.io.async_reset := false.B
+        l.toVecUInt( ) zip GEMM.io.left foreach { case (a, b) => b := a }
+        r.toVecUInt( ) zip GEMM.io.right foreach { case (a, b) => b := a }
+        x.fromVecUInt(GEMM.io.output)
+        x
+      }
+    }
+
+
   }
 
   // Implicit functions to invoke.
@@ -83,7 +98,7 @@ object GEMM {
 }
 
 
-class OperatorGEMMModule[T <: Numbers : OperatorGEMM](operand: => T)(implicit val p: Parameters) extends Module {
+class OperatorGEMMModule[T <: Shapes : OperatorGEMM](operand: => T)(implicit val p: Parameters) extends Module {
   val io = IO(new Bundle {
     val a = Flipped(Valid(operand))
     val b = Flipped(Valid(operand))
@@ -103,7 +118,7 @@ class OperatorGEMMModule[T <: Numbers : OperatorGEMM](operand: => T)(implicit va
 
 }
 
-class GEMMComputeIO[T <: Numbers](NumOuts: Int)(operand: => T)(implicit p: Parameters)
+class GEMMComputeIO[T <: Shapes](NumOuts: Int)(operand: => T)(implicit p: Parameters)
   extends HandShakingIONPS(NumOuts)(new CustomDataBundle(UInt(operand.getWidth))) {
   // LeftIO: Left input data for computation
   val LeftIO = Flipped(Decoupled(new CustomDataBundle(UInt((operand.getWidth).W))))
@@ -114,7 +129,7 @@ class GEMMComputeIO[T <: Numbers](NumOuts: Int)(operand: => T)(implicit p: Param
   override def cloneType = new GEMMComputeIO(NumOuts)(operand).asInstanceOf[this.type]
 }
 
-class GEMMCompute[T <: Numbers : OperatorGEMM](NumOuts: Int, ID: Int)(operand: => T)(implicit p: Parameters)
+class GEMMCompute[T <: Shapes : OperatorGEMM](NumOuts: Int, ID: Int)(operand: => T)(implicit p: Parameters)
   extends HandShakingNPS(NumOuts, ID)(new CustomDataBundle(UInt(operand.getWidth.W)))(p) {
   override lazy val io = IO(new GEMMComputeIO(NumOuts)(operand))
 

@@ -38,7 +38,7 @@ trait OperatorGEMV[T, T2] {
 
   def multiplication(l: T, r: T2)(implicit p: Parameters): T2
 
-  def getfns(l: Numbers, r: Numbers)(implicit p: Parameters): Array[(Int, Numbers)]
+  def getfns(l: Shapes, r: Shapes)(implicit p: Parameters): Array[(Int, Shapes)]
 
 }
 
@@ -86,7 +86,7 @@ object OperatorGEMV {
       x
     }
 
-    def getfns(l: Numbers, r: Numbers)(implicit p: Parameters): Array[(Int, Numbers)] = {
+    def getfns(l: Shapes, r: Shapes)(implicit p: Parameters): Array[(Int, Shapes)] = {
       Array(
         GEMV_OpCode.Add -> addition(l.asInstanceOf[FXmatNxN], r.asInstanceOf[FXvecN]),
         GEMV_OpCode.Sub -> subtraction(l.asInstanceOf[FXmatNxN], r.asInstanceOf[FXvecN]),
@@ -137,7 +137,7 @@ object OperatorGEMV {
       x
     }
 
-    def getfns(l: Numbers, r: Numbers)(implicit p: Parameters): Array[(Int, Numbers)] = {
+    def getfns(l: Shapes, r: Shapes)(implicit p: Parameters): Array[(Int, Shapes)] = {
       Array(
         GEMV_OpCode.Add -> addition(l.asInstanceOf[matNxN], r.asInstanceOf[vecN]),
         GEMV_OpCode.Sub -> subtraction(l.asInstanceOf[matNxN], r.asInstanceOf[vecN]),
@@ -150,7 +150,7 @@ object OperatorGEMV {
 
 object GEMV_fns {
 
-  def getfns(l: => Numbers, r: => Numbers)(implicit p: Parameters): Array[(Int, Numbers)] = {
+  def getfns(l: => Shapes, r: => Shapes)(implicit p: Parameters): Array[(Int, Shapes)] = {
     val lclass = l.getClass.getSimpleName
     val rclass = r.getClass.getSimpleName
     val parse = "(.*)(mat|vec|Bit)([a-zA-Z]*)".r

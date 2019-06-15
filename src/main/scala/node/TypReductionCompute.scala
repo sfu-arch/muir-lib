@@ -79,7 +79,7 @@ object operationreduction {
 
 import operationreduction._
 
-class OperatorReductionModule[T <: Numbers : OperatorReductionLike](gen: => T, val opCode: String)(implicit val p: Parameters) extends Module {
+class OperatorReductionModule[T <: Shapes : OperatorReductionLike](gen: => T, val opCode: String)(implicit val p: Parameters) extends Module {
   val io       = IO(new Bundle {
     val a = Flipped(Valid(gen))
     val o = Output(Valid(UInt(p(XLEN).W)))
@@ -99,7 +99,7 @@ class TypReduceComputeIO(NumOuts: Int)(implicit p: Parameters)
 
 }
 
-class TypReduceCompute[T <: Numbers : OperatorReductionLike](NumOuts: Int, ID: Int, opCode: String)(sign: Boolean)(gen: => T)(implicit p: Parameters)
+class TypReduceCompute[T <: Shapes : OperatorReductionLike](NumOuts: Int, ID: Int, opCode: String)(sign: Boolean)(gen: => T)(implicit p: Parameters)
   extends HandShakingNPS(NumOuts, ID)(new DataBundle)(p) {
   override lazy val io = IO(new TypReduceComputeIO(NumOuts))
 
