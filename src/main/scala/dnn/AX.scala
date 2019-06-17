@@ -252,8 +252,6 @@ class MatOrVec_Scalar_Compute[T <: Shapes : OperatorMatOrVec_Scalar, T2 <: Shape
     state := s_idle
   }
 
-  printf(p"\n Predicate ${predicate} Left ${left_R} Right ${right_R} Output: ${data_R}")
-
   var classname: String = (left.getClass).toString
   var signed            = if (sign == true) "S" else "U"
   override val printfSigil =

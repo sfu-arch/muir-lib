@@ -106,7 +106,7 @@ class PE[T <: Numbers : MAC.OperatorMAC](gen: T, left_delay: Int, top_delay: Int
 }
 
 
-class grid[T <: Numbers : MAC.OperatorMAC](gen: T, val N: Int)(implicit val p: Parameters)
+class SystolicSquare[T <: Numbers : MAC.OperatorMAC](gen: T, val N: Int)(implicit val p: Parameters)
   extends Module with CoreParams with UniformPrintfs {
   val io = IO(new Bundle {
     val left        = Input(Vec(N * N, UInt(xlen.W)))
@@ -202,7 +202,7 @@ class grid[T <: Numbers : MAC.OperatorMAC](gen: T, val N: Int)(implicit val p: P
   }
 
   printf("\nGrid  %d %d\n ", input_steps.value, state)
-  printf(p"1.U, 1.U ${Hexadecimal(PEs(1)(1).io.Out.bits)}")
+  printf(p"1.U, 1.U ${Hexadecimal(PEs(0)(0).io.Out.bits)}")
   for (i <- 0 until N) {
     for (j <- 0 until N) {
       io.output(i * (N) + j) <> PEs(i)(j).io.Out.bits

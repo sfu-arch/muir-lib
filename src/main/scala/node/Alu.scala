@@ -228,4 +228,5 @@ class DSPALU[T <: Data : RealBits](gen: T, val opCode: String) extends Module {
     io.out := AluGenerator(AluOpCode.opMap(opCode), aluOp).asUInt
 
   }
+
 }

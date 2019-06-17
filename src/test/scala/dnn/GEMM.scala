@@ -8,7 +8,7 @@ import org.scalatest.{FlatSpec, Matchers}
 
 
 // Tester.
-class GEMMCompTests(df: GEMMCompute[matNxN])
+class GEMMCompTests(df: GEMM_NCycle[matNxN])
                    (implicit p: config.Parameters) extends PeekPokeTester(df) {
   poke(df.io.enable.valid, true)
   poke(df.io.enable.bits.control, true)
@@ -31,7 +31,7 @@ class GEMMCompTester extends FlatSpec with Matchers {
   implicit val p = config.Parameters.root((new Mat_VecConfig).toInstance)
   it should "Typ Compute Tester" in {
     chisel3.iotesters.Driver.execute(Array("--backend-name", "verilator", "--target-dir", "test_run_dir"),
-      () => new GEMMCompute(NumOuts = 1, ID = 0)(new matNxN(3))) {
+      () => new GEMM_NCycle(NumOuts = 1, ID = 0)(new matNxN(3))) {
       c => new GEMMCompTests(c)
     } should be(true)
   }

@@ -16,10 +16,9 @@ import node._
 
 class OperatorMatVecModule[L <: Shapes, R <: Shapes, O <: Shapes](left: => L, right: => R, output: => O, val opCode: String)(implicit val p: Parameters) extends Module {
   val io     = IO(new Bundle {
-    val a      = Flipped(Valid(left))
-    val b      = Flipped(Valid(right))
-    val o      = Output(Valid(output))
-    val active = Input(Bool( ))
+    val a = Flipped(Valid(left))
+    val b = Flipped(Valid(right))
+    val o = Output(Valid(output))
   })
   // Check if right is vec
   val is_vec = right.getClass.getName
@@ -31,18 +30,13 @@ class OperatorMatVecModule[L <: Shapes, R <: Shapes, O <: Shapes](left: => L, ri
   val aluOp = GEMV_fns.getfns(io.a.bits, io.b.bits)
   require(!GEMV_OpCode.opMap.get(opCode).isEmpty, "Wrong matrix OP. Check operator!")
 
-  // Replace with counter.
-  val (latCnt, latDone) = Counter(io.active, 2)
-  io.o.valid := latDone
-
-  printf(p"\n Count: ${latCnt} ${io.a.valid} ${io.b.valid}")
-  val start = io.a.valid && io.b.valid
+  io.o.valid := io.a.valid && io.b.valid
 
   io.o.bits := AluGenerator(GEMV_OpCode.opMap(opCode), aluOp)
 
 }
 
-class GEMVComputeIO[L <: Shapes, R <: Shapes, O <: Shapes](NumOuts: Int)(left: => L, right: => R)(output: => O)(implicit p: Parameters)
+class GEMVIO[L <: Shapes, R <: Shapes, O <: Shapes](NumOuts: Int)(left: => L, right: => R)(output: => O)(implicit p: Parameters)
   extends HandShakingIONPS(NumOuts)(new CustomDataBundle(UInt(output.getWidth))) {
   // LeftIO: Left input data for computation
   val LeftIO = Flipped(Decoupled(new CustomDataBundle(UInt((left.getWidth).W))))
@@ -50,12 +44,12 @@ class GEMVComputeIO[L <: Shapes, R <: Shapes, O <: Shapes](NumOuts: Int)(left: =
   // RightIO: Right input data for computation
   val RightIO = Flipped(Decoupled(new CustomDataBundle(UInt((right.getWidth).W))))
 
-  override def cloneType = new GEMVComputeIO(NumOuts)(left, right)(output).asInstanceOf[this.type]
+  override def cloneType = new GEMVIO(NumOuts)(left, right)(output).asInstanceOf[this.type]
 }
 
-class GEMVCompute[L <: Shapes, R <: Shapes, O <: Shapes](NumOuts: Int, ID: Int, opCode: String)(sign: Boolean)(left: => L, right: R)(output: => O)(implicit p: Parameters)
+class GEMV_1Cycle[L <: Shapes, R <: Shapes, O <: Shapes](NumOuts: Int, ID: Int, opCode: String)(sign: Boolean)(left: => L, right: R)(output: => O)(implicit p: Parameters)
   extends HandShakingNPS(NumOuts, ID)(new CustomDataBundle(UInt(output.getWidth.W)))(p) {
-  override lazy val io = IO(new GEMVComputeIO(NumOuts)(left, right)(output))
+  override lazy val io = IO(new GEMVIO(NumOuts)(left, right)(output))
 
   /*===========================================*
  *            Registers                      *
@@ -91,7 +85,6 @@ class GEMVCompute[L <: Shapes, R <: Shapes, O <: Shapes](NumOuts: Int, ID: Int, 
   io.LeftIO.ready := ~left_R.valid
   when(io.LeftIO.fire( )) {
     //printfInfo("Latch left data\n")
-    state := s_LATCH
     left_R.data := io.LeftIO.bits.data
     left_R.valid := true.B
     left_R.predicate := io.LeftIO.bits.predicate
@@ -100,7 +93,6 @@ class GEMVCompute[L <: Shapes, R <: Shapes, O <: Shapes](NumOuts: Int, ID: Int, 
   io.RightIO.ready := ~right_R.valid
   when(io.RightIO.fire( )) {
     //printfInfo("Latch right data\n")
-    state := s_LATCH
     right_R.data := io.RightIO.bits.data
     right_R.valid := true.B
     right_R.predicate := io.RightIO.bits.predicate
@@ -119,35 +111,26 @@ class GEMVCompute[L <: Shapes, R <: Shapes, O <: Shapes](NumOuts: Int, ID: Int, 
    *============================================*/
 
   val FU = Module(new OperatorMatVecModule(left, right, output, opCode))
-  FU.io.active := false.B
   FU.io.a.bits := (left_R.data).asTypeOf(left)
   FU.io.b.bits := (right_R.data).asTypeOf(right)
   data_R.data := (FU.io.o.bits).asTypeOf(UInt(output.getWidth.W))
   data_R.predicate := predicate
   pred_R := predicate
-  FU.io.a.valid := false.B
-  FU.io.b.valid := false.B
+  FU.io.a.valid := left_R.valid
+  FU.io.b.valid := right_R.valid
   data_R.valid := FU.io.o.valid
+
   //  This is written like this to enable FUs that are dangerous in the future.
   // If you don't start up then no value passed into function
-  when(start & predicate && ((state === s_idle) || (state === s_LATCH))) {
-
-    FU.io.a.valid := true.B
-    FU.io.b.valid := true.B
-    state := s_ACTIVE
-    FU.io.active := true.B
+  when(start & predicate & state =/= s_COMPUTE) {
+    state := s_COMPUTE
     // Next cycle it will become valid.
-  }.elsewhen(start && !predicate && ((state === s_idle) || (state === s_LATCH))) {
+    ValidOut( )
+  }.elsewhen(start && !predicate && state =/= s_COMPUTE) {
     state := s_COMPUTE
     ValidOut( )
   }
-  when(state === s_ACTIVE) {
-    FU.io.active := true.B
-    when(FU.io.o.valid) {
-      ValidOut( )
-      state := s_COMPUTE
-    }
-  }
+
   when(IsOutReady( ) && state === s_COMPUTE) {
     left_R := CustomDataBundle.default(0.U((left.getWidth).W))
     right_R := CustomDataBundle.default(0.U((right.getWidth).W))

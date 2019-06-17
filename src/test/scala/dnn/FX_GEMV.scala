@@ -15,7 +15,7 @@ import interfaces._
 
 
 // Tester.
-class FXGEMVCompTests(df: GEMVCompute[FXmatNxN, FXvecN, FXmatNxN])
+class FXGEMVCompTests(df: GEMV_1Cycle[FXmatNxN, FXvecN, FXmatNxN])
                      (implicit p: config.Parameters) extends PeekPokeTester(df) {
   poke(df.io.enable.valid, true)
   poke(df.io.enable.bits.control, true)
@@ -38,7 +38,7 @@ class FXGEMVCompTester extends FlatSpec with Matchers {
   implicit val p = config.Parameters.root((new Mat_VecConfig).toInstance)
   it should "Typ Compute Tester" in {
     chisel3.iotesters.Driver.execute(Array("--backend-name", "verilator", "--target-dir", "test_run_dir"),
-      () => new GEMVCompute(NumOuts = 1, ID = 0, opCode = "Add")(sign = false)(new FXmatNxN(2, 4), new FXvecN(2, 4))(new FXmatNxN(2, 4))) {
+      () => new GEMV_1Cycle(NumOuts = 1, ID = 0, opCode = "Add")(sign = false)(new FXmatNxN(2, 4), new FXvecN(2, 4))(new FXmatNxN(2, 4))) {
       c => new FXGEMVCompTests(c)
     } should be(true)
   }
