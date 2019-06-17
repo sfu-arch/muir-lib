@@ -35,9 +35,15 @@ object MAC {
     implicit object FX_MAC extends OperatorMAC[FXScalar] {
       def mac(l: FXScalar, r: FXScalar, c: FXScalar)(implicit p: Parameters): FXScalar = {
         val x = Wire(new FXScalar(l.fraction))
-        //        Shift here reduces the bit width.
-        val mul = ((l.data * r.data) >> l.fraction.U).asFixedPoint(l.fraction.BP)
-        x.data := mul + c.data
+        val FXALU = Module(new DSPALU(FixedPoint(l.data.getWidth.W, l.fraction.BP), "Mac"))
+        FXALU.io.in1 := l.data
+        FXALU.io.in2 := r.data
+        FXALU.io.in3.get := c.data
+        x.data := FXALU.io.out.asTypeOf(x.data)
+
+        // Uncomment if you do not have access to DSP tools and need to use chisel3.experimental FixedPoint. DSP tools provides implicit support for truncation.
+        //  val mul = ((l.data * r.data) >> l.fraction.U).asFixedPoint(l.fraction.BP)
+        // x.data := mul + c.data
         x
       }
     }

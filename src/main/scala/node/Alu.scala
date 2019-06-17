@@ -170,37 +170,48 @@ class UALU(val xlen: Int, val opCode: String, val issign: Boolean = false) exten
 
   if (AluOpCode.opMap(opCode) == AluOpCode.Mac) {
     if (!issign)
-      aluOp = aluOp :+ (AluOpCode.Mac -> (io.in1 * io.in2).+(io.in3.get))
+      aluOp = aluOp :+ AluOpCode.Mac -> ((io.in1 * io.in2).+(io.in3.get))
     else
-      aluOp = aluOp :+ (AluOpCode.Mac -> (in1S * in2S).+(io.in3.get.asSInt))
+      aluOp = aluOp :+ AluOpCode.Mac -> ((in1S * in2S).+(io.in3.get.asSInt))
   }
 
   assert(!AluOpCode.opMap.get(opCode).isEmpty, "Wrong ALU OP!")
   io.out := AluGenerator(AluOpCode.opMap(opCode), aluOp).asUInt
 }
 
-class DSPIO[T <: Data : RealBits](gen: T) extends Bundle {
+class DSPIO[T <: Data : RealBits](gen: T, val opCode: String) extends Bundle {
   val in1 = Input(gen.cloneType)
   val in2 = Input(gen.cloneType)
-  val out = Output(gen.cloneType)
 
-  override def cloneType: this.type = new DSPIO(gen).asInstanceOf[this.type]
+  val in3 = if (AluOpCode.opMap(opCode) == AluOpCode.Mac) {
+    Some(Input(gen.cloneType))
+  }
+  else None
+
+  val out = Output(UInt(gen.getWidth.W))
+
+  override def cloneType: this.type
+
+  = new DSPIO(gen, opCode).asInstanceOf[this.type]
 }
 
 // Parameterized Chisel Module; takes in type parameters as explained above
-class DSPALU[T <: Data : RealBits](gen: T, val addPipes: Int) extends Module {
+class DSPALU[T <: Data : RealBits](gen: T, val opCode: String) extends Module {
   // This is how you declare an IO with parameters
-  val io = IO(new DSPIO(gen))
+  val io = IO(new DSPIO(gen, opCode))
   // Output will be current x + y addPipes clock cycles later
   // Note that this relies on the fact that type classes have a special + that
   // add addPipes # of ShiftRegister after the sum. If you don't wrap the sum in
-  // DspContext.withNumAddPipes(addPipes), the default # of addPipes is used.
-  DspContext.withNumAddPipes(addPipes) {
-    val aluOp = Array(
+  // DspContext.withNumAddPipes(addPiPes), the default # of addPipes is used.
+
+  val in2U = io.in2.asUInt
+
+  DspContext.alter(DspContext.current.copy(trimType = Floor, binaryPointGrowth = 0, numMulPipes = 0)) {
+    var aluOp = Array(
       AluOpCode.Add -> (io.in1 context_+ io.in2),
       AluOpCode.Sub -> (io.in1 context_- io.in2),
-      AluOpCode.ShiftLeft -> (io.in1 << io.in2.asUInt),
-      AluOpCode.ShiftRight -> (io.in1 >> io.in2.asUInt),
+      AluOpCode.ShiftLeft -> (io.in1 << in2U(8, 0)),
+      AluOpCode.ShiftRight -> (io.in1 >> in2U(8, 0)),
       AluOpCode.SetLessThan -> (io.in1 < io.in2),
       AluOpCode.PassA -> io.in1,
       AluOpCode.PassB -> io.in2,
@@ -208,5 +219,13 @@ class DSPALU[T <: Data : RealBits](gen: T, val addPipes: Int) extends Module {
       AluOpCode.Max -> (Mux(io.in1 > io.in2, io.in1, io.in2)),
       AluOpCode.Min -> (Mux(io.in1 < io.in2, io.in1, io.in2))
     )
+
+    if (AluOpCode.opMap(opCode) == AluOpCode.Mac) {
+      aluOp = aluOp :+ AluOpCode.Mac -> ((io.in1 context_* io.in2).+(io.in3.get))
+    }
+
+    assert(!AluOpCode.opMap.get(opCode).isEmpty, "Wrong ALU OP!")
+    io.out := AluGenerator(AluOpCode.opMap(opCode), aluOp).asUInt
+
   }
 }

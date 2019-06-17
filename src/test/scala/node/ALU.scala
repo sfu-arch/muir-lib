@@ -25,7 +25,7 @@ class UALUTester(df: UALU)
 
   poke(df.io.in1, 0xFFFE.U)
   poke(df.io.in2, 0xFFFE.U)
-  if (df.opCode == "Mac") poke(df.io.in3.get, 0x0002.U)
+  //  if (df.opCode == "Mac") poke(df.io.in3.get, 0x0002.U)
   step(1)
   print(s"Output: ${(peek(df.io.out))}\n")
 }
