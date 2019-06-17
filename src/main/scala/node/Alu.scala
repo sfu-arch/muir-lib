@@ -75,6 +75,31 @@ object AluOpCode {
     "mac" -> Mac
   )
 
+  val DSPopMap = Map(
+    "Add" -> Add,
+    "add" -> Add,
+    "Sub" -> Sub,
+    "sub" -> Sub,
+    "ShiftLeft" -> ShiftLeft,
+    "shl" -> ShiftLeft,
+    "ShiftRight" -> ShiftRight,
+    "ShiftRightLogical" -> ShiftRightLogical,
+    "ashr" -> ShiftRightArithmetic,
+    "ShiftRightArithmetic" -> ShiftRightArithmetic,
+    "lshr" -> ShiftRightLogical,
+    "SetLessThan" -> SetLessThan,
+    "PassA" -> PassA,
+    "PassB" -> PassB,
+    "Mul" -> Mul,
+    "mul" -> Mul,
+    "max" -> Max,
+    "Max" -> Max,
+    "Min" -> Min,
+    "Min" -> Min,
+    "Mac" -> Mac,
+    "mac" -> Mac
+  )
+
 
   val length = 20
 }
@@ -108,14 +133,20 @@ object AluGenerator {
   * @param opCode opcode which indicates ALU operation
   * @param xlen   bit width of the inputs
   */
+
+class UALUIO(xlen: Int, val opCode: String) extends Bundle {
+  val in1 = Input(UInt(xlen.W))
+  val in2 = Input(UInt(xlen.W))
+  val in3 = if (AluOpCode.opMap(opCode) == AluOpCode.Mac)
+    Some(Input(UInt(xlen.W))) else None
+  val out = Output(UInt(xlen.W))
+
+  override def cloneType: this.type = new UALUIO(xlen, opCode).asInstanceOf[this.type]
+}
+
 class UALU(val xlen: Int, val opCode: String, val issign: Boolean = false) extends Module {
-  val io   = IO(new Bundle {
-    val in1 = Input(UInt(xlen.W))
-    val in2 = Input(UInt(xlen.W))
-    val in3 = if (AluOpCode.opMap(opCode) == AluOpCode.Mac)
-      Some(Input(UInt(xlen.W))) else None
-    val out = Output(UInt(xlen.W))
-  })
+  val io = IO(new UALUIO(xlen, opCode))
+
   val in1S = io.in1.asSInt
   val in2S = io.in1.asSInt
 
@@ -180,8 +211,8 @@ class UALU(val xlen: Int, val opCode: String, val issign: Boolean = false) exten
 }
 
 class DSPIO[T <: Data : RealBits](gen: T, val opCode: String) extends Bundle {
-  val in1 = Input(gen.cloneType)
-  val in2 = Input(gen.cloneType)
+  val in1 = Input(gen)
+  val in2 = Input(gen)
 
   val in3 = if (AluOpCode.opMap(opCode) == AluOpCode.Mac) {
     Some(Input(gen.cloneType))
@@ -220,13 +251,52 @@ class DSPALU[T <: Data : RealBits](gen: T, val opCode: String) extends Module {
       AluOpCode.Min -> (Mux(io.in1 < io.in2, io.in1, io.in2))
     )
 
-    if (AluOpCode.opMap(opCode) == AluOpCode.Mac) {
+    if (AluOpCode.DSPopMap(opCode) == AluOpCode.Mac) {
       aluOp = aluOp :+ AluOpCode.Mac -> ((io.in1 context_* io.in2).+(io.in3.get))
     }
 
-    assert(!AluOpCode.opMap.get(opCode).isEmpty, "Wrong ALU OP!")
+    assert(!AluOpCode.DSPopMap.get(opCode).isEmpty, "Wrong ALU OP!")
     io.out := AluGenerator(AluOpCode.opMap(opCode), aluOp).asUInt
 
   }
 
 }
+
+
+// Parameterized Chisel Module; takes in type parameters as explained above
+class UALUcompatibleDSPALU[T <: Data : RealBits](gen: T, val opCode: String) extends Module {
+  // This is how you declare an IO with parameters
+  val io = IO(new UALUIO(gen.getWidth, opCode))
+  // Output will be current x + y addPipes clock cycles later
+  // Note that this relies on the fact that type classes have a special + that
+  // add addPipes # of ShiftRegister after the sum. If you don't wrap the sum in
+  // DspContext.withNumAddPipes(addPiPes), the default # of addPipes is used.
+
+  val in1gen = io.in1.asTypeOf(gen)
+  val in2gen = io.in2.asTypeOf(gen)
+
+  DspContext.alter(DspContext.current.copy(trimType = Floor, binaryPointGrowth = 0, numMulPipes = 0)) {
+    var aluOp = Array(
+      AluOpCode.Add -> (in1gen context_+ in2gen),
+      AluOpCode.Sub -> (in1gen context_- in2gen),
+      AluOpCode.ShiftLeft -> (in1gen << io.in2(8, 0)),
+      AluOpCode.ShiftRight -> (in1gen >> io.in2(8, 0)),
+      AluOpCode.SetLessThan -> (in1gen < in2gen),
+      AluOpCode.PassA -> in1gen,
+      AluOpCode.PassB -> in2gen,
+      AluOpCode.Mul -> (in1gen context_* in2gen),
+      AluOpCode.Max -> (Mux(in1gen > in2gen, in1gen, in2gen)),
+      AluOpCode.Min -> (Mux(in1gen < in2gen, in1gen, in2gen))
+    )
+
+    if (AluOpCode.opMap(opCode) == AluOpCode.Mac) {
+      aluOp = aluOp :+ AluOpCode.Mac -> ((in1gen context_* in2gen).context_+(io.in3.get.asTypeOf(gen)))
+    }
+
+    assert(!AluOpCode.DSPopMap.get(opCode).isEmpty, "Wrong ALU OP!")
+    io.out := AluGenerator(AluOpCode.DSPopMap(opCode), aluOp).asUInt
+
+  }
+
+}
+
