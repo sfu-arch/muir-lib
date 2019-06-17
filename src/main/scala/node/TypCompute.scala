@@ -20,7 +20,8 @@ class Shapes(implicit p: Parameters) extends CoreBundle( )(p) {
 }
 
 
-class Numbers(implicit p: Parameters) extends CoreBundle( )(p) {
+abstract class Numbers(implicit p: Parameters) extends CoreBundle( )(p) {
+
 }
 
 
@@ -54,6 +55,12 @@ class matNxN(val N: Int)(implicit p: Parameters) extends Shapes {
 
 class Scalar(implicit p: Parameters) extends Numbers {
   val data = UInt(xlen.W)
+
+  def +(that: Scalar) = {
+    val x = new Scalar( )
+    x.data := this.data + that.data
+    x
+  }
 
   override def cloneType = new Scalar( ).asInstanceOf[this.type]
 }
@@ -90,6 +97,7 @@ class FXScalar(val fraction: Int)(implicit p: Parameters) extends Numbers {
 
   override def cloneType = new FXScalar(fraction).asInstanceOf[this.type]
 }
+
 
 class FPmatNxN(val N: Int, val t: FType)(implicit p: Parameters) extends Shapes {
   val data = Vec(N, Vec(N, UInt(t.ieeeWidth.W)))

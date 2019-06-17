@@ -36,7 +36,7 @@ object MAC {
       def mac(l: FXScalar, r: FXScalar, c: FXScalar)(implicit p: Parameters): FXScalar = {
         val x = Wire(new FXScalar(l.fraction))
         //        Shift here reduces the bit width.
-        val mul = ((l.data * r.data) >> l.fraction).asFixedPoint(l.fraction.BP)
+        val mul = ((l.data * r.data) >> l.fraction.U).asFixedPoint(l.fraction.BP)
         x.data := mul + c.data
         x
       }
