@@ -1,18 +1,17 @@
 package dnn
 
+import FPU.FloatingPoint
 import chisel3._
 import chisel3.util._
-
-import chisel3.iotesters.{ChiselFlatSpec, Driver, PeekPokeTester, OrderedDecoupledHWIOTester}
-import org.scalatest.{Matchers, FlatSpec}
-
+import chisel3.iotesters.{ChiselFlatSpec, Driver, OrderedDecoupledHWIOTester, PeekPokeTester}
+import org.scalatest.{FlatSpec, Matchers}
 import node._
 import dataflow._
 import muxes._
 import config._
 import util._
 
-class FP_SystolicTests(df: SystolicSquare[FPScalar])(implicit p: config.Parameters) extends PeekPokeTester(df) {
+class FP_SystolicTests(df: SystolicSquare[FloatingPoint])(implicit p: config.Parameters) extends PeekPokeTester(df) {
   poke(df.io.activate, false.B)
   // left * right
   //  df.io.left.zipWithIndex.foreach { case (io, i) => poke(io, (i + 1).U) }
@@ -40,7 +39,7 @@ class FP_Systolic_Tester extends FlatSpec with Matchers {
   implicit val p = config.Parameters.root((new HALFPrecisionFPConfig).toInstance)
   it should "Typ Compute Tester" in {
     chisel3.iotesters.Driver.execute(Array("--backend-name", "verilator", "--target-dir", "test_run_dir"),
-      () => new SystolicSquare(new FPScalar(t = p(FTYP)), 2)) {
+      () => new SystolicSquare(new FloatingPoint(t = p(FTYP)), 2)) {
       c => new FP_SystolicTests(c)
     } should be(true)
   }

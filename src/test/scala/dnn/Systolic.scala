@@ -12,7 +12,7 @@ import muxes._
 import config._
 import util._
 
-class SystolicBaseTests(df: SystolicSquare[Scalar])(implicit p: config.Parameters) extends PeekPokeTester(df) {
+class SystolicBaseTests(df: SystolicSquare[UInt])(implicit p: config.Parameters) extends PeekPokeTester(df) {
   poke(df.io.activate, false.B)
   // left * right
   df.io.left.zipWithIndex.foreach { case (io, i) => poke(io, (i + 1).U) }
@@ -27,7 +27,7 @@ class SystolicBaseTests(df: SystolicSquare[Scalar])(implicit p: config.Parameter
 }
 
 
-class SystolicTests(df: SystolicBLAS[Scalar])(implicit p: config.Parameters) extends PeekPokeTester(df) {
+class SystolicTests(df: SystolicBLAS[UInt])(implicit p: config.Parameters) extends PeekPokeTester(df) {
   poke(df.io.activate, false.B)
   // left * right
   df.io.left.zipWithIndex.foreach { case (io, i) => poke(io, (i + 1).U) }
@@ -45,12 +45,12 @@ class Systolic_Tester extends FlatSpec with Matchers {
   implicit val p = config.Parameters.root((new Mat_VecConfig).toInstance)
   it should "Typ Compute Tester" in {
     chisel3.iotesters.Driver.execute(Array("--backend-name", "verilator", "--target-dir", "test_run_dir"),
-      () => new SystolicSquare(new Scalar, 3)) {
+      () => new SystolicSquare(UInt(p(XLEN).W), 3)) {
       c => new SystolicBaseTests(c)
     } should be(true)
 
     chisel3.iotesters.Driver.execute(Array("--backend-name", "verilator", "--target-dir", "test_run_dir"),
-      () => new SystolicBLAS(new Scalar, 3, 3, 1)) {
+      () => new SystolicBLAS(UInt(p(XLEN).W), 3, 3, 1)) {
       c => new SystolicTests(c)
     } should be(true)
   }

@@ -80,7 +80,7 @@
 //    implicit object FPmatNxN extends OperatorGEMM[FPmatNxN] {
 //      def multiplication(l: FPmatNxN, r: FPmatNxN, start: Bool)(implicit p: Parameters): FPmatNxN = {
 //        val x = Wire(new FPmatNxN(l.N, l.Ftyp))
-//        val GEMM = Module(new SystolicSquare(new FPScalar(l.Ftyp), l.N))
+//        val GEMM = Module(new SystolicSquare(new FloatingPoint(l.Ftyp), l.N))
 //        GEMM.io.activate := start
 //        GEMM.io.async_reset := false.B
 //        l.toVecUInt( ) zip GEMM.io.left foreach { case (a, b) => b := a }

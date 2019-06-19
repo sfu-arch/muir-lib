@@ -16,17 +16,29 @@ import util._
 import scala.reflect.runtime.universe._
 
 
-class Shapes(implicit p: Parameters) extends CoreBundle( )(p) {
-}
+abstract class Shapes(implicit p: Parameters) extends CoreBundle( )(p) {
+  def fromVecUInt(input: Vec[UInt])
 
-
-abstract class Numbers(implicit p: Parameters) extends CoreBundle( )(p) {
-
+  def toVecUInt(): Vec[UInt]
 }
 
 
 class vecN(val N: Int, val isCol: Int = 0)(implicit p: Parameters) extends Shapes {
   val data = Vec(N, UInt(xlen.W))
+
+  def fromVecUInt(input: Vec[UInt]) = {
+    data zip input map { case
+      (
+        a, b
+        ) => a := b
+    }
+  }
+
+  def toVecUInt(): Vec[UInt] = {
+    val x = Wire(Vec(N, UInt(xlen.W)))
+    x := data.asTypeOf(x)
+    x
+  }
 
   override def cloneType = new vecN(N).asInstanceOf[this.type]
 
@@ -44,25 +56,12 @@ class matNxN(val N: Int)(implicit p: Parameters) extends Shapes {
   }
 
   def toVecUInt(): Vec[UInt] = {
-    val x = Wire(Vec(UInt(xlen.W)))
+    val x = Wire(Vec(N * N, UInt(xlen.W)))
     x := data.asTypeOf(x)
     x
   }
 
   override def cloneType = new matNxN(N).asInstanceOf[this.type]
-}
-
-
-class Scalar(implicit p: Parameters) extends Numbers {
-  val data = UInt(xlen.W)
-
-  def +(that: Scalar) = {
-    val x = new Scalar( )
-    x.data := this.data + that.data
-    x
-  }
-
-  override def cloneType = new Scalar( ).asInstanceOf[this.type]
 }
 
 
@@ -78,7 +77,7 @@ class FXmatNxN(val N: Int, val fraction: Int)(implicit p: Parameters) extends Sh
   }
 
   def toVecUInt(): Vec[UInt] = {
-    val x = Wire(Vec(UInt(xlen.W)))
+    val x = Wire(Vec(N * N, UInt(xlen.W)))
     x zip data.flatten map { case (a, b) => a := b.asUInt }
     x
   }
@@ -89,13 +88,21 @@ class FXmatNxN(val N: Int, val fraction: Int)(implicit p: Parameters) extends Sh
 class FXvecN(val N: Int, val fraction: Int, val isCol: Int = 0)(implicit p: Parameters) extends Shapes {
   val data = Vec(N, FixedPoint(xlen.W, fraction.BP))
 
+  def fromVecUInt(input: Vec[UInt]) = {
+    data zip input map { case
+      (
+        a, b
+        ) => a := b.asFixedPoint(fraction.BP)
+    }
+  }
+
+  def toVecUInt(): Vec[UInt] = {
+    val x = Wire(Vec(N * N, UInt(xlen.W)))
+    x := data.asTypeOf(x)
+    x
+  }
+
   override def cloneType = new FXvecN(N, fraction).asInstanceOf[this.type]
-}
-
-class FXScalar(val fraction: Int)(implicit p: Parameters) extends Numbers {
-  val data = FixedPoint(xlen.W, fraction.BP)
-
-  override def cloneType = new FXScalar(fraction).asInstanceOf[this.type]
 }
 
 
@@ -111,7 +118,7 @@ class FPmatNxN(val N: Int, val t: FType)(implicit p: Parameters) extends Shapes 
   }
 
   def toVecUInt(): Vec[UInt] = {
-    val x = Wire(Vec(UInt(xlen.W)))
+    val x = Wire(Vec(N, UInt(xlen.W)))
     x := data.asTypeOf(x)
     x
   }
@@ -122,14 +129,23 @@ class FPmatNxN(val N: Int, val t: FType)(implicit p: Parameters) extends Shapes 
 class FPvecN(val N: Int, val t: FType, val isCol: Int = 0)(implicit p: Parameters) extends Shapes {
   val data = Vec(N, UInt(t.ieeeWidth.W))
 
+  def fromVecUInt(input: Vec[UInt]) = {
+    data zip input map { case
+      (
+        a, b
+        ) => a := b
+    }
+  }
+
+  def toVecUInt(): Vec[UInt] = {
+    val x = Wire(Vec(N, UInt(xlen.W)))
+    x := data.asTypeOf(x)
+    x
+  }
+
   override def cloneType = new FPmatNxN(N, t).asInstanceOf[this.type]
 }
 
-class FPScalar(val t: FType)(implicit p: Parameters) extends Numbers {
-  val data = UInt(t.ieeeWidth.W)
-
-  override def cloneType = new FPScalar(t).asInstanceOf[this.type]
-}
 
 object operation {
 

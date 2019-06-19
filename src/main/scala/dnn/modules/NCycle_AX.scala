@@ -48,9 +48,9 @@
 //      }
 //    }
 //
-//    implicit object FP_MAC extends OperatorMAC[FPScalar] {
-//      def mac(l: FPScalar, r: FPScalar, c: FPScalar)(implicit p: Parameters): FPScalar = {
-//        val x = Wire(new FPScalar(l.Ftyp))
+//    implicit object FP_MAC extends OperatorMAC[FloatingPoint] {
+//      def mac(l: FloatingPoint, r: FloatingPoint, c: FloatingPoint)(implicit p: Parameters): FloatingPoint = {
+//        val x = Wire(new FloatingPoint(l.Ftyp))
 //        val mac = Module(new FPUALU(p(XLEN), opCode = "Mac", t = l.Ftyp))
 //        mac.io.in1 := l.data
 //        mac.io.in2 := r.data

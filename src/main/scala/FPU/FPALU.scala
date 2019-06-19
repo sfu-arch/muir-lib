@@ -5,6 +5,7 @@ import chisel3.Module
 import chisel3._
 import chisel3.util._
 import FType._
+import chisel3.core.CompileOptions
 
 case class FType(exp: Int, sig: Int) {
   def ieeeWidth = exp + sig
@@ -65,6 +66,22 @@ object FType {
   val D = new FType(11, 53)
   val H = new FType(5, 11)
 }
+
+class FloatingPoint(val t: FType) extends Bundle {
+  val value = UInt(t.ieeeWidth.W)
+
+  override def toPrintable: Printable = {
+    p"0x${Hexadecimal(value)} }"
+  }
+}
+
+object FloatingPoint {
+  def apply(t: FType): FloatingPoint = {
+    val wire = Wire(new FloatingPoint(t))
+    wire
+  }
+}
+
 
 /**
   * List of compute operations which we can support

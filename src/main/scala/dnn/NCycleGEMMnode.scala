@@ -1,9 +1,10 @@
 package dnn
 
-import FPU.{FPUALU, FType}
+import FPU.{FPUALU, FType, FloatingPoint}
 import chisel3._
 import chisel3.iotesters.{ChiselFlatSpec, Driver, OrderedDecoupledHWIOTester, PeekPokeTester}
 import chisel3.Module
+import chisel3.experimental.FixedPoint
 import chisel3.testers._
 import chisel3.util._
 import org.scalatest.{FlatSpec, Matchers}
@@ -55,7 +56,7 @@ object GEMM {
     implicit object FXmatNxN extends OperatorGEMM[FXmatNxN] {
       def multiplication(l: FXmatNxN, r: FXmatNxN, start: Bool)(implicit p: Parameters): FXmatNxN = {
         val x = Wire(new FXmatNxN(l.N, l.fraction))
-        val GEMM = Module(new SystolicSquare(new FXScalar(l.fraction), l.N))
+        val GEMM = Module(new SystolicSquare(l.data(0)(0).cloneType, l.N))
         GEMM.io.activate := start
         l.toVecUInt( ) zip GEMM.io.left foreach { case (a, b) => b := a }
         r.toVecUInt( ) zip GEMM.io.right foreach { case (a, b) => b := a }
@@ -67,7 +68,7 @@ object GEMM {
     implicit object matNxN extends OperatorGEMM[matNxN] {
       def multiplication(l: matNxN, r: matNxN, start: Bool)(implicit p: Parameters): matNxN = {
         val x = Wire(new matNxN(l.N))
-        val GEMM = Module(new SystolicSquare(new Scalar( ), l.N))
+        val GEMM = Module(new SystolicSquare(l.data(0)(0).cloneType, l.N))
         GEMM.io.activate := start
         GEMM.io.async_reset := false.B
         l.toVecUInt( ) zip GEMM.io.left foreach { case (a, b) => b := a }
@@ -80,7 +81,7 @@ object GEMM {
     implicit object FPmatNxN extends OperatorGEMM[FPmatNxN] {
       def multiplication(l: FPmatNxN, r: FPmatNxN, start: Bool)(implicit p: Parameters): FPmatNxN = {
         val x = Wire(new FPmatNxN(l.N, l.Ftyp))
-        val GEMM = Module(new SystolicSquare(new FPScalar(l.Ftyp), l.N))
+        val GEMM = Module(new SystolicSquare(new FloatingPoint(l.Ftyp), l.N))
         GEMM.io.activate := start
         GEMM.io.async_reset := false.B
         l.toVecUInt( ) zip GEMM.io.left foreach { case (a, b) => b := a }

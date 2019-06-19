@@ -19,7 +19,7 @@ import node._
 import utility.UniformPrintfs
 
 
-class SystolicBLAS[T <: Numbers : MAC.OperatorMAC](gen: T, val M: Int, val K: Int, val N: Int)(implicit val p: Parameters)
+class SystolicBLAS[T <: Data : MAC.OperatorMAC](gen: T, val M: Int, val K: Int, val N: Int)(implicit val p: Parameters)
   extends Module with CoreParams with UniformPrintfs {
   val io = IO(new Bundle {
     val left        = Input(Vec(M * K, UInt(xlen.W)))

@@ -1,6 +1,6 @@
 package dnn
 
-import FPU.{FPUALU, FType}
+import FPU.{FPUALU, FType, FloatingPoint}
 import chisel3._
 import chisel3.iotesters.{ChiselFlatSpec, Driver, OrderedDecoupledHWIOTester, PeekPokeTester}
 import chisel3.Module
@@ -24,23 +24,27 @@ object MAC {
 
   object OperatorMAC {
 
-    implicit object Scalar_MAC extends OperatorMAC[Scalar] {
-      def mac(l: Scalar, r: Scalar, c: Scalar)(implicit p: Parameters): Scalar = {
-        val x = Wire(new Scalar)
-        x.data := (l.data * r.data).+(c.data)
+    implicit object UIntMAC extends OperatorMAC[UInt] {
+      def mac(l: UInt, r: UInt, c: UInt)(implicit p: Parameters): UInt = {
+        val x = Wire(l.cloneType)
+        val FXALU = Module(new UALU(p(XLEN), "Mac"))
+        FXALU.io.in1 := l
+        FXALU.io.in2 := r
+        FXALU.io.in3.get := c
+        x := FXALU.io.out.asTypeOf(l)
         x
       }
     }
 
-    implicit object FX_MAC extends OperatorMAC[FXScalar] {
-      def mac(l: FXScalar, r: FXScalar, c: FXScalar)(implicit p: Parameters): FXScalar = {
-        val x = Wire(new FXScalar(l.fraction))
-        val FXALU = Module(new DSPALU(FixedPoint(l.data.getWidth.W, l.fraction.BP), "Mac"))
-        FXALU.io.in1 := l.data
-        FXALU.io.in2 := r.data
-        FXALU.io.in3.get := c.data
-        x.data := FXALU.io.out.asTypeOf(x.data)
 
+    implicit object FixedPointMAC extends OperatorMAC[FixedPoint] {
+      def mac(l: FixedPoint, r: FixedPoint, c: FixedPoint)(implicit p: Parameters): FixedPoint = {
+        val x = Wire(l.cloneType)
+        val FXALU = Module(new DSPALU(FixedPoint(l.getWidth.W, l.binaryPoint), "Mac"))
+        FXALU.io.in1 := l
+        FXALU.io.in2 := r
+        FXALU.io.in3.get := c
+        x := FXALU.io.out.asTypeOf(l)
         // Uncomment if you do not have access to DSP tools and need to use chisel3.experimental FixedPoint. DSP tools provides implicit support for truncation.
         //  val mul = ((l.data * r.data) >> l.fraction.U).asFixedPoint(l.fraction.BP)
         // x.data := mul + c.data
@@ -48,14 +52,15 @@ object MAC {
       }
     }
 
-    implicit object FP_MAC extends OperatorMAC[FPScalar] {
-      def mac(l: FPScalar, r: FPScalar, c: FPScalar)(implicit p: Parameters): FPScalar = {
-        val x = Wire(new FPScalar(l.Ftyp))
-        val mac = Module(new FPUALU(p(XLEN), opCode = "Mac", t = l.Ftyp))
-        mac.io.in1 := l.data
-        mac.io.in2 := r.data
-        mac.io.in3.get := c.data
-        x.data := mac.io.out
+
+    implicit object FP_MAC extends OperatorMAC[FloatingPoint] {
+      def mac(l: FloatingPoint, r: FloatingPoint, c: FloatingPoint)(implicit p: Parameters): FloatingPoint = {
+        val x = Wire(new FloatingPoint(l.t))
+        val mac = Module(new FPUALU(p(XLEN), opCode = "Mac", t = l.t))
+        mac.io.in1 := l.value
+        mac.io.in2 := r.value
+        mac.io.in3.get := c.value
+        x.value := mac.io.out
         x
       }
     }
@@ -81,7 +86,7 @@ class PEIO(implicit p: Parameters) extends CoreBundle( )(p) {
 }
 
 
-class PE[T <: Numbers : MAC.OperatorMAC](gen: T, left_delay: Int, top_delay: Int, val row: Int, val col: Int)(implicit val p: Parameters)
+class PE[T <: Data : MAC.OperatorMAC](gen: T, left_delay: Int, top_delay: Int, val row: Int, val col: Int)(implicit val p: Parameters)
   extends Module with CoreParams with UniformPrintfs {
   val io = IO(new PEIO)
 
@@ -106,7 +111,7 @@ class PE[T <: Numbers : MAC.OperatorMAC](gen: T, left_delay: Int, top_delay: Int
 }
 
 
-class SystolicSquare[T <: Numbers : MAC.OperatorMAC](gen: T, val N: Int)(implicit val p: Parameters)
+class SystolicSquare[T <: Data : MAC.OperatorMAC](gen: T, val N: Int)(implicit val p: Parameters)
   extends Module with CoreParams with UniformPrintfs {
   val io = IO(new Bundle {
     val left        = Input(Vec(N * N, UInt(xlen.W)))
@@ -201,7 +206,7 @@ class SystolicSquare[T <: Numbers : MAC.OperatorMAC](gen: T, val N: Int)(implici
     }
   }
 
-  printf("\nGrid  %d %d\n ", input_steps.value, state)
+  printf("\nGrid  %d \n ", input_steps.value)
   printf(p"1.U, 1.U ${Hexadecimal(PEs(0)(0).io.Out.bits)}")
   for (i <- 0 until N) {
     for (j <- 0 until N) {
