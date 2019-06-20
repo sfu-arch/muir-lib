@@ -12,7 +12,9 @@ import muxes._
 import util._
 import utility.UniformPrintfs
 import log._
-
+//************
+import scala.collection.mutable.ListBuffer
+//***************
 import scala.util.parsing.json.JSONFormat
 //////////////////////////////////////////////////////////////////
 import java.io._
@@ -141,7 +143,13 @@ class ComputeNode(NumOuts: Int, ID: Int, opCode: String)
 
         Reset()
         if (log) {
-          printfLog("THIS is a test\n")
+
+          //*******************************
+          //printfLog("THIS is a test\n")
+          storeInfo(module_name :String, "[COMPUTE]", node_name, task_ID_R, cycleCount, FU.io.out,
+            left_R.data, right_R.data)
+
+          //*********************************
           printf("[LOG] " + "[" + module_name + "] " + "[TID->%d] [COMPUTE] " +
             node_name + ": Output fired @ %d, Value: %d (%d + %d)\n", task_ID_R, cycleCount, FU.io.out, left_R.data, right_R.data)
         }
