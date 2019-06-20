@@ -70,6 +70,10 @@ object FType {
 class FloatingPoint(val t: FType) extends Bundle {
   val value = UInt(t.ieeeWidth.W)
 
+  def asRecFn(): UInt = {
+    t.recode(value)
+  }
+
   override def toPrintable: Printable = {
     p"0x${Hexadecimal(value)} }"
   }
@@ -80,32 +84,6 @@ object FloatingPoint {
     val wire = Wire(new FloatingPoint(t))
     wire
   }
-}
-
-
-/**
-  * List of compute operations which we can support
-  */
-object FPAluOpCode {
-  val Add = 1
-  val Sub = 2
-  val Mul = 3
-  val Mac = 4
-
-  val opMap  = Map(
-    "Add" -> Add,
-    "fadd" -> Add,
-    "add" -> Add,
-    "Sub" -> Sub,
-    "sub" -> Sub,
-    "fsub" -> Sub,
-    "Mul" -> Mul,
-    "mul" -> Mul,
-    "fmul" -> Mul,
-    "Mac" -> Mac,
-    "mac" -> Mac
-  )
-  val length = 9
 }
 
 
@@ -137,11 +115,11 @@ object FPAluGenerator {
   * @param opCode opcode which indicates ALU operation
   * @param xlen   bit width of the inputs
   */
-class FPUALU(val xlen: Int, val opCode: String, t: FType) extends Module {
+class FPMAC(val xlen: Int, val opCode: String, t: FType) extends Module {
   val io = IO(new Bundle {
     val in1 = Input(UInt(xlen.W))
     val in2 = Input(UInt(xlen.W))
-    val in3 = if (FPAluOpCode.opMap(opCode) == FPAluOpCode.Mac)
+    val in3 = if (node.AluOpCode.opMap(opCode) == node.AluOpCode.Mac)
       Some(Input(UInt(xlen.W))) else None
 
     val out = Output(UInt(xlen.W))
@@ -154,26 +132,26 @@ class FPUALU(val xlen: Int, val opCode: String, t: FType) extends Module {
      If we decode, then a MUX would be needed within the hardware.
   */
   def FPUControl(): Unit = {
-    FPAluOpCode.opMap(opCode) match {
-      case FPAluOpCode.Add => { // b + c
+    node.AluOpCode.opMap(opCode) match {
+      case node.AluOpCode.Add => { // b + c
         mulAddRecFN.io.op := 0.U
         mulAddRecFN.io.a := dummy1.io.out
         mulAddRecFN.io.b := in1RecFN
         mulAddRecFN.io.c := in2RecFN
       }
-      case FPAluOpCode.Sub => { // b - c
+      case node.AluOpCode.Sub => { // b - c
         mulAddRecFN.io.op := 1.U
         mulAddRecFN.io.a := dummy1.io.out
         mulAddRecFN.io.b := in1RecFN
         mulAddRecFN.io.c := in2RecFN
       }
-      case FPAluOpCode.Mul => { // a*b
+      case node.AluOpCode.Mul => { // a*b
         mulAddRecFN.io.op := 0.U
         mulAddRecFN.io.a := in1RecFN
         mulAddRecFN.io.b := in2RecFN
         mulAddRecFN.io.c := dummy0.io.out
       }
-      case FPAluOpCode.Mac => { // a*b + c
+      case node.AluOpCode.Mac => { // a*b + c
         mulAddRecFN.io.op := 0.U
         mulAddRecFN.io.a := in1RecFN
         mulAddRecFN.io.b := in2RecFN
@@ -199,12 +177,9 @@ class FPUALU(val xlen: Int, val opCode: String, t: FType) extends Module {
   dummy0.io.detectTininess := 0.U(1.W)
 
   /* Recode inputs into ieee format */
-  val in1RecFN = t.recode(io.in1)
-  val in2RecFN = t.recode(io.in2)
-  print(FPAluOpCode.opMap(opCode))
-  print("Opcode    +" + FPAluOpCode.Mac)
-
-  val in3RecFN    = if (FPAluOpCode.opMap(opCode) == FPAluOpCode.Mac) {
+  val in1RecFN    = t.recode(io.in1)
+  val in2RecFN    = t.recode(io.in2)
+  val in3RecFN    = if (node.AluOpCode.opMap(opCode) == node.AluOpCode.Mac) {
     t.recode(io.in3.get)
   } else {
     dummy0.io.out
@@ -213,11 +188,94 @@ class FPUALU(val xlen: Int, val opCode: String, t: FType) extends Module {
   mulAddRecFN.io.roundingMode := "b110".U(3.W)
   mulAddRecFN.io.detectTininess := 0.U(1.W)
 
-  assert(!FPAluOpCode.opMap.get(opCode).isEmpty, "Wrong ALU OP!")
+  assert(!node.AluOpCode.opMap.get(opCode).isEmpty, "Wrong ALU OP!")
 
   FPUControl( )
   io.out := t.ieee(mulAddRecFN.io.out)
 
-  // printf(p"${Hexadecimal(io.out)}")
 }
 
+object addsubmul {
+  def apply(in1: FloatingPoint, in2: FloatingPoint, opcode: String): UInt = {
+    val FU = Module(new FPMAC(in1.t.ieeeWidth, opcode, in1.t))
+    FU.io.in1 := in1.value
+    FU.io.in2 := in2.value
+    FU.io.out
+  }
+}
+
+object fmac {
+  def apply(in1: FloatingPoint, in2: FloatingPoint, in3: FloatingPoint): UInt = {
+    val FU = Module(new FPMAC(in1.t.ieeeWidth, "mac", in1.t))
+    FU.io.in1 := in1.value
+    FU.io.in2 := in2.value
+    FU.io.in3.get := in3.value
+    FU.io.out
+  }
+}
+
+object compare {
+  def apply(in1: FloatingPoint, in2: FloatingPoint, opcode: String): UInt = {
+    val FU = Module(new CompareRecFN(in1.t.expWidth, in1.t.sigWidth))
+    FU.io.a := in1.asRecFn
+    FU.io.b := in2.asRecFn
+    FU.io.signaling <> DontCare
+    opcode match {
+      case "SetLessThan" => FU.io.lt.asUInt
+      case "SetGreaterThan" => FU.io.gt.asUInt
+      case "SetEquals" => FU.io.gt.asUInt
+      case _ => FU.io.lt.asUInt
+    }
+  }
+}
+
+object max {
+  def apply(in1: FloatingPoint, in2: FloatingPoint): UInt = {
+    val FU = Module(new CompareRecFN(in1.t.expWidth, in1.t.sigWidth))
+    FU.io.a := in1.asRecFn
+    FU.io.b := in2.asRecFn
+    FU.io.signaling <> DontCare
+    Mux(FU.io.gt, in1.value, in2.value)
+  }
+}
+
+object min {
+  def apply(in1: FloatingPoint, in2: FloatingPoint): UInt = {
+    val FU = Module(new CompareRecFN(in1.t.expWidth, in1.t.sigWidth))
+    FU.io.a := in1.asRecFn
+    FU.io.b := in2.asRecFn
+    FU.io.signaling <> DontCare
+    Mux(FU.io.lt, in1.value, in2.value)
+  }
+}
+
+class FPALU(val gen: FloatingPoint, val opCode: String) extends Module {
+  val io = IO(new Bundle {
+    val in1 = Input(gen.cloneType)
+    val in2 = Input(gen.cloneType)
+    val in3 = if (node.AluOpCode.DSPopMap(opCode) == node.AluOpCode.Mac)
+      Some(Input(gen.cloneType)) else None
+
+    val out = Output(UInt(gen.getWidth.W))
+  })
+
+  var aluOp = Array(
+    node.AluOpCode.Add -> (addsubmul(io.in1, io.in2, "add")),
+    node.AluOpCode.Sub -> (addsubmul(io.in1, io.in2, "sub")),
+    node.AluOpCode.SetLessThan -> (compare(io.in1, io.in2, "SetLessThan")),
+    node.AluOpCode.SetGreaterThan -> (compare(io.in1, io.in2, "SetGreaterThan")),
+    node.AluOpCode.SetEquals -> (compare(io.in1, io.in2, "SetEquals")),
+    node.AluOpCode.PassA -> io.in1.value,
+    node.AluOpCode.PassB -> io.in2.value,
+    node.AluOpCode.Mul -> (addsubmul(io.in1, io.in2, "mul")),
+    node.AluOpCode.Max -> (max(io.in1, io.in2)),
+    node.AluOpCode.Min -> (min(io.in1, io.in2))
+  )
+
+  if (node.AluOpCode.DSPopMap(opCode) == node.AluOpCode.Mac) {
+    aluOp = aluOp :+ node.AluOpCode.Mac -> (fmac(io.in1, io.in2, io.in3.get))
+  }
+
+  assert(!node.AluOpCode.DSPopMap.get(opCode).isEmpty, "Wrong ALU OP!")
+  io.out := node.AluGenerator(node.AluOpCode.DSPopMap(opCode), aluOp).asUInt
+}

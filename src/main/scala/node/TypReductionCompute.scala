@@ -1,6 +1,6 @@
 package node
 
-import FPU.{FPUALU, FType}
+import FPU.{FPMAC, FType}
 import chisel3._
 import chisel3.iotesters.{ChiselFlatSpec, Driver, OrderedDecoupledHWIOTester, PeekPokeTester}
 import chisel3.Module

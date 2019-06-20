@@ -1,6 +1,6 @@
 package node
 
-import FPU.{FPUALU, FType}
+import FPU.{FPMAC, FType}
 import chisel3._
 import chisel3.iotesters.{ChiselFlatSpec, Driver, OrderedDecoupledHWIOTester, PeekPokeTester}
 import chisel3.Module
@@ -166,7 +166,7 @@ object operation {
         val x = Wire(new FPmatNxN(l.N, l.t))
         for (i <- 0 until l.N) {
           for (j <- 0 until l.N) {
-            val FPadd = Module(new FPUALU(p(XLEN), "Add", l.t))
+            val FPadd = Module(new FPMAC(p(XLEN), "Add", l.t))
             FPadd.io.in1 := l.data(i)(j)
             FPadd.io.in2 := r.data(i)(j)
             x.data(i)(j) := FPadd.io.out
@@ -179,7 +179,7 @@ object operation {
         val x = Wire(new FPmatNxN(l.N, l.t))
         for (i <- 0 until l.N) {
           for (j <- 0 until l.N) {
-            val FPadd = Module(new FPUALU(p(XLEN), "Sub", l.t))
+            val FPadd = Module(new FPMAC(p(XLEN), "Sub", l.t))
             FPadd.io.in1 := l.data(i)(j)
             FPadd.io.in2 := r.data(i)(j)
             x.data(i)(j) := FPadd.io.out
@@ -195,7 +195,7 @@ object operation {
         val products = for (i <- 0 until l.N) yield {
           for (j <- 0 until l.N) yield {
             for (k <- 0 until l.N) yield {
-              val FPadd = Module(new FPUALU(p(XLEN), "Mul", l.t))
+              val FPadd = Module(new FPMAC(p(XLEN), "Mul", l.t))
               FPadd.io.in1 := l.data(i)(k)
               FPadd.io.in2 := r.data(k)(j)
               FPadd.io.out
@@ -205,7 +205,7 @@ object operation {
         for (i <- 0 until l.N) {
           for (j <- 0 until l.N) {
             val FP_add_reduce = for (k <- 0 until l.N - 1) yield {
-              val FPadd = Module(new FPUALU(p(XLEN), "Add", l.t))
+              val FPadd = Module(new FPMAC(p(XLEN), "Add", l.t))
               FPadd
             }
 

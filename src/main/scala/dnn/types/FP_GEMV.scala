@@ -1,6 +1,6 @@
 package dnn
 
-import FPU.{FPUALU, FType}
+import FPU.{FPMAC, FType}
 import chisel3._
 import chisel3.iotesters.{ChiselFlatSpec, Driver, OrderedDecoupledHWIOTester, PeekPokeTester}
 import chisel3.Module
@@ -22,7 +22,7 @@ object FPOperator_GEMV {
       val x = Wire(new FPmatNxN(l.N, l.t))
       for (i <- 0 until l.N) {
         for (j <- 0 until l.N) {
-          val FPadd = Module(new FPUALU(p(XLEN), "Add", l.t))
+          val FPadd = Module(new FPMAC(p(XLEN), "Add", l.t))
           FPadd.io.in1 := l.data(i)(j)
           if (r.isCol == 0) {
             FPadd.io.in2 := r.data(j)
@@ -39,7 +39,7 @@ object FPOperator_GEMV {
       val x = Wire(new FPmatNxN(l.N, l.t))
       for (i <- 0 until l.N) {
         for (j <- 0 until l.N) {
-          val FPadd = Module(new FPUALU(p(XLEN), "Sub", l.t))
+          val FPadd = Module(new FPMAC(p(XLEN), "Sub", l.t))
           FPadd.io.in1 := l.data(i)(j)
           if (r.isCol == 0) {
             FPadd.io.in2 := r.data(j)

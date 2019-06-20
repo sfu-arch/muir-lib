@@ -1,6 +1,6 @@
 package dnn
 
-import FPU.{FPUALU, FType, FloatingPoint}
+import FPU.{FPMAC, FType, FloatingPoint}
 import chisel3._
 import chisel3.iotesters.{ChiselFlatSpec, Driver, OrderedDecoupledHWIOTester, PeekPokeTester}
 import chisel3.Module
@@ -56,7 +56,7 @@ object MAC {
     implicit object FP_MAC extends OperatorMAC[FloatingPoint] {
       def mac(l: FloatingPoint, r: FloatingPoint, c: FloatingPoint)(implicit p: Parameters): FloatingPoint = {
         val x = Wire(new FloatingPoint(l.t))
-        val mac = Module(new FPUALU(p(XLEN), opCode = "Mac", t = l.t))
+        val mac = Module(new FPMAC(p(XLEN), opCode = "Mac", t = l.t))
         mac.io.in1 := l.value
         mac.io.in2 := r.value
         mac.io.in3.get := c.value

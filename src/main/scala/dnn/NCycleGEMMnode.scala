@@ -1,6 +1,6 @@
 package dnn
 
-import FPU.{FPUALU, FType, FloatingPoint}
+import FPU.{FPMAC, FType, FloatingPoint}
 import chisel3._
 import chisel3.iotesters.{ChiselFlatSpec, Driver, OrderedDecoupledHWIOTester, PeekPokeTester}
 import chisel3.Module

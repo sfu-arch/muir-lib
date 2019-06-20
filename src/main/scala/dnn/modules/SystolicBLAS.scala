@@ -1,6 +1,6 @@
 package dnn
 
-import FPU.{FPUALU, FType}
+import FPU.{FPMAC, FType}
 import breeze.linalg.*
 import chisel3._
 import chisel3.iotesters.{ChiselFlatSpec, Driver, OrderedDecoupledHWIOTester, PeekPokeTester}

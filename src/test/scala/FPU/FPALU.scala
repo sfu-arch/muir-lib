@@ -17,25 +17,99 @@ import config._
 import util._
 import interfaces._
 
-
 // Tester.
-class FPUALUTester(df: FPUALU)
+class FPUALUTester(df: FPALU, opCode: Int)
                   (implicit p: config.Parameters) extends PeekPokeTester(df) {
 
-
-  poke(df.io.in1, 0x4400.U)
-  poke(df.io.in2, 0x4400.U)
-  poke(df.io.in3.get, 0x4800.U)
-  step(1)
-  println(s"Output: ${(peek(df.io.out))}\n")
+  opCode match {
+    case AluOpCode.Add => {
+      poke(df.io.in1.value, 0x4400.U)
+      poke(df.io.in2.value, 0x4400.U)
+      assert(peek(df.io.out) == 0x4800)
+      print(f"0x${peek(df.io.out)}%X")
+    }
+    case AluOpCode.Sub => {
+      poke(df.io.in1.value, 0x4400.U)
+      poke(df.io.in2.value, 0x4400.U)
+      assert(peek(df.io.out) == 0)
+      print(f"0x${peek(df.io.out)}%X")
+    }
+    case AluOpCode.SetLessThan => {
+      poke(df.io.in1.value, 0xC400.U)
+      poke(df.io.in2.value, 0x4400.U)
+      assert(peek(df.io.out) == 0x1)
+      print(f" 0x${peek(df.io.out)}%X")
+    }
+    case AluOpCode.PassA => {
+      poke(df.io.in1.value, 0x4400.U)
+      poke(df.io.in2.value, 0x4800.U)
+      assert(peek(df.io.out) == 0x4400)
+      print(f" 0x${peek(df.io.out)}%X")
+    }
+    case AluOpCode.PassB => {
+      poke(df.io.in1.value, 0x4400.U)
+      poke(df.io.in2.value, 0x4800.U)
+      assert(peek(df.io.out) == 0x4800)
+      print(f" 0x${peek(df.io.out)}%X")
+    }
+    case AluOpCode.Min => {
+      poke(df.io.in1.value, 0x4400.U)
+      poke(df.io.in2.value, 0x4800.U)
+      assert(peek(df.io.out) == 0x4400)
+      print(f" 0x${peek(df.io.out)}%X")
+    }
+    case AluOpCode.Max => {
+      poke(df.io.in1.value, 0x4400.U)
+      poke(df.io.in2.value, 0x4800.U)
+      assert(peek(df.io.out) == 0x4800)
+      print(f" 0x${peek(df.io.out)}%X")
+    }
+  }
 }
+
 
 class FPALUTests extends FlatSpec with Matchers {
   implicit val p = config.Parameters.root((new HALFPrecisionFPConfig).toInstance)
-  it should "FP MAC tester" in {
+  it should "FP Add tester" in {
     chisel3.iotesters.Driver(
-      () => new FPUALU(xlen = p(XLEN), opCode = "Mac", t = H)) {
-      c => new FPUALUTester(c)
+      () => new FPALU(new FloatingPoint(t = H), opCode = "Add")) {
+      c => new FPUALUTester(c, AluOpCode.Add)
+    } should be(true)
+  }
+  it should "FP Sub tester" in {
+    chisel3.iotesters.Driver(
+      () => new FPALU(new FloatingPoint(t = H), opCode = "Sub")) {
+      c => new FPUALUTester(c, AluOpCode.Sub)
+    } should be(true)
+  }
+  it should "FP SetLessThan tester" in {
+    chisel3.iotesters.Driver(
+      () => new FPALU(new FloatingPoint(t = H), opCode = "SetLessThan")) {
+      c => new FPUALUTester(c, AluOpCode.SetLessThan)
+    } should be(true)
+  }
+  it should "Pass A" in {
+    chisel3.iotesters.Driver(
+      () => new FPALU(new FloatingPoint(t = H), opCode = "PassA")) {
+      c => new FPUALUTester(c, AluOpCode.PassA)
+    } should be(true)
+  }
+  it should "Pass B" in {
+    chisel3.iotesters.Driver(
+      () => new FPALU(new FloatingPoint(t = H), opCode = "PassB")) {
+      c => new FPUALUTester(c, AluOpCode.PassB)
+    } should be(true)
+  }
+  it should "Min" in {
+    chisel3.iotesters.Driver(
+      () => new FPALU(new FloatingPoint(t = H), opCode = "Min")) {
+      c => new FPUALUTester(c, AluOpCode.Min)
+    } should be(true)
+  }
+  it should "Max" in {
+    chisel3.iotesters.Driver(
+      () => new FPALU(new FloatingPoint(t = H), opCode = "Max")) {
+      c => new FPUALUTester(c, AluOpCode.Max)
     } should be(true)
   }
 }

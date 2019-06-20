@@ -26,15 +26,16 @@ object AluOpCode {
   val ShiftRightLogical    = 9
   val ShiftRightArithmetic = 10
   val SetLessThan          = 11
-  val SetLessThanUnsigned  = 12
-  val PassA                = 13
-  val PassB                = 14
-  val Mul                  = 15
-  val Div                  = 16
-  val Mod                  = 17
-  val Max                  = 18
-  val Min                  = 19
-  val Mac                  = 20
+  val SetGreaterThan       = 12
+  val SetEquals            = 13
+  val PassA                = 14
+  val PassB                = 15
+  val Mul                  = 16
+  val Div                  = 17
+  val Mod                  = 18
+  val Max                  = 19
+  val Min                  = 20
+  val Mac                  = 21
 
   val opMap = Map(
     "Add" -> Add,
@@ -57,7 +58,8 @@ object AluOpCode {
     "ShiftRightArithmetic" -> ShiftRightArithmetic,
     "lshr" -> ShiftRightLogical,
     "SetLessThan" -> SetLessThan,
-    "SetLessThanUnsigned" -> SetLessThanUnsigned,
+    "SetGreaterThan" -> SetGreaterThan,
+    "SetEquals" -> SetEquals,
     "PassA" -> PassA,
     "PassB" -> PassB,
     "Mul" -> Mul,
@@ -80,14 +82,9 @@ object AluOpCode {
     "add" -> Add,
     "Sub" -> Sub,
     "sub" -> Sub,
-    "ShiftLeft" -> ShiftLeft,
-    "shl" -> ShiftLeft,
-    "ShiftRight" -> ShiftRight,
-    "ShiftRightLogical" -> ShiftRightLogical,
-    "ashr" -> ShiftRightArithmetic,
-    "ShiftRightArithmetic" -> ShiftRightArithmetic,
-    "lshr" -> ShiftRightLogical,
     "SetLessThan" -> SetLessThan,
+    "SetGreaterThan" -> SetGreaterThan,
+    "SetEquals" -> SetEquals,
     "PassA" -> PassA,
     "PassB" -> PassB,
     "Mul" -> Mul,
@@ -101,7 +98,7 @@ object AluOpCode {
   )
 
 
-  val length = 20
+  val length = 21
 }
 
 
@@ -164,7 +161,8 @@ class UALU(val xlen: Int, val opCode: String, val issign: Boolean = false) exten
       AluOpCode.ShiftRightLogical -> (io.in1.asUInt >> io.in2(in2S.getWidth - 1, 0)).asUInt, // Chisel only performs arithmetic right-shift on SInt
       AluOpCode.ShiftRightArithmetic -> (io.in1.asSInt >> io.in2(in2S.getWidth - 1, 0)).asUInt, // Chisel only performs arithmetic right-shift on SInt
       AluOpCode.SetLessThan -> (io.in1.asSInt < io.in2.asSInt),
-      AluOpCode.SetLessThanUnsigned -> (io.in1 < io.in2),
+      AluOpCode.SetGreaterThan -> (io.in1.asSInt < io.in2.asSInt),
+      AluOpCode.SetEquals -> (io.in1.asUInt === io.in2.asUInt),
       AluOpCode.PassA -> io.in1,
       AluOpCode.PassB -> io.in2,
       AluOpCode.Mul -> (io.in1 * io.in2),
@@ -174,7 +172,6 @@ class UALU(val xlen: Int, val opCode: String, val issign: Boolean = false) exten
       AluOpCode.Min -> (Mux(io.in1 < io.in2, io.in1, io.in2))
     )
   } else {
-
     Array(
       AluOpCode.Add -> (in1S + in2S),
       AluOpCode.Sub -> (in1S - in2S),
@@ -186,8 +183,9 @@ class UALU(val xlen: Int, val opCode: String, val issign: Boolean = false) exten
       AluOpCode.ShiftRight -> (in1S >> in2S(8, 0)),
       AluOpCode.ShiftRightLogical -> (in1S.asUInt >> in2S(8, 0)).asUInt, // Chisel only performs arithmetic right-shift on SInt
       AluOpCode.ShiftRightArithmetic -> (in1S.asSInt >> in2S(8, 0)).asUInt, // Chisel only performs arithmetic right-shift on SInt
-      AluOpCode.SetLessThan -> (in1S.asSInt < in2S.asSInt),
-      AluOpCode.SetLessThanUnsigned -> (in1S < in2S),
+      AluOpCode.SetLessThan -> (io.in1.asSInt < io.in2.asSInt),
+      AluOpCode.SetGreaterThan -> (io.in1.asSInt < io.in2.asSInt),
+      AluOpCode.SetEquals -> (io.in1.asSInt === io.in2.asSInt),
       AluOpCode.PassA -> in1S,
       AluOpCode.PassB -> in2S,
       AluOpCode.Mul -> (in1S * in2S),
@@ -214,7 +212,7 @@ class DSPIO[T <: Data : RealBits](gen: T, val opCode: String) extends Bundle {
   val in1 = Input(gen)
   val in2 = Input(gen)
 
-  val in3 = if (AluOpCode.opMap(opCode) == AluOpCode.Mac) {
+  val in3 = if (AluOpCode.DSPopMap(opCode) == AluOpCode.Mac) {
     Some(Input(gen.cloneType))
   }
   else None
@@ -241,9 +239,9 @@ class DSPALU[T <: Data : RealBits](gen: T, val opCode: String) extends Module {
     var aluOp = Array(
       AluOpCode.Add -> (io.in1 context_+ io.in2),
       AluOpCode.Sub -> (io.in1 context_- io.in2),
-      AluOpCode.ShiftLeft -> (io.in1 << in2U(7, 0)),
-      AluOpCode.ShiftRight -> (io.in1 >> in2U(7, 0)),
       AluOpCode.SetLessThan -> (io.in1 < io.in2),
+      AluOpCode.SetGreaterThan -> (io.in1 < io.in2),
+      AluOpCode.SetEquals -> (io.in1 === io.in2),
       AluOpCode.PassA -> io.in1,
       AluOpCode.PassB -> io.in2,
       AluOpCode.Mul -> (io.in1 context_* io.in2),
@@ -256,7 +254,7 @@ class DSPALU[T <: Data : RealBits](gen: T, val opCode: String) extends Module {
     }
 
     assert(!AluOpCode.DSPopMap.get(opCode).isEmpty, "Wrong ALU OP!")
-    io.out := AluGenerator(AluOpCode.opMap(opCode), aluOp).asUInt
+    io.out := AluGenerator(AluOpCode.DSPopMap(opCode), aluOp).asUInt
   }
 
 }
@@ -278,9 +276,9 @@ class UALUcompatibleDSPALU[T <: Data : RealBits](gen: T, val opCode: String) ext
     var aluOp = Array(
       AluOpCode.Add -> (in1gen context_+ in2gen),
       AluOpCode.Sub -> (in1gen context_- in2gen),
-      AluOpCode.ShiftLeft -> (in1gen << io.in2(7, 0)),
-      AluOpCode.ShiftRight -> (in1gen >> io.in2(7, 0)),
       AluOpCode.SetLessThan -> (in1gen < in2gen),
+      AluOpCode.SetGreaterThan -> (io.in1 > io.in2),
+      AluOpCode.SetEquals -> (io.in1 === io.in2),
       AluOpCode.PassA -> in1gen,
       AluOpCode.PassB -> in2gen,
       AluOpCode.Mul -> (in1gen context_* in2gen),
@@ -288,7 +286,7 @@ class UALUcompatibleDSPALU[T <: Data : RealBits](gen: T, val opCode: String) ext
       AluOpCode.Min -> (Mux(in1gen < in2gen, in1gen, in2gen))
     )
 
-    if (AluOpCode.opMap(opCode) == AluOpCode.Mac) {
+    if (AluOpCode.DSPopMap(opCode) == AluOpCode.Mac) {
       aluOp = aluOp :+ AluOpCode.Mac -> ((in1gen context_* in2gen).context_+(io.in3.get.asTypeOf(gen)))
     }
 
