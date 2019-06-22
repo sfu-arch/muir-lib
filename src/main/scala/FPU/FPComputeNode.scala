@@ -73,11 +73,15 @@ class FPComputeNode(NumOuts: Int, ID: Int, opCode: String)
   /*===============================================*
    *            Latch inputs. Wire up output       *
    *===============================================*/
-
+  require(t.ieeeWidth == xlen, "Floating point width does not match machine width")
   //Instantiate ALU with selected code. IEEE ALU. IEEE in/IEEE out
-  val FU = Module(new FPMAC(xlen, opCode, t))
-  FU.io.in1 := left_R.data
-  FU.io.in2 := right_R.data
+  val FU = Module(new FPALU(FloatingPoint(t), opCode))
+  FU.io.in1.value := left_R.data
+  FU.io.in2.value := right_R.data
+
+  // val FU = Module(new FPMAC(xlen, opCode, t))
+  // FU.io.in1 := left_R.data
+  // FU.io.in2 := right_R.data
 
   io.LeftIO.ready := ~left_valid_R
   when(io.LeftIO.fire( )) {

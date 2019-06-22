@@ -1,216 +1,182 @@
-//package dnn
+package dnn
+
+import FPU._
+import chisel3._
+import chisel3.iotesters.{ChiselFlatSpec, Driver, OrderedDecoupledHWIOTester, PeekPokeTester}
+import chisel3.Module
+import chisel3.experimental.FixedPoint
+import chisel3.internal.firrtl.BinaryPoint
+import chisel3.testers._
+import chisel3.util._
+import org.scalatest.{FlatSpec, Matchers}
+import config._
+import interfaces._
+import muxes._
+import util._
+import node._
+import utility.UniformPrintfs
+
+
+object SCAL {
+
+  trait OperatorSCAL[T] {
+    def scal(l: T, r: T, opcode: String)(implicit p: Parameters): T
+  }
+
+  object OperatorSCAL {
+
+    implicit object UIntSCAL extends OperatorSCAL[UInt] {
+      def scal(l: UInt, r: UInt, opcode: String)(implicit p: Parameters): UInt = {
+        val x = Wire(l.cloneType)
+        val FXALU = Module(new UALU(p(XLEN), opcode))
+        FXALU.io.in1 := l
+        FXALU.io.in2 := r
+        x := FXALU.io.out.asTypeOf(l)
+        x
+      }
+    }
+
+    implicit object SIntSCAL extends OperatorSCAL[SInt] {
+      def scal(l: SInt, r: SInt, opcode: String)(implicit p: Parameters): SInt = {
+        val x = Wire(l.cloneType)
+        val FXALU = Module(new UALU(p(XLEN), opcode, true))
+        FXALU.io.in1 := l.asUInt
+        FXALU.io.in2 := r.asUInt
+        x := FXALU.io.out.asTypeOf(l)
+        x
+      }
+    }
+
+
+    implicit object FixedPointSCAL extends OperatorSCAL[FixedPoint] {
+      def scal(l: FixedPoint, r: FixedPoint, opcode: String)(implicit p: Parameters): FixedPoint = {
+        val x = Wire(l.cloneType)
+        val FXALU = Module(new DSPALU(FixedPoint(l.getWidth.W, l.binaryPoint), opcode))
+        FXALU.io.in1 := l
+        FXALU.io.in2 := r
+        x := FXALU.io.out.asTypeOf(l)
+        // Uncomment if you do not have access to DSP tools and need to use chisel3.experimental FixedPoint. DSP tools provides implicit support for truncation.
+        //  val mul = ((l.data * r.data) >> l.fraction.U).asFixedPoint(l.fraction.BP)
+        // x.data := mul + c.data
+        x
+      }
+    }
+
+
+    implicit object FP_SCAL extends OperatorSCAL[FloatingPoint] {
+      def scal(l: FloatingPoint, r: FloatingPoint, opcode: String)(implicit p: Parameters): FloatingPoint = {
+        val x = Wire(new FloatingPoint(l.t))
+        val mac = Module(new FPMAC(p(XLEN), opcode, t = l.t))
+        mac.io.in1 := l.value
+        mac.io.in2 := r.value
+        x.value := mac.io.out
+        x
+      }
+    }
+
+  }
+
+  def scal[T](l: T, r: T, opcode: String)(implicit op: OperatorSCAL[T], p: Parameters): T = op.scal(l, r, opcode)
+}
+
+////
+class SCAL_PE_IO(implicit p: Parameters) extends CoreBundle( )(p) {
+  // LeftIO: Left input data for computation
+  val left = Input(Valid(UInt(xlen.W)))
+
+  // RightIO: Right input data for computation
+  val right = Input(Valid(UInt(xlen.W)))
+
+  val out = Output(Valid(UInt(xlen.W)))
+
+}
+
+
+class SCAL_PE[T <: Data : SCAL.OperatorSCAL](gen: T, opcode: String)(implicit val p: Parameters)
+  extends Module with CoreParams with UniformPrintfs {
+  val io = IO(new SCAL_PE_IO( ))
+
+  io.out.valid := false.B
+  io.out.bits := SCAL.scal(io.left.bits.asTypeOf(gen), io.right.bits.asTypeOf(gen), opcode).asUInt
+
+  when(io.left.valid & io.right.valid) {
+    io.out.valid := true.B
+  }
+
+}
+
 //
-//import FPU.{FPUALU, FType}
-//import chisel3._
-//import chisel3.iotesters.{ChiselFlatSpec, Driver, OrderedDecoupledHWIOTester, PeekPokeTester}
-//import chisel3.Module
-//import chisel3.experimental.FixedPoint
-//import chisel3.internal.firrtl.BinaryPoint
-//import chisel3.testers._å
-//import chisel3.util._
-//import org.scalatest.{FlatSpec, Matchers}
-//import config._
-//import interfaces._
-//import muxes._
-//import util._
-//import node._
-//import utility.UniformPrintfs
-//
-//object MAC {
-//
-//  trait OperatorMAC[T] {
-//    def mac(l: T, r: T, c: T)(implicit p: Parameters): T
-//  }
-//
-//  object OperatorMAC {
-//
-//    implicit object Scalar_MAC extends OperatorMAC[Scalar] {
-//      def mac(l: Scalar, r: Scalar, c: Scalar)(implicit p: Parameters): Scalar = {
-//        val x = Wire(new Scalar)
-//        x.data := (l.data * r.data).+(c.data)
-//        x
-//      }
-//    }
-//
-//    implicit object FX_MAC extends OperatorMAC[FXScalar] {
-//      def mac(l: FXScalar, r: FXScalar, c: FXScalar)(implicit p: Parameters): FXScalar = {
-//        val x = Wire(new FXScalar(l.fraction))
-//        val FXALU = Module(new DSPALU(FixedPoint(l.data.getWidth.W, l.fraction.BP), "Mac"))
-//        FXALU.io.in1 := l.data
-//        FXALU.io.in2 := r.data
-//        FXALU.io.in3.get := c.data
-//        x.data := FXALU.io.out.asTypeOf(x.data)
-//
-//        // Uncomment if you do not have access to DSP tools and need to use chisel3.experimental FixedPoint. DSP tools provides implicit support for truncation.
-//        //  val mul = ((l.data * r.data) >> l.fraction.U).asFixedPoint(l.fraction.BP)
-//        // x.data := mul + c.data
-//        x
-//      }
-//    }
-//
-//    implicit object FP_MAC extends OperatorMAC[FloatingPoint] {
-//      def mac(l: FloatingPoint, r: FloatingPoint, c: FloatingPoint)(implicit p: Parameters): FloatingPoint = {
-//        val x = Wire(new FloatingPoint(l.Ftyp))
-//        val mac = Module(new FPUALU(p(XLEN), opCode = "Mac", t = l.Ftyp))
-//        mac.io.in1 := l.data
-//        mac.io.in2 := r.data
-//        mac.io.in3.get := c.data
-//        x.data := mac.io.out
-//        x
-//      }
-//    }
-//
-//  }
-//
-//  def mac[T](l: T, r: T, c: T)(implicit op: OperatorMAC[T], p: Parameters): T = op.mac(l, r, c)
-//}
-//
-//class PEIO(implicit p: Parameters) extends CoreBundle( )(p) {
-//  // LeftIO: Left input data for computation
-//  val Left = Input(Valid(UInt(xlen.W)))
-//
-//  // RightIO: Right input data for computation
-//  val Top = Input(Valid(UInt(xlen.W)))
-//
-//  val Right = Output(Valid(UInt(xlen.W)))
-//
-//  val Bottom = Output(Valid(UInt(xlen.W)))
-//
-//  val Out = Output(Valid(UInt(xlen.W)))
-//
-//}
-//
-//
-//class PE[T <: Numbers : MAC.OperatorMAC](gen: T, left_delay: Int, top_delay: Int, val row: Int, val col: Int)(implicit val p: Parameters)
-//  extends Module with CoreParams with UniformPrintfs {
-//  val io = IO(new PEIO)
-//
-//  val top_reg  = Pipe(io.Top.valid, io.Top.bits, latency = top_delay)
-//  val left_reg = Pipe(io.Left.valid, io.Left.bits, latency = left_delay)
-//
-//  val accumalator       = RegInit(init = 0.U(xlen.W))
-//  val accumalator_valid = RegInit(init = false.B)
-//  when(top_reg.valid & left_reg.valid) {
-//    accumalator := MAC.mac(left_reg.bits.asTypeOf(gen), top_reg.bits.asTypeOf(gen), accumalator.asTypeOf(gen)).asUInt
-//    accumalator_valid := top_reg.valid & left_reg.valid
-//  }
-//
-//  io.Right := left_reg
-//
-//  io.Bottom := top_reg
-//
-//  io.Out.bits := accumalator
-//
-//  io.Out.valid := accumalator_valid
-//
-//}
-//
-//// Non synthesizable operations
-//class NCycle_SCAL(val gen: FixedPoint, val N: Int, val lanes: Int)(implicit val p: Parameters)
-//  extends Module with CoreParams with UniformPrintfs {
-//  val io = IO(new Bundle {
-//    val input_vec   = Input(Vec(N, gen))
-//    val scalar      = Input(gen.cloneType)
-//    val activate    = Input(Bool( ))
-//    val async_reset = Input(Bool( ))
-//    val output      = Output(Vec(lanes, UInt(xlen.W)))
-//  })
-//
-//  val PEs =
-//    for (i <- 0 until N) yield
-//      for (j <- 0 until N) yield {
-//        if (i == 0 & j == 0)
-//          Module(new PE(gen, left_delay = 0, top_delay = 0, row = 0, col = 0))
-//        else if (j == 0)
-//          Module(new PE(gen, left_delay = i, top_delay = 1, row = i, col = j))
-//        else if (i == 0)
-//          Module(new PE(gen, left_delay = 1, top_delay = j, row = i, col = j))
-//        else
-//          Module(new PE(gen, left_delay = 1, top_delay = 1, row = i, col = j))
-//      }
-//
-//  /* PE Control */
-//  val s_idle :: s_ACTIVE :: s_COMPUTE :: Nil = Enum(3)
-//  val state                                  = RegInit(s_idle)
-//
-//  val input_steps = new Counter(3 * N - 1)
-//  when(state === s_idle) {
-//    when(io.activate) {
-//      state := s_ACTIVE
-//    }
-//  }.elsewhen(state === s_ACTIVE) {
-//    input_steps.inc( )
-//    when(input_steps.value === (N - 1).U) {
-//      state := s_COMPUTE
-//    }
-//  }.elsewhen(state === s_COMPUTE) {
-//    input_steps.inc( )
-//    when(input_steps.value === ((3 * N) - 2).U) {
-//      state := s_idle
-//    }
-//  }
-//
-//  val io_lefts = for (i <- 0 until N) yield
-//    for (j <- 0 until N) yield {
-//      j.U -> io.left(i * N + j)
-//    }
-//
-//  val io_rights = for (i <- 0 until N) yield
-//    for (j <- 0 until N) yield {
-//      j.U -> io.right(i + j * N)
-//    }
-//
-//
-//  val left_muxes = for (i <- 0 until N) yield {
-//    val mx = MuxLookup(input_steps.value, 0.U, io_lefts(i))
-//    mx
-//  }
-//
-//  val top_muxes = for (i <- 0 until N) yield {
-//    val mx = MuxLookup(input_steps.value, 0.U, io_rights(i))
-//    mx
-//  }
-//
-//
-//  for (i <- 0 until N) {
-//    for (j <- 0 until N) {
-//      if (j != N - 1) {
-//        PEs(i)(j + 1).io.Left <> PEs(i)(j).io.Right
-//      }
-//      if (i != N - 1) {
-//        PEs(i + 1)(j).io.Top <> PEs(i)(j).io.Bottom
-//      }
-//      if (i == 0) {
-//        PEs(0)(j).io.Top.bits := top_muxes(j)
-//      }
-//      if (j == 0) {
-//        PEs(i)(0).io.Left.bits := left_muxes(i)
-//      }
-//    }
-//  }
-//
-//  for (i <- 0 until N) {
-//    PEs(0)(i).io.Top.valid := false.B
-//    PEs(i)(0).io.Left.valid := false.B
-//  }
-//
-//  when(state === s_ACTIVE) {
-//    for (i <- 0 until N) {
-//      PEs(0)(i).io.Top.valid := true.B
-//      PEs(i)(0).io.Left.valid := true.B
-//    }
-//  }
-//
-//  printf("\nGrid  %d %d\n ", input_steps.value, state)
-//  printf(p"1.U, 1.U ${Hexadecimal(PEs(0)(0).io.Out.bits)}")
-//  for (i <- 0 until N) {
-//    for (j <- 0 until N) {
-//      io.output(i * (N) + j) <> PEs(i)(j).io.Out.bits
-//      when(state === s_idle) {
-//        PEs(i)(j).reset := true.B
-//        //        done_input := false.B
-//      }
-//    }
-//    //    printf("\n")
-//  }
-//}
+class NCycle_SCAL[T <: Data : SCAL.OperatorSCAL](val gen: T, val N: Int, val lanes: Int, val opcode: String)(implicit val p: Parameters)
+  extends Module with CoreParams with UniformPrintfs {
+  val io = IO(new Bundle {
+    val input_vec = Input(Vec(N, UInt(xlen.W)))
+    val scalar    = Input(UInt(xlen.W))
+    val activate  = Input(Bool( ))
+    val stat      = Output(UInt(xlen.W))
+    val output    = Output(Vec(lanes, UInt(xlen.W)))
+  })
+
+  require(gen.getWidth == xlen, "Size of element does not match xlen OR Size of vector does not match shape")
+  require(N % lanes == 0, "Size of vector should be multiple of lanes")
+
+  def latency(): Int = {
+    N / lanes
+  }
+
+  val PEs =
+    for (i <- 0 until lanes) yield {
+      Module(new SCAL_PE(gen, opcode))
+    }
+
+  /* PE Control */
+  val s_idle :: s_ACTIVE :: s_COMPUTE :: Nil = Enum(3)
+  val state                                  = RegInit(s_idle)
+  val input_steps                            = new Counter(latency)
+  io.stat := input_steps.value
+  when(state === s_idle) {
+    when(io.activate) {
+      state := s_ACTIVE
+    }
+  }.elsewhen(state === s_ACTIVE) {
+    input_steps.inc( )
+    when(input_steps.value === (latency - 1).U) {
+      state := s_idle
+    }
+  }
+
+  val io_inputs = for (i <- 0 until lanes) yield {
+    for (j <- 0 until N / lanes) yield {
+      j.U -> io.input_vec(i + j * lanes)
+    }
+  }
+
+  val input_muxes = for (i <- 0 until lanes) yield {
+    val mx = MuxLookup(input_steps.value, 0.U, io_inputs(i))
+    mx
+  }
+
+  for (i <- 0 until lanes) {
+    PEs(i).io.left.bits := input_muxes(i)
+    PEs(i).io.right.bits := io.scalar
+    PEs(i).io.left.valid := false.B
+    PEs(i).io.right.valid := false.B
+  }
+
+  when(state === s_ACTIVE) {
+    for (i <- 0 until lanes) {
+      PEs(i).io.left.valid := true.B
+      PEs(i).io.right.valid := true.B
+    }
+  }
+
+  //printf(p"\n ${input_steps.value}")
+  //  printf(p"1.U, 1.U ${
+  //    Hexadecimal(PEs(0).io.out.bits)
+  //  }")
+  for (i <- 0 until lanes) {
+    io.output(i) <> PEs(i).io.out.bits
+    when(state === s_idle) {
+      PEs(i).reset := true.B
+    }
+  }
+}

@@ -34,7 +34,7 @@ class FPUALUTester(df: FPALU, opCode: Int)
       assert(peek(df.io.out) == 0)
       print(f"0x${peek(df.io.out)}%X")
     }
-    case AluOpCode.SetLessThan => {
+    case AluOpCode.LT => {
       poke(df.io.in1.value, 0xC400.U)
       poke(df.io.in2.value, 0x4400.U)
       assert(peek(df.io.out) == 0x1)
@@ -64,6 +64,19 @@ class FPUALUTester(df: FPALU, opCode: Int)
       assert(peek(df.io.out) == 0x4800)
       print(f" 0x${peek(df.io.out)}%X")
     }
+    case AluOpCode.Mac => {
+      poke(df.io.in1.value, 0x4400.U)
+      poke(df.io.in2.value, 0x4400.U)
+      poke(df.io.in3.get.value, 0x4400.U)
+      print(f" 0x${peek(df.io.out)}%X")
+      assert(peek(df.io.out) == 0x4D00)
+    }
+    case AluOpCode.EQ => {
+      poke(df.io.in1.value, 0x4400.U)
+      poke(df.io.in2.value, 0x4400.U)
+      print(f" 0x${peek(df.io.out)}%X")
+      assert(peek(df.io.out) == 0x1)
+    }
   }
 }
 
@@ -82,10 +95,16 @@ class FPALUTests extends FlatSpec with Matchers {
       c => new FPUALUTester(c, AluOpCode.Sub)
     } should be(true)
   }
-  it should "FP SetLessThan tester" in {
+  it should "FP LT tester" in {
     chisel3.iotesters.Driver(
-      () => new FPALU(new FloatingPoint(t = H), opCode = "SetLessThan")) {
-      c => new FPUALUTester(c, AluOpCode.SetLessThan)
+      () => new FPALU(new FloatingPoint(t = H), opCode = "LT")) {
+      c => new FPUALUTester(c, AluOpCode.LT)
+    } should be(true)
+  }
+  it should "Equals" in {
+    chisel3.iotesters.Driver(
+      () => new FPALU(new FloatingPoint(t = H), opCode = "EQ")) {
+      c => new FPUALUTester(c, AluOpCode.EQ)
     } should be(true)
   }
   it should "Pass A" in {
@@ -110,6 +129,12 @@ class FPALUTests extends FlatSpec with Matchers {
     chisel3.iotesters.Driver(
       () => new FPALU(new FloatingPoint(t = H), opCode = "Max")) {
       c => new FPUALUTester(c, AluOpCode.Max)
+    } should be(true)
+  }
+  it should "Mac" in {
+    chisel3.iotesters.Driver(
+      () => new FPALU(new FloatingPoint(t = H), opCode = "Mac")) {
+      c => new FPUALUTester(c, AluOpCode.Mac)
     } should be(true)
   }
 }

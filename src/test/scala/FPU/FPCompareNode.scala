@@ -18,15 +18,12 @@ import util._
 import interfaces._
 
 
-
-
-
 // Tester.
 class FPCompareNodeTester(df: FPCompareNode)
-                  (implicit p: config.Parameters) extends PeekPokeTester(df)  {
+                         (implicit p: config.Parameters) extends PeekPokeTester(df) {
 
 
-  poke(df.io.LeftIO.bits.data, 0x40000000.U)
+  poke(df.io.LeftIO.bits.data, 0x40800000.U)
   poke(df.io.LeftIO.valid, false.B)
   poke(df.io.LeftIO.bits.predicate, false.B)
 
@@ -34,7 +31,7 @@ class FPCompareNodeTester(df: FPCompareNode)
   poke(df.io.RightIO.valid, false.B)
   poke(df.io.RightIO.bits.predicate, false.B)
 
-  poke(df.io.enable.bits.control , false.B)
+  poke(df.io.enable.bits.control, false.B)
   poke(df.io.enable.valid, false.B)
   poke(df.io.Out(0).ready, false.B)
   println(s"Output: ${peek(df.io.Out(0))}\n")
@@ -42,7 +39,7 @@ class FPCompareNodeTester(df: FPCompareNode)
 
   step(1)
 
-  poke(df.io.enable.bits.control , true.B)
+  poke(df.io.enable.bits.control, true.B)
   poke(df.io.enable.valid, true.B)
   poke(df.io.Out(0).ready, true.B)
 
@@ -58,7 +55,7 @@ class FPCompareNodeTester(df: FPCompareNode)
   step(1)
 
 
-  for( i <- 0 until 10){
+  for (i <- 0 until 10) {
     println(s"Output: ${peek(df.io.Out(0))}\n")
 
     println(s"t: ${i}\n -------------------------------------")
@@ -66,11 +63,11 @@ class FPCompareNodeTester(df: FPCompareNode)
   }
 }
 
-class FPCompareTests extends  FlatSpec with Matchers {
-   implicit val p = config.Parameters.root((new SinglePrecisionFPConfig).toInstance)
+class FPCompareTests extends FlatSpec with Matchers {
+  implicit val p = config.Parameters.root((new SinglePrecisionFPConfig).toInstance)
   it should "FP MAC tester" in {
-     chisel3.iotesters.Driver(() => new FPCompareNode(NumOuts = 1, ID = 0, opCode = "<LT")(t = S)) {
-       c => new FPCompareNodeTester(c)
-     } should be(true)
-   }
- }
+    chisel3.iotesters.Driver(() => new FPCompareNode(NumOuts = 1, ID = 0, opCode = "=EQ")(t = S)) {
+      c => new FPCompareNodeTester(c)
+    } should be(true)
+  }
+}

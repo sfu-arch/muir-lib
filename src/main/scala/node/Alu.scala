@@ -25,17 +25,19 @@ object AluOpCode {
   val ShiftRight           = 8
   val ShiftRightLogical    = 9
   val ShiftRightArithmetic = 10
-  val SetLessThan          = 11
-  val SetGreaterThan       = 12
-  val SetEquals            = 13
-  val PassA                = 14
-  val PassB                = 15
-  val Mul                  = 16
-  val Div                  = 17
-  val Mod                  = 18
-  val Max                  = 19
-  val Min                  = 20
-  val Mac                  = 21
+  val LT                   = 11
+  val GT                   = 12
+  val EQ                   = 13
+  val LTE                  = 14
+  val GTE                  = 15
+  val PassA                = 16
+  val PassB                = 17
+  val Mul                  = 18
+  val Div                  = 19
+  val Mod                  = 20
+  val Max                  = 21
+  val Min                  = 22
+  val Mac                  = 23
 
   val opMap = Map(
     "Add" -> Add,
@@ -57,9 +59,11 @@ object AluOpCode {
     "ashr" -> ShiftRightArithmetic,
     "ShiftRightArithmetic" -> ShiftRightArithmetic,
     "lshr" -> ShiftRightLogical,
-    "SetLessThan" -> SetLessThan,
-    "SetGreaterThan" -> SetGreaterThan,
-    "SetEquals" -> SetEquals,
+    "LT" -> LT,
+    "GT" -> GT,
+    "EQ" -> EQ,
+    "LTE" -> LTE,
+    "GTE" -> GTE,
     "PassA" -> PassA,
     "PassB" -> PassB,
     "Mul" -> Mul,
@@ -82,9 +86,11 @@ object AluOpCode {
     "add" -> Add,
     "Sub" -> Sub,
     "sub" -> Sub,
-    "SetLessThan" -> SetLessThan,
-    "SetGreaterThan" -> SetGreaterThan,
-    "SetEquals" -> SetEquals,
+    "LT" -> LT,
+    "GT" -> GT,
+    "EQ" -> EQ,
+    "LTE" -> LTE,
+    "GTE" -> GTE,
     "PassA" -> PassA,
     "PassB" -> PassB,
     "Mul" -> Mul,
@@ -98,7 +104,7 @@ object AluOpCode {
   )
 
 
-  val length = 21
+  val length = 23
 }
 
 
@@ -145,9 +151,9 @@ class UALU(val xlen: Int, val opCode: String, val issign: Boolean = false) exten
   val io = IO(new UALUIO(xlen, opCode))
 
   val in1S = io.in1.asSInt
-  val in2S = io.in1.asSInt
+  val in2S = io.in2.asSInt
 
-  //  "Chicken and Egg Problem". Using var here, as later in this class, if the operation is a mac we may need to add another operation to the array and this operation uses an extra io that exists only if it is a mac.
+
   var aluOp = if (!issign) {
     Array(
       AluOpCode.Add -> (io.in1 + io.in2),
@@ -160,9 +166,11 @@ class UALU(val xlen: Int, val opCode: String, val issign: Boolean = false) exten
       AluOpCode.ShiftRight -> (io.in1 >> io.in2(in2S.getWidth - 1, 0)),
       AluOpCode.ShiftRightLogical -> (io.in1.asUInt >> io.in2(in2S.getWidth - 1, 0)).asUInt, // Chisel only performs arithmetic right-shift on SInt
       AluOpCode.ShiftRightArithmetic -> (io.in1.asSInt >> io.in2(in2S.getWidth - 1, 0)).asUInt, // Chisel only performs arithmetic right-shift on SInt
-      AluOpCode.SetLessThan -> (io.in1.asSInt < io.in2.asSInt),
-      AluOpCode.SetGreaterThan -> (io.in1.asSInt < io.in2.asSInt),
-      AluOpCode.SetEquals -> (io.in1.asUInt === io.in2.asUInt),
+      AluOpCode.LT -> (io.in1.asUInt < io.in2.asUInt),
+      AluOpCode.GT -> (io.in1.asUInt < io.in2.asUInt),
+      AluOpCode.EQ -> (io.in1.asUInt === io.in2.asUInt),
+      AluOpCode.LTE -> (io.in1.asUInt <= io.in2.asUInt),
+      AluOpCode.GTE -> (io.in1.asUInt >= io.in2.asUInt),
       AluOpCode.PassA -> io.in1,
       AluOpCode.PassB -> io.in2,
       AluOpCode.Mul -> (io.in1 * io.in2),
@@ -183,9 +191,11 @@ class UALU(val xlen: Int, val opCode: String, val issign: Boolean = false) exten
       AluOpCode.ShiftRight -> (in1S >> in2S(8, 0)),
       AluOpCode.ShiftRightLogical -> (in1S.asUInt >> in2S(8, 0)).asUInt, // Chisel only performs arithmetic right-shift on SInt
       AluOpCode.ShiftRightArithmetic -> (in1S.asSInt >> in2S(8, 0)).asUInt, // Chisel only performs arithmetic right-shift on SInt
-      AluOpCode.SetLessThan -> (io.in1.asSInt < io.in2.asSInt),
-      AluOpCode.SetGreaterThan -> (io.in1.asSInt < io.in2.asSInt),
-      AluOpCode.SetEquals -> (io.in1.asSInt === io.in2.asSInt),
+      AluOpCode.LT -> (io.in1.asSInt < io.in2.asSInt),
+      AluOpCode.GT -> (io.in1.asSInt < io.in2.asSInt),
+      AluOpCode.EQ -> (io.in1.asSInt === io.in2.asSInt),
+      AluOpCode.LTE -> (io.in1.asSInt <= io.in2.asSInt),
+      AluOpCode.GTE -> (io.in1.asSInt >= io.in2.asSInt),
       AluOpCode.PassA -> in1S,
       AluOpCode.PassB -> in2S,
       AluOpCode.Mul -> (in1S * in2S),
@@ -203,7 +213,6 @@ class UALU(val xlen: Int, val opCode: String, val issign: Boolean = false) exten
     else
       aluOp = aluOp :+ AluOpCode.Mac -> ((in1S * in2S).+(io.in3.get.asSInt))
   }
-
   assert(!AluOpCode.opMap.get(opCode).isEmpty, "Wrong ALU OP!")
   io.out := AluGenerator(AluOpCode.opMap(opCode), aluOp).asUInt
 }
@@ -239,9 +248,11 @@ class DSPALU[T <: Data : RealBits](gen: T, val opCode: String) extends Module {
     var aluOp = Array(
       AluOpCode.Add -> (io.in1 context_+ io.in2),
       AluOpCode.Sub -> (io.in1 context_- io.in2),
-      AluOpCode.SetLessThan -> (io.in1 < io.in2),
-      AluOpCode.SetGreaterThan -> (io.in1 < io.in2),
-      AluOpCode.SetEquals -> (io.in1 === io.in2),
+      AluOpCode.LT -> (io.in1 < io.in2),
+      AluOpCode.GT -> (io.in1 < io.in2),
+      AluOpCode.EQ -> (io.in1 === io.in2),
+      AluOpCode.LTE -> (io.in1 <= io.in2),
+      AluOpCode.GTE -> (io.in1 >= io.in2),
       AluOpCode.PassA -> io.in1,
       AluOpCode.PassB -> io.in2,
       AluOpCode.Mul -> (io.in1 context_* io.in2),
@@ -276,9 +287,11 @@ class UALUcompatibleDSPALU[T <: Data : RealBits](gen: T, val opCode: String) ext
     var aluOp = Array(
       AluOpCode.Add -> (in1gen context_+ in2gen),
       AluOpCode.Sub -> (in1gen context_- in2gen),
-      AluOpCode.SetLessThan -> (in1gen < in2gen),
-      AluOpCode.SetGreaterThan -> (io.in1 > io.in2),
-      AluOpCode.SetEquals -> (io.in1 === io.in2),
+      AluOpCode.LT -> (in1gen < in2gen),
+      AluOpCode.GT -> (io.in1 > io.in2),
+      AluOpCode.EQ -> (io.in1 === io.in2),
+      AluOpCode.LTE -> (io.in1 <= io.in2),
+      AluOpCode.GTE -> (io.in1 >= io.in2),
       AluOpCode.PassA -> in1gen,
       AluOpCode.PassB -> in2gen,
       AluOpCode.Mul -> (in1gen context_* in2gen),

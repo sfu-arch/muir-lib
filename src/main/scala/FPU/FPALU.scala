@@ -6,6 +6,7 @@ import chisel3._
 import chisel3.util._
 import FType._
 import chisel3.core.CompileOptions
+import config._
 
 case class FType(exp: Int, sig: Int) {
   def ieeeWidth = exp + sig
@@ -82,6 +83,13 @@ class FloatingPoint(val t: FType) extends Bundle {
 object FloatingPoint {
   def apply(t: FType): FloatingPoint = {
     val wire = Wire(new FloatingPoint(t))
+    wire.value := 0.U
+    wire
+  }
+
+  def apply(value: UInt, t: FType): FloatingPoint = {
+    val wire = Wire(new FloatingPoint(t))
+    wire.value := value
     wire
   }
 }
@@ -221,9 +229,11 @@ object compare {
     FU.io.b := in2.asRecFn
     FU.io.signaling <> DontCare
     opcode match {
-      case "SetLessThan" => FU.io.lt.asUInt
-      case "SetGreaterThan" => FU.io.gt.asUInt
-      case "SetEquals" => FU.io.gt.asUInt
+      case "LT" => FU.io.lt.asUInt
+      case "GT" => FU.io.gt.asUInt
+      case "EQ" => FU.io.eq.asUInt
+      case "LTE" => (FU.io.eq | FU.io.lt).asUInt
+      case "GTE" => (FU.io.eq | FU.io.gt).asUInt
       case _ => FU.io.lt.asUInt
     }
   }
@@ -249,8 +259,8 @@ object min {
   }
 }
 
-class FPALU(val gen: FloatingPoint, val opCode: String) extends Module {
-  val io = IO(new Bundle {
+class FPALU(val gen: FloatingPoint, val opCode: String)(implicit val p: Parameters) extends Module {
+  val io    = IO(new Bundle {
     val in1 = Input(gen.cloneType)
     val in2 = Input(gen.cloneType)
     val in3 = if (node.AluOpCode.DSPopMap(opCode) == node.AluOpCode.Mac)
@@ -258,13 +268,14 @@ class FPALU(val gen: FloatingPoint, val opCode: String) extends Module {
 
     val out = Output(UInt(gen.getWidth.W))
   })
-
   var aluOp = Array(
     node.AluOpCode.Add -> (addsubmul(io.in1, io.in2, "add")),
     node.AluOpCode.Sub -> (addsubmul(io.in1, io.in2, "sub")),
-    node.AluOpCode.SetLessThan -> (compare(io.in1, io.in2, "SetLessThan")),
-    node.AluOpCode.SetGreaterThan -> (compare(io.in1, io.in2, "SetGreaterThan")),
-    node.AluOpCode.SetEquals -> (compare(io.in1, io.in2, "SetEquals")),
+    node.AluOpCode.LT -> (compare(io.in1, io.in2, "LT")),
+    node.AluOpCode.GT -> (compare(io.in1, io.in2, "GT")),
+    node.AluOpCode.EQ -> (compare(io.in1, io.in2, "EQ")),
+    node.AluOpCode.LTE -> (compare(io.in1, io.in2, "LTE")),
+    node.AluOpCode.GTE -> (compare(io.in1, io.in2, "GTE")),
     node.AluOpCode.PassA -> io.in1.value,
     node.AluOpCode.PassB -> io.in2.value,
     node.AluOpCode.Mul -> (addsubmul(io.in1, io.in2, "mul")),
