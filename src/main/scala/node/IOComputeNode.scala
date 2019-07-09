@@ -19,7 +19,7 @@ import scala.util.parsing.json.JSONFormat
 //////////////////////////////////////////////////////////////////
 import java.io._
 ///////////////////////////////////////////////////////////
-class ComputeNodeIO(NumOuts: Int)
+class ComputeNodeTestIO(NumOuts: Int)
                    (implicit p: Parameters)
   extends HandShakingIONPS(NumOuts)(new DataBundle) {
   // LeftIO: Left input data for computation
@@ -27,17 +27,18 @@ class ComputeNodeIO(NumOuts: Int)
 
   // RightIO: Right input data for computation
   val RightIO = Flipped(Decoupled(new DataBundle()))
+  val LogIO = Decoupled(new DataBundle())
 
   override def cloneType = new ComputeNodeIO(NumOuts).asInstanceOf[this.type]
 
 }
 
-class ComputeNode(NumOuts: Int, ID: Int, opCode: String)
+class ComputeNodeTest(NumOuts: Int, ID: Int, opCode: String)
                  (sign: Boolean)
                  (implicit p: Parameters,
                   name: sourcecode.Name,
                   file: sourcecode.File)
-  extends HandShakingNPS(NumOuts, ID)(new DataBundle())(p){
+  extends HandShakingNPS(NumOuts, ID)(new DataBundle())(p) with logClass {
   override lazy val io = IO(new ComputeNodeIO(NumOuts))
 
   // Printf debugging
@@ -146,6 +147,8 @@ class ComputeNode(NumOuts: Int, ID: Int, opCode: String)
 
           //*******************************
           //printfLog("THIS is a test\n")
+          storeInfo(module_name :String, "[COMPUTE]", node_name, task_ID_R, cycleCount, FU.io.out,
+            left_R.data, right_R.data)
 
           //*********************************
           printf("[LOG] " + "[" + module_name + "] " + "[TID->%d] [COMPUTE] " +
@@ -169,7 +172,7 @@ class ComputeNode(NumOuts: Int, ID: Int, opCode: String)
   * @param name
   * @param file
   */
-class ComputeFastNode(NumOuts: Int, ID: Int, opCode: String)
+class ComputeFastNodeTest(NumOuts: Int, ID: Int, opCode: String)
                      (sign: Boolean)
                      (implicit val p: Parameters,
                       name: sourcecode.Name,

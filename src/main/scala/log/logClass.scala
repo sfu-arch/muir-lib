@@ -21,7 +21,8 @@ trait logClass{
 
   def storeInfo(module_name :String, Node:String, node_name:String, task_ID_R: Unit, cycleCount:Unit, FUioOut: Unit,
                 left_RData : Unit, right_RData: Unit):Unit={
-    val WindowOfData = module_name + Node + node_name + task_ID_R.toString + cycleCount.toString + FUioOut.toString +
+//    val WindowOfData = module_name + Node + nofude_name + task_ID_R.toString + cycleCount.toString + FUioOut.toString +
+    val WindowOfData = module_name + Node + task_ID_R.toString + cycleCount.toString + FUioOut.toString +
     left_RData.toString + right_RData.toString
     val SWindowOfData = serialise(WindowOfData)
     Write(SWindowOfData)
