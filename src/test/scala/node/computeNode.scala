@@ -35,8 +35,10 @@ class computeTester(df: ComputeNode)
   poke(df.io.enable.valid, false.B)
   poke(df.io.Out(0).ready, false.B)
   println(s"Output: ${peek(df.io.Out(0))}\n")
-
-
+  //p
+  println(s"state is: ${peek(df.io.LogIO)}\n")
+  println(s"LOG state is: ${peek(df.io.LogCheck.get)}\n")
+  //V
   step(1)
 
   poke(df.io.enable.bits.control , true.B)
@@ -49,14 +51,18 @@ class computeTester(df: ComputeNode)
   poke(df.io.LeftIO.bits.predicate, true.B)
   poke(df.io.RightIO.bits.predicate, true.B)
 
-  println(s"Output: ${peek(df.io.Out(0))}\n")
 
+  println(s"Output: ${peek(df.io.Out(0))}\n")
+  //P
+  println(s"state is: ${peek(df.io.LogIO)}\n")
+  //V
   println(s"t: -1\n -------------------------------------")
   step(1)
 
 
   for( i <- 0 until 10){
     println(s"Output: ${peek(df.io.Out(0))}\n")
+    println(s"state is: ${peek(df.io.LogIO)}\n")
 
     println(s"t: ${i}\n -------------------------------------")
     step(1)

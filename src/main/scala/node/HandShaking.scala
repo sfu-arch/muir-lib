@@ -48,7 +48,11 @@ class HandShakingIONPS[T <: Data](val NumOuts: Int)(gen: T)(implicit p: Paramete
   val enable = Flipped(Decoupled(new ControlBundle))
   // Output IO
   val Out    = Vec(NumOuts, Decoupled(gen))
+  //p
+//  val LogCheck = Decoupled(new DataBundle())
 
+  val LogCheck = if (log) Some(Decoupled(new DataBundle())) else None
+  //v
   override def cloneType = new HandShakingIONPS(NumOuts)(gen).asInstanceOf[this.type]
 
 }
@@ -144,7 +148,8 @@ class HandShakingCtrlNoMaskIO(val NumOuts: Int)(implicit p: Parameters)
 ==============================================================*/
 
 /**
-  * @brief Handshaking between data nodes with no ordering.* @details Sets up base registers and hand shaking registers
+  * @brief Handshaking between data nodes with no ordering.
+  * @details Sets up base registers and hand shaking registers
   * @param NumOuts Number of outputs
   * @param ID      Node id
   * @return Module

@@ -289,8 +289,24 @@ class DataBundle(implicit p: Parameters) extends PredicateT with TaskID {
   }
 }
 
+class LogBundle(implicit p: Parameters) extends PredicateT with TaskID {
+  // Data packet
+  val stateData = UInt(2.W)
+
+
+}
 
 object DataBundle {
+
+  def apply(data: UInt = 0.U, taskID: UInt = 0.U)(implicit p: Parameters): DataBundle = {
+    val wire = Wire(new DataBundle)
+    wire.data := data
+    wire.taskID := taskID
+    wire.predicate := true.B
+    wire
+  }
+
+
   def default(implicit p: Parameters): DataBundle = {
     val wire = Wire(new DataBundle)
     wire.data := 0.U

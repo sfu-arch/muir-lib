@@ -11,14 +11,8 @@ import interfaces._
 import muxes._
 import util._
 import utility.UniformPrintfs
-import log._
-//************
-import scala.collection.mutable.ListBuffer
-//***************
-import scala.util.parsing.json.JSONFormat
-//////////////////////////////////////////////////////////////////
-import java.io._
-///////////////////////////////////////////////////////////
+
+
 class ComputeNodeIO(NumOuts: Int)
                    (implicit p: Parameters)
   extends HandShakingIONPS(NumOuts)(new DataBundle) {
@@ -28,6 +22,9 @@ class ComputeNodeIO(NumOuts: Int)
   // RightIO: Right input data for computation
   val RightIO = Flipped(Decoupled(new DataBundle()))
 
+  //p
+  val LogIO = Decoupled(new DataBundle())
+  //v
   override def cloneType = new ComputeNodeIO(NumOuts).asInstanceOf[this.type]
 
 }
@@ -37,7 +34,7 @@ class ComputeNode(NumOuts: Int, ID: Int, opCode: String)
                  (implicit p: Parameters,
                   name: sourcecode.Name,
                   file: sourcecode.File)
-  extends HandShakingNPS(NumOuts, ID)(new DataBundle())(p){
+  extends HandShakingNPS(NumOuts, ID)(new DataBundle())(p) {
   override lazy val io = IO(new ComputeNodeIO(NumOuts))
 
   // Printf debugging
@@ -69,7 +66,16 @@ class ComputeNode(NumOuts: Int, ID: Int, opCode: String)
 
 
   val predicate = enable_R.control
-  //printLog()
+
+  //p
+  //if (log){
+  io.LogCheck.get.valid := false.B
+  io.LogCheck.get.bits := DataBundle.default
+  //}
+  io.LogIO.valid := false.B
+  io.LogIO.bits := DataBundle.default
+  //v
+
   /*===============================================*
    *            Latch inputs. Wire up output       *
    *===============================================*/
@@ -109,15 +115,20 @@ class ComputeNode(NumOuts: Int, ID: Int, opCode: String)
    *============================================*/
   switch(state) {
     is(s_IDLE) {
-      //if (log) {
-       // printf("[Parmida LOG] " + "[" + module_name + "] " + "State is idle " +
-       //   node_name+"\n")
-      //}
       when(enable_valid_R) {
         when(left_valid_R && right_valid_R) {
           ValidOut()
           state := s_COMPUTE
+          //p
+          //if (log){
+          io.LogCheck.get.bits := DataBundle(state)
+          io.LogCheck.get.valid := true.B
+          //}
+          io.LogIO.bits := DataBundle(state)
+          io.LogIO.valid := true.B
+          //v
           when(enable_R.control) {
+
             out_data_R.data := FU.io.out
             out_data_R.predicate := predicate
             out_data_R.taskID := left_R.taskID | right_R.taskID | enable_R.taskID
@@ -130,6 +141,12 @@ class ComputeNode(NumOuts: Int, ID: Int, opCode: String)
       }
     }
     is(s_COMPUTE) {
+      //p
+      io.LogCheck.get.bits := DataBundle(state)
+      io.LogCheck.get.valid:= true.B
+      io.LogIO.bits := DataBundle(state)
+      io.LogIO.valid := true.B
+      //v
       when(IsOutReady()) {
         // Reset data
         //left_R := DataBundle.default
@@ -137,17 +154,13 @@ class ComputeNode(NumOuts: Int, ID: Int, opCode: String)
         left_valid_R := false.B
         right_valid_R := false.B
         //Reset state
+
         state := s_IDLE
         //Reset output
         out_data_R.predicate := false.B
 
         Reset()
         if (log) {
-
-          //*******************************
-          //printfLog("THIS is a test\n")
-
-          //*********************************
           printf("[LOG] " + "[" + module_name + "] " + "[TID->%d] [COMPUTE] " +
             node_name + ": Output fired @ %d, Value: %d (%d + %d)\n", task_ID_R, cycleCount, FU.io.out, left_R.data, right_R.data)
         }
@@ -298,12 +311,6 @@ class ComputeFastNode(NumOuts: Int, ID: Int, opCode: String)
         state := s_fire
 
         if (log) {
-          //////////////////////////////////////////////////////////////////////////////////
-          val pw = new PrintWriter(new File("parmidatest.txt" ))
-          val string = f"[LOG] " + "[" + module_name + "] " + "[TID->%d] " + node_name + ": Output fired @" + task_input + cycleCount + FU.io.out.asSInt() + left_input.asSInt() + right_input.asSInt()
-          pw.write(string)
-          pw.close
-          ///////////////////////////////////////////////////////////////////////////////////////////////////////
           printf(f"[LOG] " + "[" + module_name + "] " + "[TID->%d] "
             + node_name + ": Output fired @ %d, Value: %d (%d + %d)\n",
             task_input, cycleCount, FU.io.out.asSInt(), left_input.asSInt(), right_input.asSInt())
