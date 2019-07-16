@@ -13,7 +13,7 @@ import dandelion.config._
 
 // Tester.
 class computeTester(df: ComputeNode)
-                  (implicit p: Parameters) extends PeekPokeTester(df)  {
+                  (implicit p: Parameters) extends PeekPokeTester(df){
 
   poke(df.io.LeftIO.bits.data, 2.U)
   poke(df.io.LeftIO.valid, false.B)
@@ -29,7 +29,12 @@ class computeTester(df: ComputeNode)
   println(s"Output: ${peek(df.io.Out(0))}\n")
   //p
   println(s"state is: ${peek(df.io.LogIO)}\n")
-  println(s"LOG state is: ${peek(df.io.LogCheck.get)}\n")
+  val new_param = p.alterPartial(
+    {case TRACE => true}
+  )
+  if(new_param(TRACE)){
+    println(s"LOG state is: ${peek(df.io.LogCheck.get)}\n")
+  }
   //V
   step(1)
 

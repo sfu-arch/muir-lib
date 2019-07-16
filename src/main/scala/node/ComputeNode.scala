@@ -68,10 +68,12 @@ class ComputeNode(NumOuts: Int, ID: Int, opCode: String)
 
   //p
 
+  if(log){
+    io.LogCheck.get.valid := false.B
+    io.LogCheck.get.bits := DataBundle.default
+  }
   //io.LogCheck.get.valid := false.B
   //io.LogCheck.get.bits := DataBundle.default
-  io.LogCheck.get.valid := false.B
-  io.LogCheck.get.bits := DataBundle.default
   io.LogIO.valid := false.B
   io.LogIO.bits := DataBundle.default
   //v
@@ -114,8 +116,10 @@ class ComputeNode(NumOuts: Int, ID: Int, opCode: String)
         io.Out.foreach(_.valid := true.B)
         ValidOut()
         state := s_COMPUTE
-        io.LogCheck.get.bits := DataBundle(state)
-        io.LogCheck.get.valid := true.B
+        if(log){
+          io.LogCheck.get.bits := DataBundle(state)
+          io.LogCheck.get.valid := true.B
+        }
         if (log) {
           printf("[LOG] " + "[" + module_name + "] " + "[TID->%d] [COMPUTE] " +
             node_name + ": Output fired @ %d, Value: %d (%d + %d)\n", taskID, cycleCount, FU.io.out, left_R.data, right_R.data)
@@ -124,8 +128,8 @@ class ComputeNode(NumOuts: Int, ID: Int, opCode: String)
     }
     is(s_COMPUTE) {
       //p
-      io.LogCheck.get.bits := DataBundle(state)
-      io.LogCheck.get.valid:= true.B
+      //io.LogCheck.get.bits := DataBundle(state)
+      //io.LogCheck.get.valid:= true.B
       io.LogIO.bits := DataBundle(state)
       io.LogIO.valid := true.B
       //v
