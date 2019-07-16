@@ -52,6 +52,7 @@ class HandShakingIONPS[T <: Data](val NumOuts: Int)(gen: T)(implicit p: Paramete
 //  val LogCheck = Decoupled(new DataBundle())
 
   val LogCheck = if (log) Some(Decoupled(new DataBundle())) else None
+  //val LogCheck = if (log) Some(Decoupled(new LogBundle())) else None
   //v
   override def cloneType = new HandShakingIONPS(NumOuts)(gen).asInstanceOf[this.type]
 

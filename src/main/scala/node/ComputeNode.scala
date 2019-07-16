@@ -68,10 +68,11 @@ class ComputeNode(NumOuts: Int, ID: Int, opCode: String)
   val predicate = enable_R.control
 
   //p
-  //if (log){
+
+  //io.LogCheck.get.valid := false.B
+  //io.LogCheck.get.bits := DataBundle.default
   io.LogCheck.get.valid := false.B
   io.LogCheck.get.bits := DataBundle.default
-  //}
   io.LogIO.valid := false.B
   io.LogIO.bits := DataBundle.default
   //v
