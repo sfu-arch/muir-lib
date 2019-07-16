@@ -114,7 +114,7 @@ class ComputeNode(NumOuts: Int, ID: Int, opCode: String)
         io.Out.foreach(_.valid := true.B)
         ValidOut()
         state := s_COMPUTE
-        io.LogCheck.get.bits. := DataBundle(state)
+        io.LogCheck.get.bits := DataBundle(state)
         io.LogCheck.get.valid := true.B
         if (log) {
           printf("[LOG] " + "[" + module_name + "] " + "[TID->%d] [COMPUTE] " +
