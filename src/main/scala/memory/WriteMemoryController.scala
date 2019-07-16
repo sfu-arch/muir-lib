@@ -1,4 +1,4 @@
-package memory
+package dandelion.memory
 
 // Generic Packages
 import chisel3._
@@ -7,17 +7,17 @@ import chisel3.util._
 import org.scalacheck.Prop.False
 
 // Modules needed
-import arbiters._
+import dandelion.arbiters._
 import muxes._
 
 // Config
-import config._
+import dandelion.config._
 import utility._
-import interfaces._
-import node._
+import dandelion.interfaces._
+import dandelion.node._
 
 // Cache requests
-import accel._
+import dandelion.accel._
 
 // Memory constants
 import Constants._
@@ -68,7 +68,7 @@ class WriteTableEntry(id: Int)(implicit p: Parameters) extends WriteEntryIO( )(p
   val DataValid  = RegInit(false.B)
   // Can optimize to be a shift bit.
   val ptr        = RegInit(0.U(log2Ceil(2).W))
-  val linebuffer = RegInit(Vec(Seq.fill(2)(0.U(xlen.W))))
+  val linebuffer = RegInit(VecInit(Seq.fill(2)(0.U(xlen.W))))
   val xlen_bytes = xlen / 8
 
   // State machine

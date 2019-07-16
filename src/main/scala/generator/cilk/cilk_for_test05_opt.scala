@@ -1,23 +1,24 @@
-package dataflow
+package dandelion.generator.cilk
 
-import accel._
-import arbiters._
+import dandelion.accel._
+import dandelion.arbiters._
 import chisel3._
 import chisel3.util._
 import chisel3.Module._
 import chisel3.testers._
 import chisel3.iotesters._
-import config._
-import control._
-import interfaces._
-import junctions._
-import loop._
-import memory._
+import dandelion.config._
+import dandelion.control._
+import dandelion.concurrent._
+import dandelion.interfaces._
+import dandelion.junctions._
+import dandelion.loop._
+import dandelion.memory._
 import muxes._
-import node._
+import dandelion.node._
 import org.scalatest._
 import regfile._
-import stack._
+import dandelion.memory.stack._
 import util._
 
 
@@ -86,13 +87,13 @@ class cilk_for_test05_optDF(implicit p: Parameters) extends cilk_for_test05_optD
    * ================================================================== */
 
   //  br label %pfor.cond, !UID !2, !BB_UID !3
-  val br_0 = Module(new UBranchFastNode(ID = 0))
+  val br_0 = Module(new UBranchNode(ID = 0))
 
   //  %i.0 = phi i32 [ 0, %entry ], [ %inc, %pfor.inc ], !UID !4
   val phi_i_01 = Module(new PhiFastNode(NumInputs = 2, NumOutputs = 3, ID = 1))
 
   //  %cmp = icmp ult i32 %i.0, 20, !UID !5
-  val icmp_cmp2 = Module(new IcmpFastNode(NumOuts = 1, ID = 2, opCode = "ult")(sign = false))
+  val icmp_cmp2 = Module(new IcmpNode(NumOuts = 1, ID = 2, opCode = "ult")(sign = false))
 
   //  br i1 %cmp, label %pfor.detach, label %pfor.end, !UID !6, !BB_UID !7
   val br_3 = Module(new CBranchFastNodeVariable(ID = 3))
@@ -101,10 +102,10 @@ class cilk_for_test05_optDF(implicit p: Parameters) extends cilk_for_test05_optD
   val detach_4 = Module(new Detach(ID = 4))
 
   //  %inc = add i32 %i.0, 1, !UID !10
-  val binaryOp_inc5 = Module(new ComputeFastNode(NumOuts = 1, ID = 5, opCode = "add")(sign = false))
+  val binaryOp_inc5 = Module(new ComputeNode(NumOuts = 1, ID = 5, opCode = "add")(sign = false))
 
   //  br label %pfor.cond, !llvm.loop !11, !UID !13, !BB_UID !14
-  val br_6 = Module(new UBranchFastNodeVariable(NumOutputs = 2, ID = 6))
+  val br_6 = Module(new UBranchNodeVariable(NumOutputs = 2, ID = 6))
 
   //  sync label %pfor.end.continue, !UID !15, !BB_UID !16
   val sync_7 = Module(new SyncTC(ID = 7, NumInc = 1, NumDec = 1, NumOuts = 1))
@@ -327,7 +328,7 @@ import java.io.{File, FileWriter}
 object cilk_for_test05_optMain extends App {
   val dir = new File("RTL/cilk_for_test05_opt");
   dir.mkdirs
-  implicit val p = config.Parameters.root((new MiniConfig).toInstance)
+  implicit val p = Parameters.root((new MiniConfig).toInstance)
   val chirrtl = firrtl.Parser.parse(chisel3.Driver.emit(() => new cilk_for_test05_optDF()))
 
   val verilogFile = new File(dir, s"${chirrtl.main}.v")

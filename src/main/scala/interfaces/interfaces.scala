@@ -1,9 +1,9 @@
-package interfaces
+package dandelion.interfaces
 
 
 import chisel3._
-import chisel3.util.{Decoupled, _}
-import config._
+import chisel3.util.{Decoupled}
+import dandelion.config._
 import utility.Constants._
 
 import scala.collection.immutable.ListMap
@@ -314,8 +314,16 @@ object DataBundle {
   def apply(data: UInt = 0.U, taskID: UInt = 0.U)(implicit p: Parameters): DataBundle = {
     val wire = Wire(new DataBundle)
     wire.data := data
-    wire.taskID := taskID
     wire.predicate := true.B
+    wire.taskID := taskID
+    wire
+  }
+
+  def apply(data: UInt, taskID: UInt, predicate: UInt)(implicit p: Parameters): DataBundle = {
+    val wire = Wire(new DataBundle)
+    wire.data := data
+    wire.predicate := predicate
+    wire.taskID := taskID
     wire
   }
 

@@ -1,23 +1,24 @@
-package dataflow
+package dandelion.generator.cilk
 
-import accel._
-import arbiters._
+import dandelion.accel._
+import dandelion.arbiters._
 import chisel3._
 import chisel3.util._
 import chisel3.Module._
 import chisel3.testers._
 import chisel3.iotesters._
-import config._
-import control._
-import interfaces._
-import junctions._
-import loop._
-import memory._
+import dandelion.config._
+import dandelion.control._
+import dandelion.concurrent._
+import dandelion.interfaces._
+import dandelion.junctions._
+import dandelion.loop._
+import dandelion.memory._
 import muxes._
-import node._
+import dandelion.node._
 import org.scalatest._
 import regfile._
-import stack._
+import dandelion.memory.stack._
 import util._
 
 
@@ -90,7 +91,7 @@ class cilk_for_test05_detach1_optDF(implicit p: Parameters) extends cilk_for_tes
   val ld_3 = Module(new UnTypLoad(NumPredOps = 0, NumSuccOps = 0, NumOuts = 1, ID = 3, RouteID = 1))
 
   //  %4 = icmp ugt i32 %1, %3, !UID !5
-  val icmp_4 = Module(new IcmpFastNode(NumOuts = 1, ID = 4, opCode = "ugt")(sign = false))
+  val icmp_4 = Module(new IcmpNode(NumOuts = 1, ID = 4, opCode = "ugt")(sign = false))
 
   //  br i1 %4, label %my_if.then, label %my_if.else, !UID !6, !BB_UID !7
   //  val br_5 = Module(new CBranchNode(ID = 5))
@@ -109,7 +110,7 @@ class cilk_for_test05_detach1_optDF(implicit p: Parameters) extends cilk_for_tes
   val ld_9 = Module(new UnTypLoad(NumPredOps = 0, NumSuccOps = 0, NumOuts = 1, ID = 9, RouteID = 3))
 
   //  %9 = sub i32 %6, %8, !UID !12
-  val binaryOp_10 = Module(new ComputeFastNode(NumOuts = 1, ID = 10, opCode = "sub")(sign = false))
+  val binaryOp_10 = Module(new ComputeNode(NumOuts = 1, ID = 10, opCode = "sub")(sign = false))
 
   //  %10 = getelementptr inbounds i32, i32* %c.in, i32 %i.0.in, !UID !13
   val Gep_11 = Module(new GepArrayOneNode(NumOuts = 1, ID = 11)(numByte = 4)(size = 1))
@@ -118,10 +119,10 @@ class cilk_for_test05_detach1_optDF(implicit p: Parameters) extends cilk_for_tes
   val st_12 = Module(new UnTypStore(NumPredOps = 0, NumSuccOps = 0, ID = 12, RouteID = 0))
 
   //  br label %my_if.end, !UID !15, !BB_UID !16
-  val br_13 = Module(new UBranchFastNode(ID = 13))
+  val br_13 = Module(new UBranchNode(ID = 13))
 
   //  br label %my_pfor.preattach, !UID !17, !BB_UID !18
-  val br_14 = Module(new UBranchFastNode(ID = 14))
+  val br_14 = Module(new UBranchNode(ID = 14))
 
   //  ret void
   val ret_15 = Module(new RetNode2(retTypes = List(), ID = 15))
@@ -139,7 +140,7 @@ class cilk_for_test05_detach1_optDF(implicit p: Parameters) extends cilk_for_tes
   val ld_19 = Module(new UnTypLoad(NumPredOps = 0, NumSuccOps = 0, NumOuts = 1, ID = 19, RouteID = 5))
 
   //  %15 = sub i32 %12, %14, !UID !23
-  val binaryOp_20 = Module(new ComputeFastNode(NumOuts = 1, ID = 20, opCode = "sub")(sign = false))
+  val binaryOp_20 = Module(new ComputeNode(NumOuts = 1, ID = 20, opCode = "sub")(sign = false))
 
   //  %16 = getelementptr inbounds i32, i32* %c.in, i32 %i.0.in, !UID !24
   val Gep_21 = Module(new GepArrayOneNode(NumOuts = 1, ID = 21)(numByte = 4)(size = 1))
@@ -148,7 +149,7 @@ class cilk_for_test05_detach1_optDF(implicit p: Parameters) extends cilk_for_tes
   val st_22 = Module(new UnTypStore(NumPredOps = 0, NumSuccOps = 0, ID = 22, RouteID = 1))
 
   //  br label %my_if.end, !UID !26, !BB_UID !27
-  val br_23 = Module(new UBranchFastNode(ID = 23))
+  val br_23 = Module(new UBranchNode(ID = 23))
 
 
   /* ================================================================== *
@@ -400,7 +401,7 @@ import java.io.{File, FileWriter}
 object cilk_for_test05_detach1_optMain extends App {
   val dir = new File("RTL/cilk_for_test05_detach1_opt");
   dir.mkdirs
-  implicit val p = config.Parameters.root((new MiniConfig).toInstance)
+  implicit val p = Parameters.root((new MiniConfig).toInstance)
   val chirrtl = firrtl.Parser.parse(chisel3.Driver.emit(() => new cilk_for_test05_detach1_optDF()))
 
   val verilogFile = new File(dir, s"${chirrtl.main}.v")

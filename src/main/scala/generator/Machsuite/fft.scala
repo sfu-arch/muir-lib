@@ -1,24 +1,24 @@
-package dataflow
+package dandelion.generator.machsuite
 
-import FPU._
-import accel._
-import arbiters._
+import dandelion.fpu._
+import dandelion.accel._
+import dandelion.arbiters._
 import chisel3._
 import chisel3.util._
 import chisel3.Module._
 import chisel3.testers._
 import chisel3.iotesters._
-import config._
-import control._
-import interfaces._
-import junctions._
-import loop._
-import memory._
+import dandelion.config._
+import dandelion.control._
+import dandelion.interfaces._
+import dandelion.junctions._
+import dandelion.loop._
+import dandelion.memory._
 import muxes._
-import node._
+import dandelion.node._
 import org.scalatest._
 import regfile._
-import stack._
+import dandelion.memory.stack._
 import util._
 
 
@@ -106,16 +106,16 @@ class fftDF(implicit p: Parameters) extends fftDFIO()(p) {
   val br_4 = Module(new CBranchNodeVariable(NumTrue = 1, NumFalse = 1, NumPredecessor = 0, ID = 4))
 
   //  br label %for.body2, !dbg !103, !UID !105, !BB_UID !106
-  val br_5 = Module(new UBranchFastNode(ID = 5))
+  val br_5 = Module(new UBranchNode(ID = 5))
 
   //  %odd.0112 = phi i32 [ %inc, %for.inc ], [ %span.0113, %for.body2.preheader ], !UID !107
   val phiodd_01126 = Module(new PhiFastNode(NumInputs = 2, NumOutputs = 1, ID = 6, Res = true))
 
   //  %or = or i32 %odd.0112, %span.0113, !dbg !103, !UID !108
-  val binaryOp_or7 = Module(new ComputeFastNode(NumOuts = 4, ID = 7, opCode = "or")(sign = false))
+  val binaryOp_or7 = Module(new ComputeNode(NumOuts = 4, ID = 7, opCode = "or")(sign = false))
 
   //  %xor = xor i32 %or, %span.0113, !dbg !109, !UID !110
-  val binaryOp_xor8 = Module(new ComputeFastNode(NumOuts = 2, ID = 8, opCode = "xor")(sign = false))
+  val binaryOp_xor8 = Module(new ComputeNode(NumOuts = 2, ID = 8, opCode = "xor")(sign = false))
 
   //  %idxprom = sext i32 %xor to i64, !dbg !112, !UID !113
   val sextidxprom9 = Module(new SextNode())
@@ -176,13 +176,13 @@ class fftDF(implicit p: Parameters) extends fftDFIO()(p) {
   val st_26 = Module(new UnTypStore(NumPredOps = 0, NumSuccOps = 0, ID = 26, RouteID = 3))
 
   //  %shl = shl i32 %xor, %log.0115, !dbg !147, !UID !148
-  val binaryOp_shl27 = Module(new ComputeFastNode(NumOuts = 1, ID = 27, opCode = "shl")(sign = false))
+  val binaryOp_shl27 = Module(new ComputeNode(NumOuts = 1, ID = 27, opCode = "shl")(sign = false))
 
   //  %and = and i32 %shl, 63, !dbg !149, !UID !150
-  val binaryOp_and28 = Module(new ComputeFastNode(NumOuts = 2, ID = 28, opCode = "and")(sign = false))
+  val binaryOp_and28 = Module(new ComputeNode(NumOuts = 2, ID = 28, opCode = "and")(sign = false))
 
   //  %tobool27 = icmp eq i32 %and, 0, !dbg !152, !UID !154
-  val icmp_tobool2729 = Module(new IcmpFastNode(NumOuts = 1, ID = 29, opCode = "eq")(sign = false))
+  val icmp_tobool2729 = Module(new IcmpNode(NumOuts = 1, ID = 29, opCode = "eq")(sign = false))
 
   //  br i1 %tobool27, label %for.inc, label %if.then, !dbg !155, !UID !156, !BB_UID !157
   val br_30 = Module(new CBranchNodeVariable(NumTrue = 1, NumFalse = 1, NumPredecessor = 0, ID = 30))
@@ -239,7 +239,7 @@ class fftDF(implicit p: Parameters) extends fftDFIO()(p) {
   val st_45 = Module(new UnTypStore(NumPredOps = 0, NumSuccOps = 0, ID = 45, RouteID = 5))
 
   //  br label %for.inc, !dbg !186, !UID !187, !BB_UID !188
-  val br_46 = Module(new UBranchFastNode(ID = 46))
+  val br_46 = Module(new UBranchNode(ID = 46))
 
   //  %inc = add nsw i32 %or, 1, !dbg !189, !UID !190
   val binaryOp_inc47 = Module(new ComputeNode(NumOuts = 1, ID = 47, opCode = "add")(sign = false))
@@ -251,16 +251,16 @@ class fftDF(implicit p: Parameters) extends fftDFIO()(p) {
   val br_49 = Module(new CBranchNodeVariable(NumTrue = 1, NumFalse = 1, NumPredecessor = 0, ID = 49))
 
   //  br label %for.inc53, !dbg !196
-  val br_50 = Module(new UBranchFastNode(ID = 50))
+  val br_50 = Module(new UBranchNode(ID = 50))
 
   //  %shr = ashr i32 %span.0113, 1, !dbg !196, !UID !197
-  val binaryOp_shr51 = Module(new ComputeFastNode(NumOuts = 1, ID = 51, opCode = "ashr")(sign = false))
+  val binaryOp_shr51 = Module(new ComputeNode(NumOuts = 1, ID = 51, opCode = "ashr")(sign = false))
 
   //  %inc54 = add nuw nsw i32 %log.0115, 1, !dbg !198, !UID !199
-  val binaryOp_inc5452 = Module(new ComputeFastNode(NumOuts = 2, ID = 52, opCode = "add")(sign = false))
+  val binaryOp_inc5452 = Module(new ComputeNode(NumOuts = 2, ID = 52, opCode = "add")(sign = false))
 
   //  %exitcond = icmp eq i32 %inc54, 6, !dbg !87, !UID !200
-  val icmp_exitcond53 = Module(new IcmpFastNode(NumOuts = 1, ID = 53, opCode = "eq")(sign = false))
+  val icmp_exitcond53 = Module(new IcmpNode(NumOuts = 1, ID = 53, opCode = "eq")(sign = false))
 
   //  br i1 %exitcond, label %for.end55, label %inner, !dbg !87, !llvm.loop !201, !UID !203, !BB_UID !204
   val br_54 = Module(new CBranchNodeVariable(NumTrue = 1, NumFalse = 1, NumPredecessor = 0, ID = 54))
@@ -928,7 +928,7 @@ class fftMain(implicit p: Parameters) extends fftTopIO {
 object fftTop extends App {
   val dir = new File("RTL/fftTop");
   dir.mkdirs
-  implicit val p = config.Parameters.root((new MiniConfig).toInstance)
+  implicit val p = Parameters.root((new MiniConfig).toInstance)
   val chirrtl = firrtl.Parser.parse(chisel3.Driver.emit(() => new fftMain()))
 
   val verilogFile = new File(dir, s"${chirrtl.main}.v")

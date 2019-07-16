@@ -1,14 +1,14 @@
-package node
+package dandelion.node
 
-import FPU.{FPUALU, FType}
+import dandelion.fpu.{FPUALU, FType}
 import chisel3._
 import chisel3.iotesters.{ChiselFlatSpec, Driver, OrderedDecoupledHWIOTester, PeekPokeTester}
 import chisel3.Module
 import chisel3.testers._
 import chisel3.util._
 import org.scalatest.{FlatSpec, Matchers}
-import config._
-import interfaces._
+import dandelion.config._
+import dandelion.interfaces._
 import muxes._
 import util._
 
@@ -82,7 +82,7 @@ object operation {
 
       def multiplication(l: FPmatNxN, r: FPmatNxN)(implicit p: Parameters): FPmatNxN = {
         val x = Wire(new FPmatNxN(l.N, l.t))
-        printf(p"Left: ${l.data}")
+        printf(p"Left: ${l.data}\n")
         val products = for (i <- 0 until l.N) yield {
           for (j <- 0 until l.N) yield {
             for (k <- 0 until l.N) yield {

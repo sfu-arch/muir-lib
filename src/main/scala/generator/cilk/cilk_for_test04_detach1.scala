@@ -1,24 +1,25 @@
-package dataflow
+package dandelion.generator.cilk
 
-import FPU._
-import accel._
-import arbiters._
+import dandelion.fpu._
+import dandelion.accel._
+import dandelion.arbiters._
 import chisel3._
 import chisel3.util._
 import chisel3.Module._
 import chisel3.testers._
 import chisel3.iotesters._
-import config._
-import control._
-import interfaces._
-import junctions._
-import loop._
-import memory._
+import dandelion.config._
+import dandelion.concurrent._
+import dandelion.control._
+import dandelion.interfaces._
+import dandelion.junctions._
+import dandelion.loop._
+import dandelion.memory._
 import muxes._
-import node._
+import dandelion.node._
 import org.scalatest._
 import regfile._
-import stack._
+import dandelion.memory.stack._
 import util._
 
 
@@ -100,7 +101,7 @@ class cilk_for_test04_detach1DF(implicit p: Parameters) extends cilk_for_test04_
   val binaryOp_7 = Module(new ComputeNode(NumOuts = 1, ID = 7, opCode = "sub")(sign = false))
 
   //  %7 = select i1 %4, i32 %5, i32 %6, !UID !23
-  val select_8 = Module(new SelectNode(NumOuts = 1, ID = 8))
+  val select_8 = Module(new SelectNode(NumOuts = 1, ID = 8)(fast = false))
 
   //  %8 = getelementptr inbounds i32, i32* %c.in, i32 %__begin.029.in, !UID !24
   val Gep_9 = Module(new GepNode(NumIns = 1, NumOuts = 1, ID = 9)(ElementSize = 4, ArraySize = List()))
@@ -326,7 +327,7 @@ import java.io.{File, FileWriter}
 object cilk_for_test04_detach1Top extends App {
   val dir = new File("RTL/cilk_for_test04_detach1Top");
   dir.mkdirs
-  implicit val p = config.Parameters.root((new MiniConfig).toInstance)
+  implicit val p = Parameters.root((new MiniConfig).toInstance)
   val chirrtl = firrtl.Parser.parse(chisel3.Driver.emit(() => new cilk_for_test04_detach1DF()))
 
   val verilogFile = new File(dir, s"${chirrtl.main}.v")

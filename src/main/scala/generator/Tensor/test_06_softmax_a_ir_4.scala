@@ -1,24 +1,15 @@
-package dataflow
+package dandelion.generator.Tensor
 
-import FPU._
-import accel._
-import arbiters._
 import chisel3._
-import chisel3.util._
-import chisel3.Module._
-import chisel3.testers._
-import chisel3.iotesters._
-import config._
-import control._
-import interfaces._
-import junctions._
-import loop._
-import memory._
-import muxes._
-import node._
-import org.scalatest._
-import regfile._
-import stack._
+import dandelion.fpu._
+import dandelion.config._
+import dandelion.control._
+import dandelion.interfaces._
+import dandelion.junctions._
+import dandelion.loop._
+import dandelion.memory.stack._
+import dandelion.memory._
+import dandelion.node._
 import util._
 
 
@@ -136,7 +127,7 @@ class test_06_softmax_a_ir_4DF(implicit p: Parameters) extends test_06_softmax_a
   val binaryOp_11 = Module(new ComputeNode(NumOuts = 1, ID = 11, opCode = "or")(sign = false))
 
   //  %6 = select i1 %5, float %1, float %2, !UID !16
-  val select_12 = Module(new SelectNode(NumOuts = 2, ID = 12))
+  val select_12 = Module(new SelectNode(NumOuts = 2, ID = 12)(fast = false))
 
   //  %invar.inc1 = add nuw nsw i64 %reduce.inner.indvar.reduction_dim.112, 1, !UID !17
   val binaryOp_invar_inc113 = Module(new ComputeNode(NumOuts = 2, ID = 13, opCode = "add")(sign = false))
@@ -1176,7 +1167,7 @@ class softmax06aMain(implicit p: Parameters) extends softmax06aTopIO {
 object test_06_softmax_a_ir_4Top extends App {
   val dir = new File("RTL/test_06_softmax_a_ir_4Top");
   dir.mkdirs
-  implicit val p = config.Parameters.root((new MiniConfig).toInstance)
+  implicit val p = Parameters.root((new MiniConfig).toInstance)
   val chirrtl = firrtl.Parser.parse(chisel3.Driver.emit(() => new softmax06aMain()))
 
   val verilogFile = new File(dir, s"${chirrtl.main}.v")

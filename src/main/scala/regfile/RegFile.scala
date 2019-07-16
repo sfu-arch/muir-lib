@@ -4,7 +4,7 @@ package regfile
 import scala.math._
 import chisel3._
 import chisel3.util._
-import config._
+import dandelion.config._
 
 /**
  * @brief IO interface to register file
@@ -50,6 +50,6 @@ class RFile(size: Int)(implicit p: Parameters) extends AbstractRFile(size)(p) {
   io.rdata2 := regs.read(io.raddr2).asUInt()
   when(io.wen) {
     // I am writing a vector of bytes. Need to also feed the bytemask.
-    regs.write(io.waddr, VecInit.tabulate(xlen/8)(i => io.wdata(8*(i+1)-1,8*i)),io.wmask.toBools)
+    regs.write(io.waddr, VecInit.tabulate(xlen/8)(i => io.wdata(8*(i+1)-1,8*i)),io.wmask.asBools)
   }
 }

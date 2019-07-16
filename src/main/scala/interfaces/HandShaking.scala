@@ -1,10 +1,9 @@
-package node
+package dandelion.interfaces
 
 import chisel3._
 import chisel3.util._
-import org.scalacheck.Prop.False
-import config._
-import interfaces._
+import dandelion.config._
+import dandelion.node.{IsAlias}
 import utility._
 import Constants._
 import utility.UniformPrintfs
@@ -177,9 +176,6 @@ class HandShakingNPS[T <: Data](val NumOuts: Int,
   val out_ready_R = Seq.fill(NumOuts)(RegInit(false.B))
   val out_valid_R = Seq.fill(NumOuts)(RegInit(false.B))
 
-  // Wire
-  val out_ready_W = Seq.fill(NumOuts)(WireInit(false.B))
-
   /*============================*
    *           Wiring           *
    *============================*/
@@ -187,7 +183,6 @@ class HandShakingNPS[T <: Data](val NumOuts: Int,
   // Wire up OUT READYs and VALIDs
   for (i <- 0 until NumOuts) {
     io.Out(i).valid := out_valid_R(i)
-    out_ready_W(i) := io.Out(i).ready
     when(io.Out(i).fire( )) {
       // Detecting when to reset
       out_ready_R(i) := io.Out(i).ready
@@ -225,10 +220,7 @@ class HandShakingNPS[T <: Data](val NumOuts: Int,
       return true.B
     } else {
       val fire_mask = (out_ready_R zip io.Out.map(_.fire)).map { case (a, b) => a | b }
-      fire_mask reduce {
-        _ & _
-      }
-      //out_ready_R.reduceLeft(_ && _) | out_ready_W.reduceLeft(_ && _)
+      fire_mask reduce {_ & _}
     }
   }
 
@@ -242,7 +234,7 @@ class HandShakingNPS[T <: Data](val NumOuts: Int,
   }
 
   def ValidOut(): Unit = {
-    out_valid_R.foreach(_ := true.B)
+    (out_valid_R zip io.Out.map(_.fire)).foreach{ case (a,b) => a := b ^ true.B}
   }
 
   def InvalidOut(): Unit = {
@@ -662,7 +654,8 @@ class HandShaking[T <: Data](val NumPredOps: Int,
   }
 
   def ValidOut(): Unit = {
-    out_valid_R := VecInit(Seq.fill(NumOuts)(true.B))
+    (out_valid_R zip io.Out.map(_.fire)).foreach{ case (a,b) => a := b ^ true.B}
+    //out_valid_R := VecInit(Seq.fill(NumOuts)(true.B))
   }
 
   def InvalidOut(): Unit = {
@@ -965,11 +958,12 @@ class HandShakingAlias[T <: Data](NumPredOps: Int,
     val alias_equals = (0 until NumAliasPredOps).map(i => IsAlias(alias_in_bundle_R(i).data, address, xlen, MT_W))
 
     if (NumAliasPredOps != 0) {
-      val hits = VecInit(alias_equals).asUInt // % Turn into a bit vector
-      val pred_valid = VecInit(alias_pred_valid_R).asUInt
-      val waitlist = (pred_valid | ~hits)
-      val result = waitlist.andR && AliasInfoAvail( )
-      printf(p"\n Alias_R (): ${Vec(alias_in_valid_R)} Alias addr: ${alias_in_bundle_R(0).data} hits: ${hits} pred_valid ${pred_valid} waitlist ${waitlist} result ${result}")
+      val hits = VecInit(alias_equals)// % Turn into a bit vector
+      val pred_valid = VecInit(alias_pred_valid_R)
+      //val waitlist = (pred_valid | ~hits)
+      val waitlist = (pred_valid zip hits) map { case(a,b) => a | (~b).asBool()}
+      val result = waitlist.reduceLeft(_ & _)  && AliasInfoAvail( )
+      printf(p"\n Alias_R (): ${VecInit(alias_in_valid_R)} Alias addr: ${alias_in_bundle_R(0).data} hits: ${hits} pred_valid ${pred_valid} waitlist ${waitlist} result ${result}")
       result
     } else {
       true.B

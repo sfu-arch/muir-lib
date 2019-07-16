@@ -1,24 +1,24 @@
-package memory
+package dandelion.memory
 
 // Generic Packages
-import arbiters.ArbiterTree
+import dandelion.arbiters.ArbiterTree
 import chisel3._
 import chisel3.Module
 import chisel3.util._
 import org.scalacheck.Prop.False
 
 // Modules needed
-import arbiters._
+import dandelion.arbiters._
 import muxes._
-import arbiters._
+import dandelion.arbiters._
 // Config
-import config._
+import dandelion.config._
 import utility._
-import interfaces._
-import node._
+import dandelion.interfaces._
+import dandelion.node._
 
 // Cache requests
-import accel._
+import dandelion.accel._
 
 // Memory constants
 import Constants._
@@ -43,7 +43,7 @@ class ReadTypTableEntry(id: Int)(implicit p: Parameters)
   val outptr     = RegInit(0.U(log2Ceil(Beats + 1).W))
   val sendptr    = RegInit(0.U(log2Ceil(Beats + 1).W))
   val recvptr    = RegInit(0.U(log2Ceil(Beats + 1).W))
-  val linebuffer = RegInit(Vec(Seq.fill(Beats + 1)(0.U(xlen.W))))
+  val linebuffer = RegInit(VecInit(Seq.fill(Beats + 1)(0.U(xlen.W))))
   val xlen_bytes = xlen / 8
 
   // State machine

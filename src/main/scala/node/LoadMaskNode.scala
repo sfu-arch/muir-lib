@@ -1,19 +1,15 @@
-  package node
-
-/**
-  * Created by nvedula on 15/5/17.
-  */
+  package dandelion.node
 
 import chisel3._
 import chisel3.util._
 import org.scalacheck.Prop.False
 import scala.util.control.Breaks._
-import arbiters._
-import config._
-import interfaces._
+import dandelion.arbiters._
+import dandelion.config._
+import dandelion.interfaces._
 import muxes._
 import utility._
-import memory._
+import dandelion.memory._
 
 import Constants._
 
@@ -75,7 +71,7 @@ class LoadMaskNode(NumPredOps: Int = 1, NumSuccOps: Int = 1)(implicit p: Paramet
   // Incoming data valid and daata operand.
   val DataValid    = RegInit(false.B)
   val ptr          = RegInit(0.U((2*xlen).W))
-  val linebuffer   = RegInit(Vec(Seq.fill(2)(0.U(xlen.W))))
+  val linebuffer   = RegInit(VecInit(Seq.fill(2)(0.U(xlen.W))))
  
 
   // Latch predecessor valid signals.
@@ -179,13 +175,7 @@ class LoadMaskNode(NumPredOps: Int = 1, NumSuccOps: Int = 1)(implicit p: Paramet
  Tree.io.in(3).valid := true.B
  Tree.io.out.ready := (state =/= s_init)
  printf(p"Tree Out: ${Tree.io.out} \n")
- // printf(p"\n MuxTree Out: ${MuxTree.io.outputs} \n")
 
-  // val y = PriorityEncoder(0x4.U.toBools)
-  //  printf("Priority: %x",y)
-
-
-  // printf(p"State: $state, ${io.MemResp.valid}")
 }
 
 

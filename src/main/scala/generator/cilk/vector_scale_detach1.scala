@@ -1,24 +1,25 @@
-package dataflow
+package dandelion.generator.cilk
 
-import FPU._
-import accel._
-import arbiters._
+import dandelion.fpu._
+import dandelion.accel._
+import dandelion.arbiters._
 import chisel3._
 import chisel3.util._
 import chisel3.Module._
 import chisel3.testers._
 import chisel3.iotesters._
-import config._
-import control._
-import interfaces._
-import junctions._
-import loop._
-import memory._
+import dandelion.config._
+import dandelion.concurrent._
+import dandelion.control._
+import dandelion.interfaces._
+import dandelion.junctions._
+import dandelion.loop._
+import dandelion.memory._
 import muxes._
-import node._
+import dandelion.node._
 import org.scalatest._
 import regfile._
-import stack._
+import dandelion.memory.stack._
 import util._
 
 
@@ -116,7 +117,7 @@ class vector_scale_detach1DF(implicit p: Parameters) extends vector_scale_detach
   val icmp_11 = Module(new IcmpNode(NumOuts = 1, ID = 11, opCode = "ugt")(sign = false))
 
   //  %8 = select i1 %7, i32 255, i32 %5, !UID !40
-  val select_12 = Module(new SelectNode(NumOuts = 1, ID = 12))
+  val select_12 = Module(new SelectNode(NumOuts = 1, ID = 12)(fast = false))
 
   //  store i32 %8, i32* %6, align 4, !UID !41
   val st_13 = Module(new UnTypStore(NumPredOps = 0, NumSuccOps = 0, ID = 13, RouteID = 1))
@@ -389,7 +390,7 @@ import java.io.{File, FileWriter}
 object vector_scale_detach1Top extends App {
   val dir = new File("RTL/vector_scale_detach1Top");
   dir.mkdirs
-  implicit val p = config.Parameters.root((new MiniConfig).toInstance)
+  implicit val p = Parameters.root((new MiniConfig).toInstance)
   val chirrtl = firrtl.Parser.parse(chisel3.Driver.emit(() => new vector_scale_detach1DF()))
 
   val verilogFile = new File(dir, s"${chirrtl.main}.v")

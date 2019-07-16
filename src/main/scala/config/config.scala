@@ -1,17 +1,11 @@
-package config
+package dandelion.config
 
 
 import chisel3._
-import config.cde._
-import chisel3.util._
-import config._
-import util._
-//import examples._
 import regfile._
-import junctions._
-import accel._
-import FPU._
-import FType._
+import dandelion.junctions._
+import dandelion.fpu._
+import dandelion.accel._
 
 case object XLEN extends Field[Int]
 
@@ -58,7 +52,7 @@ abstract class CoreBundle(implicit val p: Parameters) extends ParameterizedBundl
 class MiniConfig extends Config((site, here, up) => {
     // Core
     case XLEN       => 32
-    case TLEN       => 10
+    case TLEN       => 5
     case GLEN       => 16
     // # Max bits of cache request tag.
     case MSHRLEN  => 8
@@ -67,7 +61,7 @@ class MiniConfig extends Config((site, here, up) => {
     //    case COMPONENTS => "TYPLOAD;TYPOP;TYPSTORE"
     case COMPONENTS => ""
     // Max size of type memory system may see
-    case TRACE => true
+    case TRACE => false
     case CTRACE => false
     case BuildRFile => (p: Parameters) => Module(new RFile(32)(p))
 
@@ -83,10 +77,10 @@ class MiniConfig extends Config((site, here, up) => {
       addrBits = 32)
 
        case FTYP => site(XLEN) match {
-        case 32 => S
-        case 64 => D
-        case 16 => H
-        case _ => S
+        case 32 => FType.S
+        case 64 => FType.D
+        case 16 => FType.H
+        case _ => FType.S
     }
 
   //-------------------------
@@ -101,10 +95,10 @@ class MiniConfig extends Config((site, here, up) => {
     addrBits = 32)
 
   case FTYP => site(XLEN) match {
-    case 32 => S
-    case 64 => D
-    case 16 => H
-    case _ => S
+    case 32 => FType.S
+    case 64 => FType.D
+    case 16 => FType.H
+    case _ => FType.S
   }
 
 }

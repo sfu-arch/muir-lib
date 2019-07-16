@@ -1,4 +1,4 @@
-package node
+package dandelion.node
 
 import chisel3._
 import chisel3.iotesters.{ChiselFlatSpec, Driver, OrderedDecoupledHWIOTester, PeekPokeTester}
@@ -6,8 +6,8 @@ import chisel3.Module
 import chisel3.testers._
 import chisel3.util._
 import org.scalatest.{FlatSpec, Matchers}
-import config._
-import interfaces._
+import dandelion.config._
+import dandelion.interfaces._
 import muxes._
 import util._
 import utility.UniformPrintfs
@@ -242,7 +242,7 @@ class CBranchFastNodeVariable(val NumTrue: Int = 1, val NumFalse: Int = 1, val I
 
   // Output for true and false sides
   val true_output = predicate & predicate_cmp
-  val false_output = predicate & (~predicate_cmp).toBool
+  val false_output = predicate & (~predicate_cmp).asBool
 
   // Defalut values for Trueoutput
   //
@@ -447,7 +447,7 @@ class CBranchNodeVariableLoop(val NumTrue: Int = 1, val NumFalse: Int = 1, val N
   // Output for true and false sides
   val predicate = enable_R.control & enable_valid_R
   val true_output = predicate & cmp_R
-  val false_output = predicate & (~cmp_R).toBool
+  val false_output = predicate & (~cmp_R).asBool
 
   // Defalut values for Trueoutput
   //
@@ -602,15 +602,14 @@ class UBranchNode(NumPredOps: Int = 0,
     * @note data_R value is equale to predicate bit
     */
   // Wire up Outputs
-  for (i <- 0 until NumOuts) {
-    io.Out(i).bits <> enable_R
-  }
+  io.Out.foreach(_.bits := enable_R)
 
   switch(state) {
     is(s_idle) {
       when(IsEnableValid() && IsPredValid()) {
         state := s_OUTPUT
         ValidOut()
+        io.Out.foreach(_.valid := true.B)
         when(enable_R.control) {
           if (log) {
             printf("[LOG] " + "[" + module_name + "] [TID->%d] [UBR] "
@@ -636,107 +635,6 @@ class UBranchNode(NumPredOps: Int = 0,
       }
     }
   }
-
-}
-
-@deprecated("Use UBranchFastNode instead. It wastes one extra cycle","dandelion-1.0")
-class UBranchEndNode(NumPredOps: Int = 0,
-                     NumOuts: Int = 1,
-                     ID: Int)
-                    (implicit p: Parameters,
-                     name: sourcecode.Name,
-                     file: sourcecode.File)
-  extends HandShaking(NumPredOps, 0, NumOuts, ID)(new ControlBundle)(p) {
-  override lazy val io = IO(new HandShakingIOPS(NumPredOps, 0, NumOuts)(new ControlBundle)(p))
-  // Printf debugging
-  val node_name = name.value
-  val module_name = file.value.split("/").tail.last.split("\\.").head.capitalize
-  val (cycleCount, _) = Counter(true.B, 32 * 1024)
-  override val printfSigil = "[" + module_name + "] " + node_name + ": " + ID + " "
-
-  /*===========================================*
-   *            Registers                      *
-   *===========================================*/
-
-  val s_idle :: s_OUTPUT :: Nil = Enum(2)
-  val state = RegInit(s_idle)
-
-  /*==========================================*
-   *           Predicate Evaluation           *
-   *==========================================*/
-
-  /*===============================================*
-   *            Latch inputs. Wire up output       *
-   *===============================================*/
-
-  /**
-    * Combination of bits and valid signal from CmpIn whill result the output value:
-    * valid == 0  ->  output = 0
-    * valid == 1  ->  cmp = true  then 1
-    * valid == 1  ->  cmp = false then 2
-    *
-    * @note data_R value is equale to predicate bit
-    */
-  // Wire up Outputs
-  for (i <- 0 until NumOuts) {
-    io.Out(i).bits := enable_R
-  }
-
-  switch(state) {
-    is(s_idle) {
-      when(IsEnableValid() && IsPredValid()) {
-        when(enable_R.control) {
-          state := s_OUTPUT
-          ValidOut()
-          if (log) {
-            printf("[LOG] " + "[" + module_name + "] [TID->%d] "
-              + node_name + ": Output fired [T] @ %d,\n",
-              enable_R.taskID, cycleCount)
-          }
-        }.otherwise {
-          state := s_idle
-          Reset()
-          enable_R := ControlBundle.default
-          if (log) {
-            printf("[LOG] " + "[" + module_name + "] [TID->%d] "
-              + node_name + ": Output fired [F] @ %d,\n",
-              enable_R.taskID, cycleCount)
-          }
-        }
-
-      }
-    }
-    is(s_OUTPUT) {
-      when(IsOutReady()) {
-        state := s_idle
-        Reset()
-        enable_R := ControlBundle.default
-
-      }
-    }
-  }
-
-}
-
-
-class UBranchFastIO()(implicit p: Parameters) extends CoreBundle {
-  // Predicate enable
-  val enable = Flipped(Decoupled(new ControlBundle))
-  // Output IO
-  val Out = Vec(1, Decoupled(new ControlBundle))
-}
-
-class UBranchFastNode(ID: Int)
-                     (implicit val p: Parameters)
-  extends Module with CoreParams with UniformPrintfs {
-
-  // Printf debugging
-  override val printfSigil = "Node (UBR) ID: " + ID + " "
-  val io = IO(new UBranchFastIO()(p))
-  val (cycleCount, _) = Counter(true.B, 32 * 1024)
-
-  io.Out(0) <> io.enable
-
 
 }
 
@@ -857,7 +755,7 @@ class CompareBranchNode(ID: Int, opCode: String)
   switch(state) {
     is(s_IDLE) {
       when(enable_valid_R) {
-        when((~enable_R.control).toBool) {
+        when((~enable_R.control).asBool) {
 
           enable_R := ControlBundle.default
           enable_valid_R := false.B
@@ -918,7 +816,7 @@ class CompareBranchNode(ID: Int, opCode: String)
   * @param ID         Node id
   */
 
-class UBranchFastNodeVariable(val NumOutputs: Int = 1, val ID: Int)
+class UBranchNodeVariable(val NumOutputs: Int = 1, val ID: Int)
                              (implicit val p: Parameters,
                               name: sourcecode.Name,
                               file: sourcecode.File)
@@ -1137,7 +1035,7 @@ class CBranchFastNodeVariable2(val NumTrue: Int = 1, val NumFalse: Int = 1, val 
   // Output for true and false sides
 
   val true_output = predicate & cmp_R
-  val false_output = predicate & (~cmp_R).toBool
+  val false_output = predicate & (~cmp_R).asBool
   //  val true_output = cmp_R
   //  val false_output = ~cmp_R
 
@@ -1350,7 +1248,7 @@ class CBranchNodeVariable(val NumTrue: Int = 1, val NumFalse: Int = 1, val NumPr
   // Output for true and false sides
   val predicate = enable_R.control & enable_valid_R
   val true_output = predicate & cmp_R.control
-  val false_output = predicate & (~cmp_R.control).toBool
+  val false_output = predicate & (~cmp_R.control).asBool
 
   // Defalut values for Trueoutput
   //

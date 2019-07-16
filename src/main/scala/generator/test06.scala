@@ -1,24 +1,24 @@
-package dataflow
+package dandelion.generator
 
-import FPU._
-import accel._
-import arbiters._
+import dandelion.fpu._
+import dandelion.accel._
+import dandelion.arbiters._
 import chisel3._
 import chisel3.util._
 import chisel3.Module._
 import chisel3.testers._
 import chisel3.iotesters._
-import config._
-import control._
-import interfaces._
-import junctions._
-import loop._
-import memory._
+import dandelion.config._
+import dandelion.control._
+import dandelion.interfaces._
+import dandelion.junctions._
+import dandelion.loop._
+import dandelion.memory._
 import muxes._
-import node._
+import dandelion.node._
 import org.scalatest._
 import regfile._
-import stack._
+import dandelion.memory.stack._
 import util._
 
 
@@ -116,13 +116,13 @@ class test06DF(implicit p: Parameters) extends test06DFIO()(p) {
   val icmp_11 = Module(new IcmpNode(NumOuts = 2, ID = 11, opCode = "ult")(sign = false))
 
   //  %13 = select i1 %12, i32 %10, i32 0, !UID !15
-  val select_12 = Module(new SelectNode(NumOuts = 1, ID = 12))
+  val select_12 = Module(new SelectNode(NumOuts = 1, ID = 12)(fast = true))
 
   //  %14 = sub nsw i32 %11, %13, !UID !16
   val binaryOp_13 = Module(new ComputeNode(NumOuts = 3, ID = 13, opCode = "sub")(sign = false))
 
   //  %15 = select i1 %12, i32 0, i32 %11, !UID !17
-  val select_14 = Module(new SelectNode(NumOuts = 1, ID = 14))
+  val select_14 = Module(new SelectNode(NumOuts = 1, ID = 14)(fast = true))
 
   //  %16 = sub nsw i32 %10, %15, !UID !18
   val binaryOp_15 = Module(new ComputeNode(NumOuts = 2, ID = 15, opCode = "sub")(sign = false))
@@ -437,7 +437,7 @@ import java.io.{File, FileWriter}
 object test06Top extends App {
   val dir = new File("RTL/test06Top");
   dir.mkdirs
-  implicit val p = config.Parameters.root((new MiniConfig).toInstance)
+  implicit val p = Parameters.root((new MiniConfig).toInstance)
   val chirrtl = firrtl.Parser.parse(chisel3.Driver.emit(() => new test06DF()))
 
   val verilogFile = new File(dir, s"${chirrtl.main}.v")

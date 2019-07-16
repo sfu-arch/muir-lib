@@ -1,11 +1,11 @@
-package dataflow
+package dandelion.concurrent
 
 import chisel3._
 import chisel3.util._
 import chisel3.Module
-import config._
-import interfaces._
-import node._
+import dandelion.config._
+import dandelion.interfaces._
+import dandelion.node._
 import utility.UniformPrintfs
 
 class ReattachIO(val NumPredOps: Int)(implicit p: Parameters)
@@ -240,7 +240,7 @@ class ReattachNodeSYNC(val NumPredIn: Int = 1, ID: Int)
   switch(state) {
     is(s_IDLE) {
       when(enable_valid_R) {
-        when((~enable_R.control).toBool) {
+        when((~enable_R.control).asBool) {
           //Reset()
           ValidOut()
           state := s_COMPUTE
