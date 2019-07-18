@@ -10,65 +10,13 @@ import chisel3.testers._
 import chisel3.util._
 import org.scalatest.{FlatSpec, Matchers}
 import config._
+import dnn.types.MAC
 import interfaces._
 import muxes._
 import util._
 import node._
 import utility.UniformPrintfs
 
-object MAC {
-
-  trait OperatorMAC[T] {
-    def mac(l: T, r: T, c: T)(implicit p: Parameters): T
-  }
-
-  object OperatorMAC {
-
-    implicit object UIntMAC extends OperatorMAC[UInt] {
-      def mac(l: UInt, r: UInt, c: UInt)(implicit p: Parameters): UInt = {
-        val x = Wire(l.cloneType)
-        val FXALU = Module(new UALU(p(XLEN), "Mac"))
-        FXALU.io.in1 := l
-        FXALU.io.in2 := r
-        FXALU.io.in3.get := c
-        x := FXALU.io.out.asTypeOf(l)
-        x
-      }
-    }
-
-
-    implicit object FixedPointMAC extends OperatorMAC[FixedPoint] {
-      def mac(l: FixedPoint, r: FixedPoint, c: FixedPoint)(implicit p: Parameters): FixedPoint = {
-        val x = Wire(l.cloneType)
-        val FXALU = Module(new DSPALU(FixedPoint(l.getWidth.W, l.binaryPoint), "Mac"))
-        FXALU.io.in1 := l
-        FXALU.io.in2 := r
-        FXALU.io.in3.get := c
-        x := FXALU.io.out.asTypeOf(l)
-        // Uncomment if you do not have access to DSP tools and need to use chisel3.experimental FixedPoint. DSP tools provides implicit support for truncation.
-        //  val mul = ((l.data * r.data) >> l.fraction.U).asFixedPoint(l.fraction.BP)
-        // x.data := mul + c.data
-        x
-      }
-    }
-
-
-    implicit object FP_MAC extends OperatorMAC[FloatingPoint] {
-      def mac(l: FloatingPoint, r: FloatingPoint, c: FloatingPoint)(implicit p: Parameters): FloatingPoint = {
-        val x = Wire(new FloatingPoint(l.t))
-        val mac = Module(new FPMAC(p(XLEN), opCode = "Mac", t = l.t))
-        mac.io.in1 := l.value
-        mac.io.in2 := r.value
-        mac.io.in3.get := c.value
-        x.value := mac.io.out
-        x
-      }
-    }
-
-  }
-
-  def mac[T](l: T, r: T, c: T)(implicit op: OperatorMAC[T], p: Parameters): T = op.mac(l, r, c)
-}
 
 class PEIO(implicit p: Parameters) extends CoreBundle( )(p) {
   // LeftIO: Left input data for computation
@@ -120,6 +68,11 @@ class SystolicSquare[T <: Data : MAC.OperatorMAC](gen: T, val N: Int)(implicit v
     val async_reset = Input(Bool( ))
     val output      = Output(Vec(N * N, UInt(xlen.W)))
   })
+
+  def latency(): Int = {
+    val latency = 3 * N
+    latency
+  }
 
   val PEs =
     for (i <- 0 until N) yield
@@ -207,7 +160,7 @@ class SystolicSquare[T <: Data : MAC.OperatorMAC](gen: T, val N: Int)(implicit v
   }
 
   printf("\nGrid  %d \n ", input_steps.value)
-  printf(p"1.U, 1.U ${Hexadecimal(PEs(0)(0).io.Out.bits)}")
+  printf(p"1.U, 1.U ${Hexadecimal(PEs(1)(1).io.Out.bits)}")
   for (i <- 0 until N) {
     for (j <- 0 until N) {
       io.output(i * (N) + j) <> PEs(i)(j).io.Out.bits

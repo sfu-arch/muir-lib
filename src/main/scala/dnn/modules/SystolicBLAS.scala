@@ -11,11 +11,11 @@ import chisel3.testers._
 import chisel3.util._
 import org.scalatest.{FlatSpec, Matchers}
 import config._
+import dnn.types.MAC
 import interfaces._
 import muxes._
 import util._
 import node._
-
 import utility.UniformPrintfs
 
 

@@ -1,4 +1,4 @@
-package dnn
+package dnn.types
 
 import FPU.{FPMAC, FType}
 import chisel3._
@@ -12,6 +12,7 @@ import interfaces._
 import muxes._
 import util._
 import node._
+import dnn._
 import FPOperator_GEMV._
 
 object GEMV_OpCode {

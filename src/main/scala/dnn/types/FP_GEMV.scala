@@ -1,4 +1,4 @@
-package dnn
+package dnn.types
 
 import FPU.{FPMAC, FType}
 import chisel3._
@@ -13,6 +13,7 @@ import muxes._
 import util._
 import node._
 import utility.UniformPrintfs
+import dnn._
 
 object FPOperator_GEMV {
 

@@ -10,6 +10,7 @@ import chisel3.testers._
 import chisel3.util._
 import org.scalatest.{FlatSpec, Matchers}
 import config._
+import dnn.types.TwoOperand
 import interfaces._
 import muxes._
 import util._
@@ -17,70 +18,8 @@ import node._
 import utility.UniformPrintfs
 
 
-object SCAL {
-
-  trait OperatorSCAL[T] {
-    def scal(l: T, r: T, opcode: String)(implicit p: Parameters): T
-  }
-
-  object OperatorSCAL {
-
-    implicit object UIntSCAL extends OperatorSCAL[UInt] {
-      def scal(l: UInt, r: UInt, opcode: String)(implicit p: Parameters): UInt = {
-        val x = Wire(l.cloneType)
-        val FXALU = Module(new UALU(p(XLEN), opcode))
-        FXALU.io.in1 := l
-        FXALU.io.in2 := r
-        x := FXALU.io.out.asTypeOf(l)
-        x
-      }
-    }
-
-    implicit object SIntSCAL extends OperatorSCAL[SInt] {
-      def scal(l: SInt, r: SInt, opcode: String)(implicit p: Parameters): SInt = {
-        val x = Wire(l.cloneType)
-        val FXALU = Module(new UALU(p(XLEN), opcode, true))
-        FXALU.io.in1 := l.asUInt
-        FXALU.io.in2 := r.asUInt
-        x := FXALU.io.out.asTypeOf(l)
-        x
-      }
-    }
-
-
-    implicit object FixedPointSCAL extends OperatorSCAL[FixedPoint] {
-      def scal(l: FixedPoint, r: FixedPoint, opcode: String)(implicit p: Parameters): FixedPoint = {
-        val x = Wire(l.cloneType)
-        val FXALU = Module(new DSPALU(FixedPoint(l.getWidth.W, l.binaryPoint), opcode))
-        FXALU.io.in1 := l
-        FXALU.io.in2 := r
-        x := FXALU.io.out.asTypeOf(l)
-        // Uncomment if you do not have access to DSP tools and need to use chisel3.experimental FixedPoint. DSP tools provides implicit support for truncation.
-        //  val mul = ((l.data * r.data) >> l.fraction.U).asFixedPoint(l.fraction.BP)
-        // x.data := mul + c.data
-        x
-      }
-    }
-
-
-    implicit object FP_SCAL extends OperatorSCAL[FloatingPoint] {
-      def scal(l: FloatingPoint, r: FloatingPoint, opcode: String)(implicit p: Parameters): FloatingPoint = {
-        val x = Wire(new FloatingPoint(l.t))
-        val mac = Module(new FPMAC(p(XLEN), opcode, t = l.t))
-        mac.io.in1 := l.value
-        mac.io.in2 := r.value
-        x.value := mac.io.out
-        x
-      }
-    }
-
-  }
-
-  def scal[T](l: T, r: T, opcode: String)(implicit op: OperatorSCAL[T], p: Parameters): T = op.scal(l, r, opcode)
-}
-
 ////
-class SCAL_PE_IO(implicit p: Parameters) extends CoreBundle( )(p) {
+class TwoOperand_PE_IO(implicit p: Parameters) extends CoreBundle( )(p) {
   // LeftIO: Left input data for computation
   val left = Input(Valid(UInt(xlen.W)))
 
@@ -92,12 +31,12 @@ class SCAL_PE_IO(implicit p: Parameters) extends CoreBundle( )(p) {
 }
 
 
-class SCAL_PE[T <: Data : SCAL.OperatorSCAL](gen: T, opcode: String)(implicit val p: Parameters)
+class TwoOperand_PE[T <: Data : TwoOperand.OperatorTwoOperand](gen: T, opcode: String)(implicit val p: Parameters)
   extends Module with CoreParams with UniformPrintfs {
-  val io = IO(new SCAL_PE_IO( ))
+  val io = IO(new TwoOperand_PE_IO( ))
 
   io.out.valid := false.B
-  io.out.bits := SCAL.scal(io.left.bits.asTypeOf(gen), io.right.bits.asTypeOf(gen), opcode).asUInt
+  io.out.bits := TwoOperand.binaryop(io.left.bits.asTypeOf(gen), io.right.bits.asTypeOf(gen), opcode).asUInt
 
   when(io.left.valid & io.right.valid) {
     io.out.valid := true.B
@@ -105,8 +44,8 @@ class SCAL_PE[T <: Data : SCAL.OperatorSCAL](gen: T, opcode: String)(implicit va
 
 }
 
-//
-class NCycle_SCAL[T <: Data : SCAL.OperatorSCAL](val gen: T, val N: Int, val lanes: Int, val opcode: String)(implicit val p: Parameters)
+
+class NCycle_SCAL[T <: Data : TwoOperand.OperatorTwoOperand](val gen: T, val N: Int, val lanes: Int, val opcode: String)(implicit val p: Parameters)
   extends Module with CoreParams with UniformPrintfs {
   val io = IO(new Bundle {
     val input_vec = Input(Vec(N, UInt(xlen.W)))
@@ -125,7 +64,7 @@ class NCycle_SCAL[T <: Data : SCAL.OperatorSCAL](val gen: T, val N: Int, val lan
 
   val PEs =
     for (i <- 0 until lanes) yield {
-      Module(new SCAL_PE(gen, opcode))
+      Module(new TwoOperand_PE(gen, opcode))
     }
 
   /* PE Control */

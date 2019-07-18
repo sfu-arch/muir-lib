@@ -114,7 +114,7 @@ class MiniConfig extends Config((site, here, up) => {
 
 class Mat_VecConfig extends Config((site, here, up) => {
   // Core
-  case XLEN => 16
+  case XLEN => 8
   case TLEN => 10
   case GLEN => 16
   // # Max bits of cache request tag.

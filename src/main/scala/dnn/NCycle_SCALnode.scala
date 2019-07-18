@@ -1,54 +1,38 @@
 package dnn
 
-import FPU.{FPMAC, FType}
 import chisel3._
-import chisel3.iotesters.{ChiselFlatSpec, Driver, OrderedDecoupledHWIOTester, PeekPokeTester}
-import chisel3.Module
-import chisel3.testers._
-import chisel3.util._
-import org.scalatest.{FlatSpec, Matchers}
-import config._
-import dnn.types.{GEMV_OpCode, GEMV_fns}
-import interfaces._
-import muxes._
-import util._
-import node._
+import chisel3.util.{Decoupled, Enum, Valid}
+import chisel3.{Bundle, Flipped, Module, Output, RegInit, UInt, assert, printf, when}
+import config.Parameters
+import dnn.types.{OperatorSCAL, SCAL_fns}
+import interfaces.CustomDataBundle
+import javafx.scene.chart.PieChart.Data
+import node.{AluGenerator, HandShakingIONPS, HandShakingNPS, Shapes}
 
-class OperatorMatVecModule[L <: Shapes, R <: Shapes, O <: Shapes](left: => L, right: => R, output: => O, val opCode: String)(implicit val p: Parameters) extends Module {
-  val io     = IO(new Bundle {
+class SCALModuleTop[L <: Shapes, R <: Bits](left: => L, right: => R, output: => L, val opCode: String)(implicit val p: Parameters) extends Module {
+  val io = IO(new Bundle {
     val a = Flipped(Valid(left))
     val b = Flipped(Valid(right))
     val o = Output(Valid(output))
   })
-  // Check if right is vec
-  val is_vec = right.getClass.getName
-  if (!(is_vec.contains("vec"))) {
-    assert(false, "Right operand. Only vector!")
-  }
 
-  val aluOp = GEMV_fns.getfns(io.a.bits, io.b.bits)
-  require(!GEMV_OpCode.opMap.get(opCode).isEmpty, "Wrong matrix OP. Check operator!")
-
-  io.o.valid := io.a.valid && io.b.valid
-
-  io.o.bits := AluGenerator(GEMV_OpCode.opMap(opCode), aluOp)
 
 }
 
-class GEMVIO[L <: Shapes, R <: Shapes, O <: Shapes](NumOuts: Int)(left: => L, right: => R)(output: => O)(implicit p: Parameters)
+class SCALIO[L <: Shapes, R <: Bits](NumOuts: Int)(left: => L, right: => R)(output: => L)(implicit p: Parameters)
   extends HandShakingIONPS(NumOuts)(new CustomDataBundle(UInt(output.getWidth))) {
   // LeftIO: Left input data for computation
   val LeftIO = Flipped(Decoupled(new CustomDataBundle(UInt((left.getWidth).W))))
 
   // RightIO: Right input data for computation
-  val RightIO = Flipped(Decoupled(new CustomDataBundle(UInt((right.getWidth).W))))
+  val RightIO = Flipped(Decoupled(new CustomDataBundle(UInt(right.getWidth.W))))
 
-  override def cloneType = new GEMVIO(NumOuts)(left, right)(output).asInstanceOf[this.type]
+  override def cloneType = new SCALIO(NumOuts)(left, right)(output).asInstanceOf[this.type]
 }
 
-class GEMV_1Cycle[L <: Shapes, R <: Shapes, O <: Shapes](NumOuts: Int, ID: Int, opCode: String)(sign: Boolean)(left: => L, right: R)(output: => O)(implicit p: Parameters)
+class SCAL_NCycle[L <: Shapes, R <: Bits](NumOuts: Int, ID: Int, opCode: String)(sign: Boolean)(left: => L, right: R)(output: => L)(implicit p: Parameters)
   extends HandShakingNPS(NumOuts, ID)(new CustomDataBundle(UInt(output.getWidth.W)))(p) {
-  override lazy val io = IO(new GEMVIO(NumOuts)(left, right)(output))
+  override lazy val io = IO(new SCALIO(NumOuts)(left, right)(output))
 
   /*===========================================*
  *            Registers                      *
@@ -109,7 +93,7 @@ class GEMV_1Cycle[L <: Shapes, R <: Shapes, O <: Shapes](NumOuts: Int, ID: Int, 
    *            ACTIONS (possibly dangerous)    *
    *============================================*/
 
-  val FU = Module(new OperatorMatVecModule(left, right, output, opCode))
+  val FU = Module(new SCALModuleTop(left, right, output, opCode))
   FU.io.a.bits := (left_R.data).asTypeOf(left)
   FU.io.b.bits := (right_R.data).asTypeOf(right)
   data_R.data := (FU.io.o.bits).asTypeOf(UInt(output.getWidth.W))

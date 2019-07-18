@@ -31,7 +31,7 @@ class GEMMCompTester extends FlatSpec with Matchers {
   implicit val p = config.Parameters.root((new Mat_VecConfig).toInstance)
   it should "Typ Compute Tester" in {
     chisel3.iotesters.Driver.execute(Array("--backend-name", "verilator", "--target-dir", "test_run_dir"),
-      () => new GEMM_NCycle(NumOuts = 1, ID = 0)(new matNxN(3))) {
+      () => new GEMM_NCycle(NumOuts = 1, ID = 0)(new matNxN(2))) {
       c => new GEMMCompTests(c)
     } should be(true)
   }

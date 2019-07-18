@@ -28,7 +28,7 @@ object CORDICOpCode {
   val acos  = 11
   val atan2 = 12
   val hypot = 13
-  val sqrtt = 14
+  val sqr   = 14
   val sinh  = 15
   val cosh  = 16
   val tanh  = 17
@@ -51,7 +51,7 @@ object CORDICOpCode {
     "acos" -> acos,
     "atan2" -> atan2,
     "hypot" -> hypot,
-    "sqrt" -> sqrtt,
+    "sqr" -> sqr,
     "sinh" -> sinh,
     "cosh" -> cosh,
     "tanh" -> tanh,
@@ -104,7 +104,7 @@ class CORDICALU(val xlen: Int, val fraction: Int, val opCode: String) extends Mo
     CORDICOpCode.acos -> (in1real.acos( )),
     CORDICOpCode.atan2 -> (in1real.atan2(in2real)),
     CORDICOpCode.hypot -> (in1real.hypot(in2real)),
-    CORDICOpCode.sqrtt -> (in1real.sqrt( )),
+    CORDICOpCode.sqr -> (in1real context_* in1real),
     CORDICOpCode.sinh -> (in1real.sinh( )),
     CORDICOpCode.cosh -> (in1real.cosh( )),
     CORDICOpCode.tanh -> (in1real.tanh( )),
