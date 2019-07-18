@@ -85,6 +85,16 @@ object AllocaResp {
   }
 }
 
+
+class AllocaRespTest(implicit p: Parameters)
+  extends ValidT with RouteID {
+  val ptr = UInt(xlen.W)
+
+
+}
+
+
+
 // Read interface into Scratchpad stack
 //  address: Word aligned address to read from
 //  node : dataflow node id to return data to
@@ -290,6 +300,8 @@ class DataBundle(implicit p: Parameters) extends PredicateT with TaskID {
 }
 
 //p
+
+
 class LogBundle(implicit p: Parameters) extends PredicateT with TaskID {
   // Data packet
   val stateData = UInt(2.W)
@@ -304,7 +316,6 @@ object LogBundle {
     wire.predicate := true.B
     wire
   }}
-
 
 
 //v
@@ -441,8 +452,10 @@ object ControlBundle {
 class CustomDataBundle[T <: Data](gen: T = UInt(32.W))(implicit p: Parameters) extends CoreBundle()(p) {
   // Data packet
   val data = gen.cloneType
+  //same as data = UInt(32.W)
   val predicate = Bool()
   val taskID = UInt(tlen.W)
+
 
   override def cloneType: this.type = new CustomDataBundle(gen).asInstanceOf[this.type]
 }

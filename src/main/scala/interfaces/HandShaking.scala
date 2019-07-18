@@ -42,7 +42,7 @@ import utility.UniformPrintfs
   *
   */
 class HandShakingIONPS[T <: Data](val NumOuts: Int)(gen: T)(implicit p: Parameters)
-  extends CoreBundle( )(p) {
+  extends CoreBundle()(p) {
   // Predicate enable
   val enable = Flipped(Decoupled(new ControlBundle))
   // Output IO
@@ -50,7 +50,7 @@ class HandShakingIONPS[T <: Data](val NumOuts: Int)(gen: T)(implicit p: Paramete
   //p
 //  val LogCheck = Decoupled(new DataBundle())
 
-  val LogCheck = if (log) Some(Decoupled(new DataBundle())) else None
+  val LogCheck = if (log) Some(Decoupled(new CustomDataBundle(UInt(5.W)))) else None
   //val LogCheck = if (log) Some(Decoupled(new LogBundle())) else None
   //v
   override def cloneType = new HandShakingIONPS(NumOuts)(gen).asInstanceOf[this.type]

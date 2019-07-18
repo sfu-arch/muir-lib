@@ -128,8 +128,10 @@ class ComputeNode(NumOuts: Int, ID: Int, opCode: String)
     }
     is(s_COMPUTE) {
       //p
-      //io.LogCheck.get.bits := DataBundle(state)
-      //io.LogCheck.get.valid:= true.B
+      if (log) {
+        io.LogCheck.get.bits := DataBundle(state)
+        io.LogCheck.get.valid := true.B
+      }
       io.LogIO.bits := DataBundle(state)
       io.LogIO.valid := true.B
       //v
