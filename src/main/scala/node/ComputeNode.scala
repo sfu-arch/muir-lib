@@ -12,7 +12,7 @@ import util._
 import utility.UniformPrintfs
 
 
-class ComputeNodeIO(NumOuts: Int)
+class ComputeNodeIO(NumOuts: Int, Debug: Boolean)
                    (implicit p: Parameters)
   extends HandShakingIONPS(NumOuts)(new DataBundle) {
   // LeftIO: Left input data for computation
@@ -24,17 +24,17 @@ class ComputeNodeIO(NumOuts: Int)
   //p
   val LogIO = Decoupled(new DataBundle())
   //v
-  override def cloneType = new ComputeNodeIO(NumOuts).asInstanceOf[this.type]
+  override def cloneType = new ComputeNodeIO(NumOuts, Debug).asInstanceOf[this.type]
 
 }
 
 class ComputeNode(NumOuts: Int, ID: Int, opCode: String)
-                 (sign: Boolean)
+                 (sign: Boolean, Debug: Boolean = false)
                  (implicit p: Parameters,
                   name: sourcecode.Name,
                   file: sourcecode.File)
-  extends HandShakingNPS(NumOuts, ID)(new DataBundle())(p) {
-  override lazy val io = IO(new ComputeNodeIO(NumOuts))
+  extends HandShakingNPS(NumOuts, ID, Debug)(new DataBundle())(p) {
+  override lazy val io = IO(new ComputeNodeIO(NumOuts, Debug))
 
   // Printf debugging
   val node_name = name.value
@@ -116,7 +116,7 @@ class ComputeNode(NumOuts: Int, ID: Int, opCode: String)
         io.Out.foreach(_.valid := true.B)
         ValidOut()
         state := s_COMPUTE
-        if(log){
+        if(Debug){
           io.LogCheck.get.bits := DataBundle(state)
           io.LogCheck.get.valid := true.B
         }
@@ -128,7 +128,7 @@ class ComputeNode(NumOuts: Int, ID: Int, opCode: String)
     }
     is(s_COMPUTE) {
       //p
-      if (log) {
+      if (Debug) {
         io.LogCheck.get.bits := DataBundle(state)
         io.LogCheck.get.valid := true.B
       }

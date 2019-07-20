@@ -82,7 +82,7 @@ class test03DF(implicit p: Parameters) extends test03DFIO()(p) {
   val select_3 = Module(new SelectNode(NumOuts = 1, ID = 3)(fast = false))
 
   //  %7 = sub nsw i32 %1, %6, !UID !7
-  val binaryOp_4 = Module(new ComputeNode(NumOuts = 1, ID = 4, opCode = "sub")(sign = false))
+  val binaryOp_4 = Module(new ComputeNode(NumOuts = 1, ID = 4, opCode = "sub")(sign = false, Debug = true))
 
   //  %8 = mul nsw i32 %5, %7, !UID !8
   val binaryOp_5 = Module(new ComputeNode(NumOuts = 1, ID = 5, opCode = "mul")(sign = false))
