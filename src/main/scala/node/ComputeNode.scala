@@ -14,7 +14,7 @@ import utility.UniformPrintfs
 
 class ComputeNodeIO(NumOuts: Int, Debug: Boolean)
                    (implicit p: Parameters)
-  extends HandShakingIONPS(NumOuts)(new DataBundle) {
+  extends HandShakingIONPS(NumOuts, Debug)(new DataBundle) {
   // LeftIO: Left input data for computation
   val LeftIO = Flipped(Decoupled(new DataBundle()))
 
@@ -22,7 +22,7 @@ class ComputeNodeIO(NumOuts: Int, Debug: Boolean)
   val RightIO = Flipped(Decoupled(new DataBundle()))
 
   //p
-  val LogIO = Decoupled(new DataBundle())
+  //val LogIO = Decoupled(new DataBundle())
   //v
   override def cloneType = new ComputeNodeIO(NumOuts, Debug).asInstanceOf[this.type]
 
@@ -68,14 +68,14 @@ class ComputeNode(NumOuts: Int, ID: Int, opCode: String)
 
   //p
 
-  if(log){
-    io.LogCheck.get.valid := false.B
-    io.LogCheck.get.bits := DataBundle.default
-  }
+  //if(Debug){
+  //  io.LogCheck.get.valid := false.B
+  //  io.LogCheck.get.bits := DataBundle.default
+  //}
   //io.LogCheck.get.valid := false.B
   //io.LogCheck.get.bits := DataBundle.default
-  io.LogIO.valid := false.B
-  io.LogIO.bits := DataBundle.default
+  //io.LogIO.valid := false.B
+  //io.LogIO.bits := DataBundle.default
   //v
 
   /*===============================================*
@@ -115,11 +115,12 @@ class ComputeNode(NumOuts: Int, ID: Int, opCode: String)
         io.Out.foreach(_.bits := DataBundle(FU.io.out, taskID, predicate))
         io.Out.foreach(_.valid := true.B)
         ValidOut()
+        if (Debug) getData(state)
         state := s_COMPUTE
-        if(Debug){
-          io.LogCheck.get.bits := DataBundle(state)
-          io.LogCheck.get.valid := true.B
-        }
+        //if(Debug){
+        //  io.LogCheck.get.bits := DataBundle(state)
+        //  io.LogCheck.get.valid := true.B
+        //}
         if (log) {
           printf("[LOG] " + "[" + module_name + "] " + "[TID->%d] [COMPUTE] " +
             node_name + ": Output fired @ %d, Value: %d (%d + %d)\n", taskID, cycleCount, FU.io.out, left_R.data, right_R.data)
@@ -128,12 +129,14 @@ class ComputeNode(NumOuts: Int, ID: Int, opCode: String)
     }
     is(s_COMPUTE) {
       //p
-      if (Debug) {
-        io.LogCheck.get.bits := DataBundle(state)
-        io.LogCheck.get.valid := true.B
-      }
-      io.LogIO.bits := DataBundle(state)
-      io.LogIO.valid := true.B
+      //if (Debug) {
+      //  io.LogCheck.get.bits := DataBundle(state)
+      //  io.LogCheck.get.valid := true.B
+
+      //}
+      if (Debug) getData(state)
+      //io.LogIO.bits := DataBundle(state)
+      //io.LogIO.valid := true.B
       //v
       when(IsOutReady()) {
         // Reset data
@@ -149,6 +152,10 @@ class ComputeNode(NumOuts: Int, ID: Int, opCode: String)
 
       }
     }
+  }
+
+  def isDebug(): Boolean = {
+    Debug
   }
 
 }

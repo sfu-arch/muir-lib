@@ -31,7 +31,10 @@ class AllocaTester(df: AllocaNode)(implicit p: Parameters) extends PeekPokeTeste
   poke(df.io.allocaRespIO.valid, false.B)
 
   println(s"Output: ${peek(df.io.Out(0))}\n")
-
+  val new_param = p.alterPartial(
+    {case TRACE => true}
+  )
+  //V
 
   step(1)
 
@@ -72,7 +75,7 @@ class AllocaTester(df: AllocaNode)(implicit p: Parameters) extends PeekPokeTeste
 class AllocaTests extends  FlatSpec with Matchers {
    implicit val p = Parameters.root((new MiniConfig).toInstance)
   it should "Dataflow tester" in {
-     chisel3.iotesters.Driver(() => new AllocaNode(ID = 0, NumOuts = 1, RouteID = 0)) {
+     chisel3.iotesters.Driver(() => new AllocaNode(ID = 0, NumOuts = 1, RouteID = 0, Debug = true)) {
        c => new AllocaTester(c)
      } should be(true)
    }

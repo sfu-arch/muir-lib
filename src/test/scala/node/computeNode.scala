@@ -28,13 +28,14 @@ class computeTester(df: ComputeNode)
   poke(df.io.Out(0).ready, false.B)
   println(s"Output: ${peek(df.io.Out(0))}\n")
   //p
-  println(s"state is: ${peek(df.io.LogIO)}\n")
   val new_param = p.alterPartial(
     {case TRACE => true}
   )
-  if(new_param(TRACE)){
-    println(s"LOG state is: ${peek(df.io.LogCheck.get)}\n")
+  if(df.isDebug()){
+
+    println(s"STATE of ComputeNode is : 0x${peek(df.io.test.get.bits.data.asUInt())}\n")
   }
+
   //V
   step(1)
 
@@ -51,7 +52,7 @@ class computeTester(df: ComputeNode)
 
   println(s"Output: ${peek(df.io.Out(0))}\n")
   //P
-  println(s"state is: ${peek(df.io.LogIO)}\n")
+
   //V
   println(s"t: -1\n -------------------------------------")
   step(1)
@@ -59,7 +60,6 @@ class computeTester(df: ComputeNode)
 
   for( i <- 0 until 10){
     println(s"Output: ${peek(df.io.Out(0))}\n")
-    println(s"state is: ${peek(df.io.LogIO)}\n")
 
     println(s"t: ${i}\n -------------------------------------")
     step(1)
@@ -70,7 +70,7 @@ class computeTester(df: ComputeNode)
 class CompTests extends  FlatSpec with Matchers {
    implicit val p = Parameters.root((new MiniConfig).toInstance)
   it should "Dataflow tester" in {
-     chisel3.iotesters.Driver(() => new ComputeNode(NumOuts = 1, ID = 0, opCode = "Add")(sign = false)) {
+     chisel3.iotesters.Driver(() => new ComputeNode(NumOuts = 1, ID = 0, opCode = "Add")(sign = false, Debug = true)) {
        c => new computeTester(c)
      } should be(true)
    }

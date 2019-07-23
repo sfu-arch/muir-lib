@@ -29,11 +29,11 @@ class AllocaNodeIO(NumOuts: Int) (implicit p: Parameters)
 
 }
 
-class AllocaNode(NumOuts: Int, ID: Int, RouteID: Int, FrameSize : Int = 16)
+class AllocaNode(NumOuts: Int, ID: Int, RouteID: Int, FrameSize : Int = 16, Debug : Boolean = false)
                 (implicit p: Parameters,
                  name: sourcecode.Name,
                  file: sourcecode.File)
-  extends HandShakingNPS(NumOuts, ID)(new DataBundle)(p) {
+  extends HandShakingNPS(NumOuts, ID, Debug)(new DataBundle)(p) {
   override lazy val io = IO(new AllocaNodeIO(NumOuts))
   // Printf debugging
   val node_name = name.value
@@ -42,6 +42,9 @@ class AllocaNode(NumOuts: Int, ID: Int, RouteID: Int, FrameSize : Int = 16)
   val (cycleCount,_) = Counter(true.B,32*1024)
 
   val FrameBits = log2Ceil(FrameSize)
+
+
+
   /*===========================================*
    *            Registers                      *
    *===========================================*/
@@ -66,6 +69,8 @@ class AllocaNode(NumOuts: Int, ID: Int, RouteID: Int, FrameSize : Int = 16)
 
   val predicate = alloca_R.predicate & IsEnable()
   val start = alloca_R.valid & IsEnableValid()
+
+
 
   /*===============================================*
    *            Latch inputs. Wire up output       *
@@ -109,6 +114,7 @@ class AllocaNode(NumOuts: Int, ID: Int, RouteID: Int, FrameSize : Int = 16)
       when (start & predicate) {
         req_valid := true.B
         state := s_req
+
       }
     }
     is (s_req) {
@@ -118,6 +124,7 @@ class AllocaNode(NumOuts: Int, ID: Int, RouteID: Int, FrameSize : Int = 16)
         data_R := Cat(taskID_R,io.allocaRespIO.ptr(FrameBits-1,0))
         ValidOut()
         // Completion state.
+
         state := s_done
       }
     }
@@ -126,6 +133,8 @@ class AllocaNode(NumOuts: Int, ID: Int, RouteID: Int, FrameSize : Int = 16)
         alloca_R := AllocaIO.default
         data_R := 0.U
         pred_R := false.B
+        pred_R := false.B
+
         state := s_idle
         Reset()
         when (predicate) {printf("[LOG] " + "[" + module_name + "] [TID ->%d] [ALLOCA] " +
