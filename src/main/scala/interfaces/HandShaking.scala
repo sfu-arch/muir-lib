@@ -51,7 +51,7 @@ class HandShakingIONPS[T <: Data](val NumOuts: Int, val Debug: Boolean = false)(
 //  val LogCheck = Decoupled(new DataBundle())
 
   //val LogCheck = if (Debug) Some(Decoupled(new CustomDataBundle(UInt(4.W)))) else None
-  val test = if (Debug) Some (Decoupled(new CustomDataBundle(UInt (4.W)))) else None
+  val LogCheck = if (Debug) Some (Decoupled(new CustomDataBundle(UInt (4.W)))) else None
 
   //v
   override def cloneType = new HandShakingIONPS(NumOuts)(gen).asInstanceOf[this.type]
@@ -222,14 +222,14 @@ class HandShakingNPS[T <: Data](val NumOuts: Int,
    *===================================*/
   //p
   if(Debug){
-    io.test.get.valid := false.B
-    io.test.get.bits := DataBundle.default
+    io.LogCheck.get.valid := false.B
+    io.LogCheck.get.bits := DataBundle.default
   }
 
   def getData(data: UInt): Unit = {
     if (Debug) {
-      io.test.get.bits := DataBundle(data)
-      io.test.get.valid := true.B
+      io.LogCheck.get.bits := DataBundle(data)
+      io.LogCheck.get.valid := true.B
     }
   }
   //v
@@ -358,6 +358,7 @@ class HandShakingFused[T <: PredicateT](val NumIns: Int, val NumOuts: Int,
   /*===================================*
    *            Helper Checks          *
    *===================================*/
+
   def IsEnable(): Bool = {
     enable_R.control
   }

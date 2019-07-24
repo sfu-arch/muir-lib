@@ -12,8 +12,8 @@ import dandelion.interfaces._
 import muxes._
 import util._
 
-class AllocaNodeIO(NumOuts: Int) (implicit p: Parameters)
-  extends HandShakingIONPS(NumOuts)(new DataBundle) {
+class AllocaNodeIO(NumOuts: Int, Debug : Boolean) (implicit p: Parameters)
+  extends HandShakingIONPS(NumOuts, Debug)(new DataBundle) {
   /**
     * @note requested size for address
     */
@@ -25,7 +25,7 @@ class AllocaNodeIO(NumOuts: Int) (implicit p: Parameters)
   val allocaReqIO = Decoupled(new AllocaReq())
   val allocaRespIO = Input(Flipped(new AllocaResp()))
 
-  override def cloneType = new AllocaNodeIO(NumOuts).asInstanceOf[this.type]
+  override def cloneType = new AllocaNodeIO(NumOuts, Debug).asInstanceOf[this.type]
 
 }
 
@@ -34,7 +34,7 @@ class AllocaNode(NumOuts: Int, ID: Int, RouteID: Int, FrameSize : Int = 16, Debu
                  name: sourcecode.Name,
                  file: sourcecode.File)
   extends HandShakingNPS(NumOuts, ID, Debug)(new DataBundle)(p) {
-  override lazy val io = IO(new AllocaNodeIO(NumOuts))
+  override lazy val io = IO(new AllocaNodeIO(NumOuts, Debug))
   // Printf debugging
   val node_name = name.value
   val module_name = file.value.split("/").tail.last.split("\\.").head.capitalize
@@ -113,6 +113,7 @@ class AllocaNode(NumOuts: Int, ID: Int, RouteID: Int, FrameSize : Int = 16, Debu
     is (s_idle) {
       when (start & predicate) {
         req_valid := true.B
+        getData(state)
         state := s_req
 
       }
@@ -124,7 +125,7 @@ class AllocaNode(NumOuts: Int, ID: Int, RouteID: Int, FrameSize : Int = 16, Debu
         data_R := Cat(taskID_R,io.allocaRespIO.ptr(FrameBits-1,0))
         ValidOut()
         // Completion state.
-
+        getData(state)
         state := s_done
       }
     }
@@ -134,7 +135,7 @@ class AllocaNode(NumOuts: Int, ID: Int, RouteID: Int, FrameSize : Int = 16, Debu
         data_R := 0.U
         pred_R := false.B
         pred_R := false.B
-
+        getData(state)
         state := s_idle
         Reset()
         when (predicate) {printf("[LOG] " + "[" + module_name + "] [TID ->%d] [ALLOCA] " +
@@ -157,5 +158,7 @@ class AllocaNode(NumOuts: Int, ID: Int, RouteID: Int, FrameSize : Int = 16, Debu
   // printf(p"Alloca req:   ${io.allocaReqIO}\n")
   // printf(p"Alloca res:   ${io.allocaRespIO}\n")
 
-  
+  def isDebug(): Boolean = {
+    Debug
+  }
 }

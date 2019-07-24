@@ -48,7 +48,13 @@ class AllocaTester(df: AllocaNode)(implicit p: Parameters) extends PeekPokeTeste
   poke(df.io.allocaInputIO.bits.predicate, true.B)
 
   println(s"Output: ${peek(df.io.Out(0))}\n")
+
+  if(df.isDebug()){
+
+    println(s"STATE of AllpocaNode is : 0x${peek(df.io.LogCheck.get.bits.data.asUInt())}\n")
+  }
   step(1)
+
 
 
   for( i <- 0 until 5){
