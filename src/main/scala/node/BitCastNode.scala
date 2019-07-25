@@ -8,23 +8,23 @@ import util._
 import utility.UniformPrintfs
 
 
-class BitCastNodeIO(NumOuts: Int)
+class BitCastNodeIO(NumOuts: Int, Debug:Boolean)
                 (implicit p: Parameters)
-  extends HandShakingIONPS(NumOuts)(new DataBundle) {
+  extends HandShakingIONPS(NumOuts, Debug )(new DataBundle) {
   // LeftIO: Left input data for computation
   val Input = Flipped(Decoupled(new DataBundle()))
 
 
-  override def cloneType = new BitCastNodeIO(NumOuts).asInstanceOf[this.type]
+  override def cloneType = new BitCastNodeIO(NumOuts, Debug).asInstanceOf[this.type]
 
 }
 
-class BitCastNode(NumOuts: Int, ID: Int)
+class BitCastNode(NumOuts: Int, ID: Int, Debug: Boolean= false)
               (implicit p: Parameters,
                name: sourcecode.Name,
                file: sourcecode.File)
-  extends HandShakingNPS(NumOuts, ID)(new DataBundle())(p) {
-  override lazy val io = IO(new BitCastNodeIO(NumOuts))
+  extends HandShakingNPS(NumOuts, ID, Debug)(new DataBundle())(p) {
+  override lazy val io = IO(new BitCastNodeIO(NumOuts, Debug))
 
    // Printf debugging
   val node_name = name.value
@@ -77,6 +77,7 @@ class BitCastNode(NumOuts: Int, ID: Int)
         io.Out.foreach(_.bits := DataBundle(data_R.data, taskID, predicate))
         io.Out.foreach(_.valid := true.B)
         ValidOut()
+        if (Debug) getData(state)
         state := s_COMPUTE
         if (log) {
           printf("[LOG] " + "[" + module_name + "] " + "[TID->%d] [CMP] " +
@@ -90,7 +91,7 @@ class BitCastNode(NumOuts: Int, ID: Int)
         data_valid_R := false.B
 
         out_data_R := 0.U
-
+        if (Debug) getData(state)
         //Reset state
         state := s_IDLE
         Reset()
@@ -99,7 +100,9 @@ class BitCastNode(NumOuts: Int, ID: Int)
       }
     }
   }
-
+  def isDebug(): Boolean = {
+    Debug
+  }
 }
 
 

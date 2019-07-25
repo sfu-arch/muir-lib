@@ -19,22 +19,24 @@ import utility.UniformPrintfs
   * Since your branch output wire to two different basic block only
   */
 
-class CBranchNodeIO(NumOuts: Int = 2)
+class CBranchNodeIO(NumOuts: Int = 2, Debug : Boolean = false)
                    (implicit p: Parameters)
-  extends HandShakingIONPS(NumOuts)(new ControlBundle) {
+  extends HandShakingIONPS(NumOuts, Debug)(new ControlBundle) {
 
   // RightIO: Right input data for computation
   val CmpIO = Flipped(Decoupled(new DataBundle))
 
-  override def cloneType = new CBranchNodeIO(NumOuts).asInstanceOf[this.type]
+  override def cloneType = new CBranchNodeIO(NumOuts, Debug).asInstanceOf[this.type]
 }
 
-class CBranchNode(ID: Int)
+class CBranchNode(ID: Int, Debug: Boolean = false)
                  (implicit p: Parameters,
                   name: sourcecode.Name,
                   file: sourcecode.File)
-  extends HandShakingCtrlNPS(2, ID)(p) {
-  override lazy val io = IO(new CBranchNodeIO())
+  extends HandShakingCtrlNPS(2, ID, Debug )(p) {
+
+  //////I added Numouts here
+  override lazy val io = IO(new CBranchNodeIO(NumOuts, Debug))
   // Printf debugging
   val node_name = name.value
   val module_name = file.value.split("/").tail.last.split("\\.").head.capitalize
@@ -97,6 +99,7 @@ class CBranchNode(ID: Int)
   switch(state) {
     is(s_IDLE) {
       when(IsEnableValid() && cmp_valid_R) {
+        getData(state)
         state := s_COMPUTE
         ValidOut()
         when(IsEnable()) {
@@ -116,6 +119,7 @@ class CBranchNode(ID: Int)
         // Reset output
         data_out_R := VecInit(Seq.fill(2)(false.B))
         //Reset state
+        getData(state)
         state := s_IDLE
 
         Reset()
@@ -126,7 +130,9 @@ class CBranchNode(ID: Int)
       }
     }
   }
-
+  def isDebug(): Boolean = {
+    Debug
+  }
 }
 
 class CBranchFastIO()(implicit p: Parameters) extends CoreBundle {

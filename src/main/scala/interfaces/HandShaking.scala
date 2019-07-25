@@ -490,6 +490,22 @@ class HandShakingCtrlNPS(val NumOuts: Int,
   /*===================================*
    *            Helper Checks          *
    *===================================*/
+
+  //p
+  if(Debug){
+    io.LogCheck.get.valid := false.B
+    io.LogCheck.get.bits := DataBundle.default
+  }
+
+  def getData(data: UInt): Unit = {
+    if (Debug) {
+      io.LogCheck.get.bits := DataBundle(data)
+      io.LogCheck.get.valid := true.B
+    }
+  }
+  //v
+
+
   def IsEnable(): Bool = {
     enable_R.control
   }
@@ -624,6 +640,24 @@ class HandShaking[T <: Data](val NumPredOps: Int,
   /*=====================================
   =            Helper Checks            =
   =====================================*/
+
+
+  //p
+  if(Debug){
+    io.LogCheck.get.valid := false.B
+    io.LogCheck.get.bits := DataBundle.default
+  }
+
+  def getData(data: UInt): Unit = {
+    if (Debug) {
+      io.LogCheck.get.bits := DataBundle(data)
+      io.LogCheck.get.valid := true.B
+    }
+  }
+  //v
+
+
+
   def IsEnable(): Bool = {
     return enable_R.control
   }
