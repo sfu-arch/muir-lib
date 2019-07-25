@@ -6,7 +6,7 @@ import chisel3.{Bundle, Flipped, Module, Output, RegInit, UInt, assert, printf, 
 import config.Parameters
 import dnn.types.{OperatorSCAL, SCAL_fns}
 import interfaces.CustomDataBundle
-import javafx.scene.chart.PieChart.Data
+//import javafx.scene.chart.PieChart.Data
 import node.{AluGenerator, HandShakingIONPS, HandShakingNPS, Shapes}
 
 class SCALModuleTop[L <: Shapes, R <: Bits](left: => L, right: => R, output: => L, val opCode: String)(implicit val p: Parameters) extends Module {
