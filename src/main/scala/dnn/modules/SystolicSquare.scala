@@ -8,6 +8,7 @@ import chisel3.experimental.FixedPoint
 import chisel3.internal.firrtl.BinaryPoint
 import chisel3.testers._
 import chisel3.util._
+//import com.sun.java.util.jar.pack.Instruction.Switch
 import org.scalatest.{FlatSpec, Matchers}
 import config._
 import dnn.types.MAC
@@ -181,8 +182,7 @@ class SystolicSquareBuffered[T <: Data : MAC.OperatorMAC](gen: T, val N: Int)(im
     val right       = Input(Vec(N * N, UInt(xlen.W)))
     val activate    = Input(Bool( ))
     val async_reset = Input(Bool( ))
-    val output      = Output(Vec(N * N, UInt(xlen.W)))
-    val output_valid = Output(Bool())
+    val output      = Valid(Vec(N * N, UInt(xlen.W)))
   })
 
   def latency(): Int = {
@@ -208,7 +208,7 @@ class SystolicSquareBuffered[T <: Data : MAC.OperatorMAC](gen: T, val N: Int)(im
   val state                                  = RegInit(s_idle)
 
   val input_steps = new Counter(3 * N - 1)
-  io.output_valid := Mux((input_steps.value === ((3 * N) - 2).U), true.B, false.B)
+  io.output.valid := Mux((input_steps.value === ((3 * N) - 2).U), true.B, false.B)
   when(state === s_idle) {
     when(io.activate) {
       state := s_ACTIVE
@@ -224,7 +224,7 @@ class SystolicSquareBuffered[T <: Data : MAC.OperatorMAC](gen: T, val N: Int)(im
       state := s_idle
     }
   }.otherwise{
-    io.output_valid := false.B
+    io.output.valid := false.B
   }
 
   val io_lefts = for (i <- 0 until N) yield
@@ -281,7 +281,7 @@ class SystolicSquareBuffered[T <: Data : MAC.OperatorMAC](gen: T, val N: Int)(im
   printf("\nGrid  %d \n", input_steps.value)
   for (i <- 0 until N) {
     for (j <- 0 until N) {
-      io.output(i * (N) + j) <> PEs(i)(j).io.Out.bits
+      io.output.bits(i * (N) + j) <> PEs(i)(j).io.Out.bits
       printf(p"  0x${Hexadecimal(PEs(i)(j).io.Out.bits)}")
 
       when(state === s_idle) {
@@ -290,5 +290,75 @@ class SystolicSquareBuffered[T <: Data : MAC.OperatorMAC](gen: T, val N: Int)(im
     }
     printf(p"\n")
   }
+}
+
+class SystolicSquareWrapper[T <: Data : MAC.OperatorMAC](gen: T, val N: Int)(implicit val p: Parameters)
+  extends Module with CoreParams with UniformPrintfs {
+  val io = IO(new Bundle {
+    val input_data = Flipped(Decoupled(UInt(xlen.W)))
+    val output = Decoupled(UInt(xlen.W))
+  })
+
+  val s_idle :: s_read :: s_execute :: s_write :: Nil = Enum(4)
+  val state = RegInit(s_idle)
+
+  val ScratchPad_input  = RegInit(VecInit(Seq.fill(2*N*N)(0.U(xlen.W))))
+  val ScratchPad_output = RegInit(VecInit(Seq.fill(N*N)((0.U(xlen.W)))))
+
+  val input_counter  = Counter(2*N*N)
+  val output_counter = Counter(N*N)
+
+  val PE = Module(new SystolicSquareBuffered(UInt(p(XLEN).W), 3))
+
+
+  for( i <- 0 until 2 * N * N){
+    if(i < N * N){
+      PE.io.left(i) := ScratchPad_input(i)
+    }else{
+      PE.io.right(i - (N * N)) := ScratchPad_input(i)
+    }
+  }
+
+  (ScratchPad_output zip PE.io.output.bits).foreach{ case (mem, pe_out) => mem := Mux(PE.io.output.valid, pe_out, mem)}
+
+  io.input_data.ready := ((state === s_idle) || (state === s_read))
+  PE.io.activate := Mux(input_counter.value === ((2*N*N) - 1).U, true.B, false.B)
+  PE.io.async_reset := false.B
+  io.output.bits := 0.U
+  io.output.valid := false.B
+
+  switch(state){
+    is(s_idle) {
+      when(io.input_data.fire) {
+        state := s_read
+      }
+    }
+    is(s_read){
+      when(input_counter.value === ((2*N*N) - 1).U ){
+        state := s_execute
+      }.otherwise{
+        ScratchPad_input(input_counter.value) := io.input_data.bits
+        input_counter.inc()
+      }
+    }
+    is(s_execute){
+      when(PE.io.output.valid){
+        state := s_write
+      }
+    }
+    is(s_write){
+      io.output.valid := true.B
+      io.output.bits := ScratchPad_output(output_counter.value)
+      when(output_counter.value === ((N*N) - 1).U){
+        state := s_idle
+      }.otherwise{
+        when(io.output.fire){
+          output_counter.inc()
+        }
+      }
+    }
+  }
+
+  printf(p"[DEBUG] State: ${state}\n")
 }
 
