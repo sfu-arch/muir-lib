@@ -12,19 +12,19 @@ import utility.UniformPrintfs
 class CallOutNodeIO(val argTypes: Seq[Int],
                     NumPredOps: Int,
                     NumSuccOps: Int,
-                    NumOuts: Int, Debug: Boolean = false)(implicit p: Parameters)
-  extends HandShakingIOPS(NumPredOps, NumSuccOps, NumOuts, Debug)(new Call(argTypes)) {
+                    NumOuts: Int)(implicit p: Parameters)
+  extends HandShakingIOPS(NumPredOps, NumSuccOps, NumOuts)(new Call(argTypes)) {
   val In = Flipped(new VariableDecoupledData(argTypes)) // Requests from calling block(s)
 
   //  3.1
-  override def cloneType = new CallOutNodeIO(argTypes, NumPredOps, NumSuccOps, NumOuts, Debug).asInstanceOf[this.type]
+  override def cloneType = new CallOutNodeIO(argTypes, NumPredOps, NumSuccOps, NumOuts).asInstanceOf[this.type]
 }
 
-class CallOutNode(ID: Int, val argTypes: Seq[Int], NumSuccOps: Int = 0, NoReturn: Bool = false.B, Debug : Boolean = false)
+class CallOutNode(ID: Int, val argTypes: Seq[Int], NumSuccOps: Int = 0, NoReturn: Bool = false.B)
                  (implicit p: Parameters,
                   name: sourcecode.Name,
                   file: sourcecode.File)
-  extends HandShaking(0, NumSuccOps, 1, ID, Debug)(new Call(argTypes))(p) with UniformPrintfs {
+  extends HandShaking(0, NumSuccOps, 1, ID)(new Call(argTypes))(p) with UniformPrintfs {
 
   override lazy val io = IO(new CallOutNodeIO(argTypes, 0, NumSuccOps, 1)(p))
   val node_name = name.value
@@ -70,7 +70,6 @@ class CallOutNode(ID: Int, val argTypes: Seq[Int], NumSuccOps: Int = 0, NoReturn
             printfError("##### Data[%d] taskID: %d <> Enable taskID: %d\n", i.U, data_R(s"field$i").taskID, enable_R.taskID)
           }
         }
-        getData(state)
         state := s_Done
       }
     }
@@ -81,7 +80,7 @@ class CallOutNode(ID: Int, val argTypes: Seq[Int], NumSuccOps: Int = 0, NoReturn
         // Clear all other state
         Reset()
         // Reset state.
-        getData(state)
+
         state := s_idle
         if (log) {
           printf("[LOG] " + "[" + module_name + "] [TID->%d] " + node_name + ": Output fired @ %d\n", enable_R.taskID, cycleCount)
@@ -89,19 +88,17 @@ class CallOutNode(ID: Int, val argTypes: Seq[Int], NumSuccOps: Int = 0, NoReturn
       }
     }
   }
-  def isDebug(): Boolean = {
-    Debug
-  }
+
 
 }
 
-class CallOutNode2(ID: Int, val argTypes: Seq[Int], NumSuccOps: Int = 0, NoReturn: Bool = false.B, Debug : Boolean = false)
+class CallOutNode2(ID: Int, val argTypes: Seq[Int], NumSuccOps: Int = 0, NoReturn: Bool = false.B)
                   (implicit p: Parameters,
                    name: sourcecode.Name,
                    file: sourcecode.File)
-  extends HandShaking(0, NumSuccOps, 1, ID, Debug)(new Call(argTypes))(p) with UniformPrintfs {
+  extends HandShaking(0, NumSuccOps, 1, ID)(new Call(argTypes))(p) with UniformPrintfs {
 
-  override lazy val io = IO(new CallOutNodeIO(argTypes, 0, NumSuccOps, 1, Debug)(p))
+  override lazy val io = IO(new CallOutNodeIO(argTypes, 0, NumSuccOps, 1)(p))
   val node_name = name.value
   val module_name = file.value.split("/").tail.last.split("\\.").head.capitalize
   val (cycleCount, _) = Counter(true.B, 32 * 1024)
@@ -146,7 +143,7 @@ class CallOutNode2(ID: Int, val argTypes: Seq[Int], NumSuccOps: Int = 0, NoRetur
             }
           }
         }
-        getData(state)
+
         state := s_Done
       }
     }
@@ -157,7 +154,6 @@ class CallOutNode2(ID: Int, val argTypes: Seq[Int], NumSuccOps: Int = 0, NoRetur
         // Clear all other state
         Reset()
         // Reset state.
-        getData(state)
         state := s_idle
         if (log) {
           printf("[LOG] " + "[" + module_name + "] [TID->%d] " + node_name + ": Output fired @ %d\n", enable_R.taskID, cycleCount)
@@ -165,7 +161,5 @@ class CallOutNode2(ID: Int, val argTypes: Seq[Int], NumSuccOps: Int = 0, NoRetur
       }
     }
   }
-  def isDebug(): Boolean = {
-    Debug
-  }
+
 }
