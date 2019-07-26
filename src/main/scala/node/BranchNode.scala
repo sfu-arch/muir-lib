@@ -99,7 +99,7 @@ class CBranchNode(ID: Int, Debug: Boolean = false)
   switch(state) {
     is(s_IDLE) {
       when(IsEnableValid() && cmp_valid_R) {
-        getData(state)
+        if(Debug) getData(state)
         state := s_COMPUTE
         ValidOut()
         when(IsEnable()) {
@@ -119,7 +119,7 @@ class CBranchNode(ID: Int, Debug: Boolean = false)
         // Reset output
         data_out_R := VecInit(Seq.fill(2)(false.B))
         //Reset state
-        getData(state)
+        if(Debug) getData(state)
         state := s_IDLE
 
         Reset()
