@@ -362,3 +362,20 @@ class SystolicSquareWrapper[T <: Data : MAC.OperatorMAC](gen: T, val N: Int)(imp
   printf(p"[DEBUG] State: ${state}\n")
 }
 
+import java.io.{File, FileWriter}
+
+object SystolicSquareWrapperMain extends App {
+  val dir = new File("RTL/SystolicSquareWrapper");
+  dir.mkdirs
+  implicit val p = config.Parameters.root((new MiniConfig).toInstance)
+  val chirrtl = firrtl.Parser.parse(chisel3.Driver.emit(() => new SystolicSquareWrapper(UInt(p(XLEN).W), 3)))
+
+//  () => new SystolicSquareWrapper(UInt(p(XLEN).W), 3)
+
+  val verilogFile = new File(dir, s"${chirrtl.main}.v")
+  val verilogWriter = new FileWriter(verilogFile)
+  val compileResult = (new firrtl.VerilogCompiler).compileAndEmit(firrtl.CircuitState(chirrtl, firrtl.ChirrtlForm))
+  val compiledStuff = compileResult.getEmittedCircuit
+  verilogWriter.write(compiledStuff.value)
+  verilogWriter.close()
+}
