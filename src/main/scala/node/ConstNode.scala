@@ -7,13 +7,13 @@ import dandelion.interfaces._
 import util._
 import utility.UniformPrintfs
 
-class ConstNode(value: Int, NumOuts: Int = 1, ID: Int, Debug: Boolean =  false)
+class ConstNode(value: Int, NumOuts: Int = 1, ID: Int)
                (implicit p: Parameters,
                 name: sourcecode.Name,
                 file: sourcecode.File)
-  extends HandShakingNPS(NumOuts, ID, Debug )(new DataBundle())(p) {
+  extends HandShakingNPS(NumOuts, ID )(new DataBundle())(p) {
 
-  override lazy val io = IO(new HandShakingIONPS(NumOuts, Debug)(new DataBundle()))
+  override lazy val io = IO(new HandShakingIONPS(NumOuts)(new DataBundle()))
   val node_name = name.value
   val module_name = file.value.split("/").tail.last.split("\\.").head.capitalize
 
@@ -66,14 +66,14 @@ class ConstNode(value: Int, NumOuts: Int = 1, ID: Int, Debug: Boolean =  false)
           out_data_R.predicate := io.enable.bits.control
           out_data_R.taskID := task_ID_W
         }
-        if (Debug) getData(state)
+
         state := s_COMPUTE
       }
     }
     is(s_COMPUTE) {
       when(IsOutReady()) {
         //Reset state
-        if (Debug) getData(state)
+
         state := s_IDLE
         out_data_R.predicate := false.B
         Reset()
@@ -84,9 +84,6 @@ class ConstNode(value: Int, NumOuts: Int = 1, ID: Int, Debug: Boolean =  false)
         }
       }
     }
-  }
-  def isDebug(): Boolean = {
-    Debug
   }
 }
 

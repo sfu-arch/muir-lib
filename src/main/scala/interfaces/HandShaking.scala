@@ -359,6 +359,20 @@ class HandShakingFused[T <: PredicateT](val NumIns: Int, val NumOuts: Int,
    *            Helper Checks          *
    *===================================*/
 
+  //p
+  if(Debug){
+    io.LogCheck.get.valid := false.B
+    io.LogCheck.get.bits := DataBundle.default
+  }
+
+  def getData(data: UInt): Unit = {
+    if (Debug) {
+      io.LogCheck.get.bits := DataBundle(data)
+      io.LogCheck.get.valid := true.B
+    }
+  }
+  //v
+
   def IsEnable(): Bool = {
     enable_R.control
   }
@@ -764,13 +778,11 @@ class HandShakingCtrlMask(val NumInputs: Int,
                           val NumOuts: Int,
                           val NumPhi: Int,
                           val BID: Int
-                          //,Debug: Boolean = false
+                          ,Debug: Boolean = false
                          )(implicit val p: Parameters)
   extends Module with CoreParams with UniformPrintfs {
 
-  lazy val io = IO(new HandShakingCtrlMaskIO(NumInputs, NumOuts, NumPhi
-  //,Debug
-  ))
+  lazy val io = IO(new HandShakingCtrlMaskIO(NumInputs, NumOuts, NumPhi,Debug))
 
   /*=================================
   =            Registers            =
@@ -817,6 +829,21 @@ class HandShakingCtrlMask(val NumInputs: Int,
   /*===================================*
    *            Helper Checks          *
    *===================================*/
+
+  //p
+  if(Debug){
+    io.LogCheck.get.valid := false.B
+    io.LogCheck.get.bits := DataBundle.default
+  }
+
+  def getData(data: UInt): Unit = {
+    if (Debug) {
+      io.LogCheck.get.bits := DataBundle(data)
+      io.LogCheck.get.valid := true.B
+    }
+  }
+  //v
+
   // OUTs
   def IsOutReady(): Bool = {
     out_ready_R.asUInt.andR
@@ -911,6 +938,20 @@ class HandShakingCtrlNoMask(val NumInputs: Int,
   /*===================================*
    *            Helper Checks          *
    *===================================*/
+
+  //p
+  if(Debug){
+    io.LogCheck.get.valid := false.B
+    io.LogCheck.get.bits := DataBundle.default
+  }
+
+  def getData(data: UInt): Unit = {
+    if (Debug) {
+      io.LogCheck.get.bits := DataBundle(data)
+      io.LogCheck.get.valid := true.B
+    }
+  }
+  //v
   // OUTs
   def IsOutReady(): Bool = {
     out_ready_R.asUInt.andR
@@ -1030,6 +1071,7 @@ class HandShakingAlias[T <: Data](NumPredOps: Int,
       alias_in_bundle_R(i) := io.InA.In(i).bits
     }
   }
+
 
   def AliasInfoAvail(): Bool = {
     if (NumAliasPredOps == 0) {
