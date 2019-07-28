@@ -13,9 +13,9 @@ import util._
 import utility.UniformPrintfs
 
 
-class SelectNodeIO(NumOuts: Int)
+class SelectNodeIO(NumOuts: Int, Debug:Boolean=false)
                   (implicit p: Parameters)
-  extends HandShakingIONPS(NumOuts)(new DataBundle) {
+  extends HandShakingIONPS(NumOuts, Debug )(new DataBundle) {
 
   // Input data 1
   val InData1 = Flipped(Decoupled(new DataBundle()))
@@ -26,16 +26,16 @@ class SelectNodeIO(NumOuts: Int)
   // Select input data
   val Select = Flipped(Decoupled(new DataBundle()))
 
-  override def cloneType = new SelectNodeIO(NumOuts).asInstanceOf[this.type]
+  override def cloneType = new SelectNodeIO(NumOuts, Debug).asInstanceOf[this.type]
 }
 
-class SelectNode(NumOuts: Int, ID: Int)
+class SelectNode(NumOuts: Int, ID: Int, Debug : Boolean = false)
                 (fast: Boolean)
                 (implicit p: Parameters,
                  name: sourcecode.Name,
                  file: sourcecode.File)
-  extends HandShakingNPS(NumOuts, ID)(new DataBundle())(p) {
-  override lazy val io = IO(new SelectNodeIO(NumOuts))
+  extends HandShakingNPS(NumOuts, ID, Debug)(new DataBundle())(p) {
+  override lazy val io = IO(new SelectNodeIO(NumOuts, Debug))
 
   // Printf debugging
   val node_name = name.value
@@ -106,6 +106,7 @@ class SelectNode(NumOuts: Int, ID: Int)
         when(enable_valid_R && indata1_valid_R && indata2_valid_R && select_valid_R) {
           io.Out.foreach( _.valid := true.B)
           ValidOut()
+          if (Debug) getData(state)
           state := s_COMPUTE
           if(log){
             printf("[LOG] " + "[" + module_name + "] " + "[TID->%d] [SELECT] " +
@@ -123,11 +124,14 @@ class SelectNode(NumOuts: Int, ID: Int)
         indata1_R := DataBundle.default
         indata2_R := DataBundle.default
         //Reset state
+        if(Debug) getData(state)
         state := s_IDLE
         //Reset output
         Reset()
       }
     }
   }
-
+  def isDebug(): Boolean = {
+    Debug
+  }
 }

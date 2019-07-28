@@ -12,9 +12,9 @@ import dandelion.interfaces._
 import muxes._
 import utility._
 
-class GepNodeOneIO(NumOuts: Int)
+class GepNodeOneIO(NumOuts: Int, Debug : Boolean = false)
                   (implicit p: Parameters)
-  extends HandShakingIONPS(NumOuts)(new DataBundle) {
+  extends HandShakingIONPS(NumOuts, Debug)(new DataBundle) {
 
   // Inputs should be fed only when Ready is HIGH
   // Inputs are always latched.
@@ -23,13 +23,13 @@ class GepNodeOneIO(NumOuts: Int)
   val idx1 = Flipped(Decoupled(new DataBundle()))
 
   //  3.1
-  override def cloneType = new GepNodeOneIO(NumOuts).asInstanceOf[this.type]
+  override def cloneType = new GepNodeOneIO(NumOuts, Debug).asInstanceOf[this.type]
 
 }
 
-class GepNodeTwoIO(NumOuts: Int)
+class GepNodeTwoIO(NumOuts: Int, Debug : Boolean = false)
                   (implicit p: Parameters)
-  extends HandShakingIONPS(NumOuts)(new DataBundle) {
+  extends HandShakingIONPS(NumOuts, Debug )(new DataBundle) {
 
   // Inputs should be fed only when Ready is HIGH
   // Inputs are always latched.
@@ -38,7 +38,7 @@ class GepNodeTwoIO(NumOuts: Int)
   val idx1 = Flipped(Decoupled(new DataBundle()))
   val idx2 = Flipped(Decoupled(new DataBundle()))
 
-  override def cloneType = new GepNodeTwoIO(NumOuts).asInstanceOf[this.type]
+  override def cloneType = new GepNodeTwoIO(NumOuts, Debug).asInstanceOf[this.type]
 
 }
 
@@ -69,13 +69,13 @@ class GepNodeIO(NumIns: Int, NumOuts: Int)
 }
 
 
-class GepOneNode(NumOuts: Int, ID: Int)
+class GepOneNode(NumOuts: Int, ID: Int, Debug : Boolean = false)
                 (numByte1: Int)
                 (implicit p: Parameters,
                  name: sourcecode.Name,
                  file: sourcecode.File)
-  extends HandShakingNPS(NumOuts, ID)(new DataBundle)(p) {
-  override lazy val io = IO(new GepNodeOneIO(NumOuts))
+  extends HandShakingNPS(NumOuts, ID, Debug)(new DataBundle)(p) {
+  override lazy val io = IO(new GepNodeOneIO(NumOuts, Debug))
   // Printf debugging
   val node_name = name.value
   val module_name = file.value.split("/").tail.last.split("\\.").head.capitalize
@@ -139,6 +139,7 @@ class GepOneNode(NumOuts: Int, ID: Int)
       when(enable_valid_R) {
         when((idx1_valid_R) && (base_addr_valid_R)) {
           ValidOut()
+          if (Debug) getData(state)
           state := s_COMPUTE
         }
       }
@@ -154,6 +155,7 @@ class GepOneNode(NumOuts: Int, ID: Int)
         base_addr_valid_R := false.B
 
         // Reset state
+        if(Debug) getData(state)
         state := s_IDLE
 
         // Reset output
@@ -164,8 +166,11 @@ class GepOneNode(NumOuts: Int, ID: Int)
         }
       }
     }
-  }
 
+  }
+  def isDebug(): Boolean = {
+    Debug
+  }
 
 }
 

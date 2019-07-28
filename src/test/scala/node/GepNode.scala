@@ -72,7 +72,13 @@ class GepTester(df: GepOneNode)
     step(1)
   }
 
+  val new_param = p.alterPartial(
+    {case TRACE => true}
+  )
+  if(df.isDebug()){
 
+    println(s"STATE of GepNode is : 0x${peek(df.io.LogCheck.get.bits.data.asUInt())}\n")
+  }
 
 
 }
@@ -81,7 +87,7 @@ class GepTester(df: GepOneNode)
 class GepTests extends  FlatSpec with Matchers {
    implicit val p = Parameters.root((new MiniConfig).toInstance)
   it should "Dataflow tester" in {
-     chisel3.iotesters.Driver(() => new GepOneNode(NumOuts = 1, ID = 0)(numByte1 = 2)) {
+     chisel3.iotesters.Driver(() => new GepOneNode(NumOuts = 1, ID = 0, Debug = true)(numByte1 = 2)) {
        c => new GepTester(c)
      } should be(true)
    }

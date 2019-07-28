@@ -12,9 +12,9 @@ import muxes._
 import util._
 import utility.UniformPrintfs
 
-class PhiNodeIO(NumInputs: Int, NumOuts: Int)
+class PhiNodeIO(NumInputs: Int, NumOuts: Int, Debug:Boolean=false)
                (implicit p: Parameters)
-  extends HandShakingIONPS(NumOuts)(new DataBundle) {
+  extends HandShakingIONPS(NumOuts, Debug)(new DataBundle) {
 
   // Vector input
   val InData = Vec(NumInputs, Flipped(Decoupled(new DataBundle)))
@@ -22,7 +22,7 @@ class PhiNodeIO(NumInputs: Int, NumOuts: Int)
   // Predicate mask comming from the basic block
   val Mask = Flipped(Decoupled(UInt(NumInputs.W)))
 
-  override def cloneType = new PhiNodeIO(NumInputs, NumOuts).asInstanceOf[this.type]
+  override def cloneType = new PhiNodeIO(NumInputs, NumOuts, Debug).asInstanceOf[this.type]
 }
 
 abstract class PhiFastNodeIO(val NumInputs: Int = 2, val NumOutputs: Int = 1, val ID: Int)
@@ -48,12 +48,12 @@ abstract class PhiFastNodeIO(val NumInputs: Int = 2, val NumOutputs: Int = 1, va
 @deprecated("Use PhiFastNode instead", "1.0")
 class PhiNode(NumInputs: Int,
               NumOuts: Int,
-              ID: Int)
+              ID: Int , Debug :Boolean=false)
              (implicit p: Parameters,
               name: sourcecode.Name,
               file: sourcecode.File)
-  extends HandShakingNPS(NumOuts, ID)(new DataBundle)(p) {
-  override lazy val io = IO(new PhiNodeIO(NumInputs, NumOuts))
+  extends HandShakingNPS(NumOuts, ID, Debug)(new DataBundle)(p) {
+  override lazy val io = IO(new PhiNodeIO(NumInputs, NumOuts, Debug))
   // Printf debugging
   val node_name = name.value
   val module_name = file.value.split("/").tail.last.split("\\.").head.capitalize
@@ -120,6 +120,7 @@ class PhiNode(NumInputs: Int,
   switch(state) {
     is(s_IDLE) {
       when((enable_valid_R) && mask_valid_R && in_data_valid_R(sel)) {
+        if(Debug) getData(state)
         state := s_COMPUTE
         when(enable_R.control) {
           out_data_R := in_data_R(sel)
@@ -136,6 +137,7 @@ class PhiNode(NumInputs: Int,
         out_data_R.predicate := false.B
 
         //Reset state
+        if(Debug) getData(state)
         state := s_IDLE
         //Reset output
         Reset()
@@ -150,7 +152,9 @@ class PhiNode(NumInputs: Int,
       }
     }
   }
-
+  def isDebug(): Boolean = {
+    Debug
+  }
 }
 
 

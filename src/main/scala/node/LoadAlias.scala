@@ -21,8 +21,10 @@ class LoadAliasIO(NumPredOps: Int,
                   NumSuccOps: Int,
                   NumAliasPredOps: Int,
                   NumAliasSuccOps: Int,
-                  NumOuts: Int)(implicit p: Parameters)
-  extends HandShakingAliasIO(NumPredOps = NumPredOps, NumSuccOps = NumSuccOps, NumAliasPredOps = NumAliasPredOps, NumAliasSuccOps = NumAliasSuccOps, NumOuts = NumOuts)(new DataBundle) {
+                  NumOuts: Int,
+                  Debug:Boolean = false)(implicit p: Parameters)
+  extends HandShakingAliasIO(NumPredOps = NumPredOps, NumSuccOps = NumSuccOps, NumAliasPredOps = NumAliasPredOps,
+    NumAliasSuccOps = NumAliasSuccOps, NumOuts = NumOuts, Debug )(new DataBundle) {
   // GepAddr: The calculated address comming from GEP node
   val GepAddr = Flipped(Decoupled(new DataBundle))
   // Memory request
@@ -30,7 +32,8 @@ class LoadAliasIO(NumPredOps: Int,
   // Memory response.
   val memResp = Input(Flipped(new ReadResp( )))
 
-  override def cloneType = new LoadAliasIO(NumPredOps, NumSuccOps, NumAliasPredOps, NumAliasSuccOps, NumOuts).asInstanceOf[this.type]
+  override def cloneType = new LoadAliasIO(NumPredOps, NumSuccOps, NumAliasPredOps,
+    NumAliasSuccOps, NumOuts, Debug).asInstanceOf[this.type]
 }
 
 /**
@@ -45,12 +48,14 @@ class UnTypLoadAlias(NumPredOps: Int,
                      NumOuts: Int,
                      Typ: UInt = MT_W,
                      ID: Int,
-                     RouteID: Int)(implicit p: Parameters,
+                     RouteID: Int,
+                     Debug :Boolean =false)(implicit p: Parameters,
                                    name: sourcecode.Name,
                                    file: sourcecode.File)
-  extends HandShakingAlias(NumPredOps = NumPredOps, NumSuccOps = NumSuccOps, NumAliasPredOps = NumAliasPredOps, NumAliasSuccOps = NumAliasSuccOps, NumOuts = NumOuts, ID = ID)(new DataBundle)(p) {
+  extends HandShakingAlias(NumPredOps = NumPredOps, NumSuccOps = NumSuccOps,
+    NumAliasPredOps = NumAliasPredOps, NumAliasSuccOps = NumAliasSuccOps, NumOuts = NumOuts, ID = ID, Debug )(new DataBundle)(p) {
 
-  override lazy val io = IO(new LoadAliasIO(NumPredOps, NumSuccOps, NumAliasPredOps, NumAliasSuccOps, NumOuts))
+  override lazy val io = IO(new LoadAliasIO(NumPredOps, NumSuccOps, NumAliasPredOps, NumAliasSuccOps, NumOuts, Debug))
   // Printf debugging
   val node_name       = name.value
   val module_name     = file.value.split("/").tail.last.split("\\.").head.capitalize
@@ -131,6 +136,7 @@ class UnTypLoadAlias(NumPredOps: Int,
         when(enable_R.control && predicate) {
           io.memReq.valid := true.B
           when(io.memReq.ready) {
+            if(Debug) getData(state)
             state := s_RECEIVING
           }
         }.otherwise {
@@ -139,6 +145,7 @@ class UnTypLoadAlias(NumPredOps: Int,
           ValidOut( )
           ValidAliasSucc( )
           // Completion state.
+          if(Debug) getData(state)
           state := s_Done
         }
       }
@@ -155,6 +162,7 @@ class UnTypLoadAlias(NumPredOps: Int,
         ValidAliasSucc( )
         ValidOut( )
         // Completion state.
+        if (Debug)getData (state)
         state := s_Done
 
       }
@@ -171,6 +179,7 @@ class UnTypLoadAlias(NumPredOps: Int,
         // Reset state.
         Reset( )
         // Reset state.
+        if(Debug) getData(state)
         state := s_idle
         printf("[LOG] " + "[" + module_name + "] [TID->%d] " + node_name + ": Output fired @ %d, Address:%d\n", enable_R.taskID, cycleCount, addr_R.data)
         //printf("DEBUG " + node_name + ": $%d = %d\n", addr_R.data, data_R.data)
@@ -192,5 +201,8 @@ class UnTypLoadAlias(NumPredOps: Int,
       }
       case everythingElse => {}
     }
+  }
+  def isDebug(): Boolean = {
+    Debug
   }
 }

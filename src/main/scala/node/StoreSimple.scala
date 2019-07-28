@@ -18,8 +18,8 @@ import utility.UniformPrintfs
 
 class StoreIO(NumPredOps: Int,
               NumSuccOps: Int,
-              NumOuts: Int)(implicit p: Parameters)
-  extends HandShakingIOPS(NumPredOps, NumSuccOps, NumOuts)(new DataBundle) {
+              NumOuts: Int, Debug :Boolean =false)(implicit p: Parameters)
+  extends HandShakingIOPS(NumPredOps, NumSuccOps, NumOuts, Debug)(new DataBundle) {
   // Node specific IO
   // GepAddr: The calculated address comming from GEP node
   val GepAddr = Flipped(Decoupled(new DataBundle))
@@ -30,7 +30,7 @@ class StoreIO(NumPredOps: Int,
   // Memory response.
   val memResp = Input(Flipped(new WriteResp()))
 
-  override def cloneType = new StoreIO(NumPredOps, NumSuccOps, NumOuts).asInstanceOf[this.type]
+  override def cloneType = new StoreIO(NumPredOps, NumSuccOps, NumOuts, Debug).asInstanceOf[this.type]
 }
 
 /**
@@ -41,14 +41,14 @@ class StoreIO(NumPredOps: Int,
 class UnTypStore(NumPredOps: Int,
                  NumSuccOps: Int,
                  NumOuts: Int = 1,
-                 Typ: UInt = MT_W, ID: Int, RouteID: Int)
+                 Typ: UInt = MT_W, ID: Int, RouteID: Int, Debug:Boolean = false)
                 (implicit p: Parameters,
                  name: sourcecode.Name,
                  file: sourcecode.File)
-  extends HandShaking(NumPredOps, NumSuccOps, NumOuts, ID)(new DataBundle)(p) {
+  extends HandShaking(NumPredOps, NumSuccOps, NumOuts, ID, Debug )(new DataBundle)(p) {
 
   // Set up StoreIO
-  override lazy val io = IO(new StoreIO(NumPredOps, NumSuccOps, NumOuts))
+  override lazy val io = IO(new StoreIO(NumPredOps, NumSuccOps, NumOuts, Debug))
   // Printf debugging
   val node_name = name.value
   val module_name = file.value.split("/").tail.last.split("\\.").head.capitalize
@@ -129,12 +129,14 @@ class UnTypStore(NumPredOps: Int,
           when(enable_R.control && mem_req_fire) {
             io.memReq.valid := true.B
             when(io.memReq.ready) {
+              if (Debug) getData(state)
               state := s_RECEIVING
             }
           }.otherwise {
             ValidSucc()
             ValidOut()
             data_R.predicate := false.B
+            if (Debug) getData(state)
             state := s_Done
           }
         }
@@ -144,6 +146,7 @@ class UnTypStore(NumPredOps: Int,
       when(io.memResp.valid) {
         ValidSucc()
         ValidOut()
+        if(Debug) getData(state)
         state := s_Done
       }
     }
@@ -159,6 +162,7 @@ class UnTypStore(NumPredOps: Int,
         // Clear all other state
         Reset()
         // Reset state.
+        if(Debug) getData(state)
         state := s_idle
         if (log) {
           printf("[LOG] " + "[" + module_name + "] [TID->%d] [STORE]" + node_name + ": Fired @ %d Mem[%d] = %d\n",
@@ -184,4 +188,8 @@ class UnTypStore(NumPredOps: Int,
       case everythingElse => {}
     }
   }
+  def isDebug(): Boolean = {
+    Debug
+  }
+
 }

@@ -20,8 +20,9 @@ import utility.UniformPrintfs
 
 class LoadIO(NumPredOps: Int,
              NumSuccOps: Int,
-             NumOuts: Int)(implicit p: Parameters)
-  extends HandShakingIOPS(NumPredOps, NumSuccOps, NumOuts)(new DataBundle) {
+             NumOuts: Int,
+             Debug : Boolean =false)(implicit p: Parameters)
+  extends HandShakingIOPS(NumPredOps, NumSuccOps, NumOuts, Debug)(new DataBundle) {
   // GepAddr: The calculated address comming from GEP node
   val GepAddr = Flipped(Decoupled(new DataBundle))
   // Memory request
@@ -29,7 +30,7 @@ class LoadIO(NumPredOps: Int,
   // Memory response.
   val memResp = Input(Flipped(new ReadResp()))
 
-  override def cloneType = new LoadIO(NumPredOps, NumSuccOps, NumOuts).asInstanceOf[this.type]
+  override def cloneType = new LoadIO(NumPredOps, NumSuccOps, NumOuts, Debug).asInstanceOf[this.type]
 }
 
 /**
@@ -42,13 +43,14 @@ class UnTypLoad(NumPredOps: Int,
                 NumOuts: Int,
                 Typ: UInt = MT_W,
                 ID: Int,
-                RouteID: Int)
+                RouteID: Int
+               , Debug : Boolean =false)
                (implicit p: Parameters,
                 name: sourcecode.Name,
                 file: sourcecode.File)
-  extends HandShaking(NumPredOps, NumSuccOps, NumOuts, ID)(new DataBundle)(p) {
+  extends HandShaking(NumPredOps, NumSuccOps, NumOuts, ID, Debug)(new DataBundle)(p) {
 
-  override lazy val io = IO(new LoadIO(NumPredOps, NumSuccOps, NumOuts))
+  override lazy val io = IO(new LoadIO(NumPredOps, NumSuccOps, NumOuts, Debug))
   // Printf debugging
   val node_name = name.value
   val module_name = file.value.split("/").tail.last.split("\\.").head.capitalize
@@ -120,6 +122,7 @@ class UnTypLoad(NumPredOps: Int,
         when(enable_R.control && predicate) {
           io.memReq.valid := true.B
           when(io.memReq.ready) {
+            if (Debug) getData(state)
             state := s_RECEIVING
           }
         }.otherwise {
@@ -127,6 +130,7 @@ class UnTypLoad(NumPredOps: Int,
           ValidSucc()
           ValidOut()
           // Completion state.
+          if(Debug) getData(state)
           state := s_Done
         }
       }
@@ -141,6 +145,7 @@ class UnTypLoad(NumPredOps: Int,
         ValidSucc()
         ValidOut()
         // Completion state.
+        if(Debug) getData(state)
         state := s_Done
 
       }
@@ -157,6 +162,7 @@ class UnTypLoad(NumPredOps: Int,
         // Reset state.
         Reset()
         // Reset state.
+        if(Debug) getData(state)
         state := s_idle
         if (log) {
           printf("[LOG] " + "[" + module_name + "] [TID->%d] [LOAD] " + node_name + ": Output fired @ %d, Address:%d, Value: %d\n",
@@ -181,5 +187,8 @@ class UnTypLoad(NumPredOps: Int,
       }
       case everythingElse => {}
     }
+  }
+  def isDebug(): Boolean = {
+    Debug
   }
 }
