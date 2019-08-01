@@ -51,8 +51,8 @@ class HandShakingIONPS[T <: Data](val NumOuts: Int, val Debug: Boolean = false)(
 //  val LogCheck = Decoupled(new DataBundle())
 
   //val LogCheck = if (Debug) Some(Decoupled(new CustomDataBundle(UInt(4.W)))) else None
-  val LogCheck = if (Debug) Some (Decoupled(new CustomDataBundle(UInt (4.W)))) else None
-
+  val LogCheck = if (Debug) Some (Decoupled(new CustomDataBundle(UInt (32.W)))) else None
+  //val LogCheck = if (Debug) Some (Vec(NumOuts, Decoupled(gen))) else None
   //v
   override def cloneType = new HandShakingIONPS(NumOuts)(gen).asInstanceOf[this.type]
 

@@ -22,20 +22,20 @@ import dandelion.memory.stack._
 import util._
 
 
-/* ================================================================== *
- *                   PRINTING PORTS DEFINITION                        *
- * ================================================================== */
+  /* ================================================================== *
+   *                   PRINTING PORTS DEFINITION                        *
+   * ================================================================== */
 
-abstract class test03DFIO(implicit val p: Parameters) extends Module with CoreParams {
+abstract class test_parmidaDFIO(implicit val p: Parameters) extends Module with CoreParams {
   val io = IO(new Bundle {
-    val in = Flipped(Decoupled(new Call(List(32, 32))))
+    val in = Flipped(Decoupled(new Call(List(32))))
     val MemResp = Flipped(Valid(new MemResp))
     val MemReq = Decoupled(new MemReq)
     val out = Decoupled(new Call(List(32)))
   })
 }
 
-class test03DF(implicit p: Parameters) extends test03DFIO()(p) {
+class test_parmidaDF(implicit p: Parameters) extends test_parmidaDFIO()(p) {
 
 
   /* ================================================================== *
@@ -43,19 +43,18 @@ class test03DF(implicit p: Parameters) extends test03DFIO()(p) {
    * ================================================================== */
 
   //Remember if there is no mem operation io memreq/memresp should be grounded
-  //io.MemReq <> DontCare
-  //io.MemResp <> DontCare
+  io.MemReq <> DontCare
+  io.MemResp <> DontCare
 
-  val InputSplitter = Module(new SplitCallNew(List(3, 3)))
+  val InputSplitter = Module(new SplitCallNew(List(1)))
   InputSplitter.io.In <> io.in
-//-----------------------------------------------------------------------p
+
   val MemCtrl = Module(new UnifiedController(ID = 0, Size = 32, NReads = 2, NWrites = 1)
   (WControl = new WriteMemoryController(NumOps = 1, BaseSize = 2, NumEntries = 2))
   (RControl = new ReadMemoryController(NumOps = 2, BaseSize = 2, NumEntries = 2))
   (RWArbiter = new ReadWriteArbiter()))
-  io.MemReq <> MemCtrl.io.MemReq
-  MemCtrl.io.MemResp <> io.MemResp
-//---------------------------------------------------------------------------v
+
+
   /* ================================================================== *
    *                   PRINTING LOOP HEADERS                            *
    * ================================================================== */
@@ -65,60 +64,40 @@ class test03DF(implicit p: Parameters) extends test03DFIO()(p) {
   /* ================================================================== *
    *                   PRINTING BASICBLOCK NODES                        *
    * ================================================================== */
-//---------------------p
-//  val bb_0 = Module(new BasicBlockNoMaskFastNode(NumInputs = 1, NumOuts = 9, BID = 0))
-val bb_0 = Module(new BasicBlockNoMaskFastNode(NumInputs = 1, NumOuts = 11, BID = 0))
-//-----------------------------v
+
+  val bb_entry0 = Module(new BasicBlockNoMaskFastNode(NumInputs = 1, NumOuts = 4, BID = 0))
+
+
 
   /* ================================================================== *
    *                   PRINTING INSTRUCTION NODES                       *
    * ================================================================== */
 
-  //  %3 = icmp slt i32 %1, %0, !UID !3
-  val icmp_0 = Module(new ComputeNode(NumOuts = 2, ID = 0, opCode = "lt")(sign = false))
+  //  store i32 1, i32* %a, align 4, !dbg !18, !tbaa !19, !UID !23
+  val st_0 = Module(new UnTypStore(NumPredOps = 0, NumSuccOps = 0, ID = 0, RouteID = 0))
 
-  //  %4 = select i1 %3, i32 %1, i32 0, !UID !4
-  val select_1 = Module(new SelectNode(NumOuts = 1, ID = 1)(fast = false))
+  //  ret i32 1, !dbg !25, !UID !26, !BB_UID !27
+  val ret_1 = Module(new RetNode2(retTypes = List(32), ID = 1))
 
-  //  %5 = sub nsw i32 %0, %4, !UID !5
-  val binaryOp_2 = Module(new ComputeNode(NumOuts = 1, ID = 2, opCode = "sub")(sign = false))
 
-  //  %6 = select i1 %3, i32 0, i32 %0, !UID !6
-  val select_3 = Module(new SelectNode(NumOuts = 1, ID = 3)(fast = false))
-
-  //  %7 = sub nsw i32 %1, %6, !UID !7
-  //-----------------------------pv, what we track, numouts ++d
-  val binaryOp_4 = Module(new ComputeNode(NumOuts = 1, ID = 4, opCode = "sub")(sign = false, Debug = true))
-
-  //  %8 = mul nsw i32 %5, %7, !UID !8
-  val binaryOp_5 = Module(new ComputeNode(NumOuts = 1, ID = 5, opCode = "mul")(sign = false))
-
-  //  ret i32 %8, !UID !9, !BB_UID !10
-  val ret_6 = Module(new RetNode2(retTypes = List(32), ID = 6))
-
-//-----------------------------------------------------------------------------------p
-val st_0 = Module(new UnTypStore(NumPredOps = 0, NumSuccOps = 0, ID = 7, RouteID = 0))
-//------------------------------------------------------------------------------------v
 
   /* ================================================================== *
    *                   PRINTING CONSTANTS NODES                         *
    * ================================================================== */
 
-  //i32 0
-  val const0 = Module(new ConstFastNode(value = 0, ID = 0))
+  //i32 1
+  val const0 = Module(new ConstFastNode(value = 1, ID = 0))
 
-  //i32 0
-  val const1 = Module(new ConstFastNode(value = 0, ID = 1))
+  //i32 1
+  val const1 = Module(new ConstFastNode(value = 1, ID = 1))
 
-//-------------------------------------p
-  val const2 = Module(new ConstFastNode(value = 1, ID = 2))
-  //-----------------------------------------------v
+
 
   /* ================================================================== *
    *                   BASICBLOCK -> PREDICATE INSTRUCTION              *
    * ================================================================== */
 
-  bb_0.io.predicateIn(0) <> InputSplitter.io.Out.enable
+  bb_entry0.io.predicateIn(0) <> InputSplitter.io.Out.enable
 
 
 
@@ -186,27 +165,16 @@ val st_0 = Module(new UnTypStore(NumPredOps = 0, NumSuccOps = 0, ID = 7, RouteID
    *                   BASICBLOCK -> ENABLE INSTRUCTION                 *
    * ================================================================== */
 
-  const0.io.enable <> bb_0.io.Out(0)
+  const0.io.enable <> bb_entry0.io.Out(0)
 
-  const1.io.enable <> bb_0.io.Out(1)
+  const1.io.enable <> bb_entry0.io.Out(1)
 
-  icmp_0.io.enable <> bb_0.io.Out(2)
+  st_0.io.enable <> bb_entry0.io.Out(2)
 
-  select_1.io.enable <> bb_0.io.Out(3)
 
-  binaryOp_2.io.enable <> bb_0.io.Out(4)
+  ret_1.io.In.enable <> bb_entry0.io.Out(3)
 
-  select_3.io.enable <> bb_0.io.Out(5)
 
-  binaryOp_4.io.enable <> bb_0.io.Out(6)
-
-  binaryOp_5.io.enable <> bb_0.io.Out(7)
-
-  ret_6.io.In.enable <> bb_0.io.Out(8)
-  //-----------------------------------------p
-  st_0.io.enable <> bb_0.io.Out(9)
-  const2.io.enable <> bb_0.io.Out(10)
-//-----------------------------------------------v
 
 
   /* ================================================================== *
@@ -224,11 +192,12 @@ val st_0 = Module(new UnTypStore(NumPredOps = 0, NumSuccOps = 0, ID = 7, RouteID
   /* ================================================================== *
    *                   CONNECTING MEMORY CONNECTIONS                    *
    * ================================================================== */
-  //-----------------------------------p
+
   MemCtrl.io.WriteIn(0) <> st_0.io.memReq
 
   st_0.io.memResp <> MemCtrl.io.WriteOut(0)
-//----------------------------------------------v
+
+
 
   /* ================================================================== *
    *                   PRINT SHARED CONNECTIONS                         *
@@ -240,60 +209,31 @@ val st_0 = Module(new UnTypStore(NumPredOps = 0, NumSuccOps = 0, ID = 7, RouteID
    *                   CONNECTING DATA DEPENDENCIES                     *
    * ================================================================== */
 
-  select_1.io.InData2 <> const0.io.Out
+  st_0.io.inData <> const0.io.Out
 
-  select_3.io.InData1 <> const1.io.Out
+  ret_1.io.In.data("field0") <> const1.io.Out
 
-  select_1.io.Select <> icmp_0.io.Out(0)
+  st_0.io.GepAddr <> InputSplitter.io.Out.data.elements("field0")(0)
 
-  select_3.io.Select <> icmp_0.io.Out(1)
-
-  binaryOp_2.io.RightIO <> select_1.io.Out(0)
-
-  binaryOp_5.io.LeftIO <> binaryOp_2.io.Out(0)
-
-  binaryOp_4.io.RightIO <> select_3.io.Out(0)
-
-  binaryOp_5.io.RightIO <> binaryOp_4.io.Out(0)
-
-  ret_6.io.In.data("field0") <> binaryOp_5.io.Out(0)
-
-  icmp_0.io.RightIO <> InputSplitter.io.Out.data.elements("field0")(0)
-
-  binaryOp_2.io.LeftIO <> InputSplitter.io.Out.data.elements("field0")(1)
-
-  select_3.io.InData2 <> InputSplitter.io.Out.data.elements("field0")(2)
-
-  icmp_0.io.LeftIO <> InputSplitter.io.Out.data.elements("field1")(0)
-
-  select_1.io.InData1 <> InputSplitter.io.Out.data.elements("field1")(1)
-
-  binaryOp_4.io.LeftIO <> InputSplitter.io.Out.data.elements("field1")(2)
-
-  //------------------------------------------p
-
-  st_0.io.inData <> binaryOp_4.io.LogCheck.get.bits
-  st_0.io.GepAddr <> const2.io.Out
   st_0.io.Out(0).ready := true.B
 
-  //------------------------------------------------------------v
 
 
   /* ================================================================== *
    *                   PRINTING OUTPUT INTERFACE                        *
    * ================================================================== */
 
-  io.out <> ret_6.io.Out
+  io.out <> ret_1.io.Out
 
 }
 
 import java.io.{File, FileWriter}
 
-object test03Top extends App {
-  val dir = new File("RTL/test03Top");
+object test_parmidaTop extends App {
+  val dir = new File("RTL/test_parmidaTop");
   dir.mkdirs
   implicit val p = Parameters.root((new MiniConfig).toInstance)
-  val chirrtl = firrtl.Parser.parse(chisel3.Driver.emit(() => new test03DF()))
+  val chirrtl = firrtl.Parser.parse(chisel3.Driver.emit(() => new test_parmidaDF()))
 
   val verilogFile = new File(dir, s"${chirrtl.main}.v")
   val verilogWriter = new FileWriter(verilogFile)
@@ -302,11 +242,3 @@ object test03Top extends App {
   verilogWriter.write(compiledStuff.value)
   verilogWriter.close()
 }
-
-
-
-
-
-
-
-
