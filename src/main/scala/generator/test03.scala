@@ -44,31 +44,32 @@ class test03DF(implicit p: Parameters) extends test03DFIO()(p) {
 
   //Remember if there is no mem operation io memreq/memresp should be grounded
   //io.MemReq <> DontCare
-  //io.MemResp <> DontCare
+  // io.MemResp <> DontCare
 
-  val InputSplitter = Module(new SplitCallNew(List(3, 3)))
-  InputSplitter.io.In <> io.in
-//-----------------------------------------------------------------------p
-  val MemCtrl = Module(new UnifiedController(ID = 0, Size = 32, NReads = 2, NWrites = 1)
+  //-----------------------------------------------------------------------p
+  val MemCtrl = Module(new UnifiedController(ID = 0, Size = 32, NReads = 1, NWrites = 1)
   (WControl = new WriteMemoryController(NumOps = 1, BaseSize = 2, NumEntries = 2))
-  (RControl = new ReadMemoryController(NumOps = 2, BaseSize = 2, NumEntries = 2))
+  (RControl = new ReadMemoryController(NumOps = 1, BaseSize = 2, NumEntries = 2))
   (RWArbiter = new ReadWriteArbiter()))
   io.MemReq <> MemCtrl.io.MemReq
   MemCtrl.io.MemResp <> io.MemResp
-//---------------------------------------------------------------------------v
+  //---------------------------------------------------------------------------v
+
+
+  val InputSplitter = Module(new SplitCallNew(List(3, 3)))
+  InputSplitter.io.In <> io.in
   /* ================================================================== *
    *                   PRINTING LOOP HEADERS                            *
    * ================================================================== */
 
 
-
   /* ================================================================== *
    *                   PRINTING BASICBLOCK NODES                        *
    * ================================================================== */
-//---------------------p
-//  val bb_0 = Module(new BasicBlockNoMaskFastNode(NumInputs = 1, NumOuts = 9, BID = 0))
-val bb_0 = Module(new BasicBlockNoMaskFastNode(NumInputs = 1, NumOuts = 11, BID = 0))
-//-----------------------------v
+  //---------------------p
+  //  val bb_0 = Module(new BasicBlockNoMaskFastNode(NumInputs = 1, NumOuts = 9, BID = 0))
+  val bb_0 = Module(new BasicBlockNoMaskFastNode(NumInputs = 1, NumOuts = 9, BID = 0))
+  //-----------------------------v
 
   /* ================================================================== *
    *                   PRINTING INSTRUCTION NODES                       *
@@ -96,9 +97,9 @@ val bb_0 = Module(new BasicBlockNoMaskFastNode(NumInputs = 1, NumOuts = 11, BID 
   //  ret i32 %8, !UID !9, !BB_UID !10
   val ret_6 = Module(new RetNode2(retTypes = List(32), ID = 6))
 
-//-----------------------------------------------------------------------------------p
-val st_0 = Module(new UnTypStore(NumPredOps = 0, NumSuccOps = 0, ID = 7, RouteID = 0))
-//------------------------------------------------------------------------------------v
+  //-----------------------------------------------------------------------------------p
+  val st_0 = Module(new UnTypStore(NumPredOps = 0, NumSuccOps = 0, ID = 7, RouteID = 0))
+  //------------------------------------------------------------------------------------v
 
   /* ================================================================== *
    *                   PRINTING CONSTANTS NODES                         *
@@ -110,8 +111,8 @@ val st_0 = Module(new UnTypStore(NumPredOps = 0, NumSuccOps = 0, ID = 7, RouteID
   //i32 0
   val const1 = Module(new ConstFastNode(value = 0, ID = 1))
 
-//-------------------------------------p
-  val const2 = Module(new ConstFastNode(value = 1, ID = 2))
+  //-------------------------------------p
+//  val const2 = Module(new ConstFastNode(value = 1, ID = 2))
   //-----------------------------------------------v
 
   /* ================================================================== *
@@ -121,11 +122,9 @@ val st_0 = Module(new UnTypStore(NumPredOps = 0, NumSuccOps = 0, ID = 7, RouteID
   bb_0.io.predicateIn(0) <> InputSplitter.io.Out.enable
 
 
-
   /* ================================================================== *
    *                   BASICBLOCK -> PREDICATE LOOP                     *
    * ================================================================== */
-
 
 
   /* ================================================================== *
@@ -133,11 +132,9 @@ val st_0 = Module(new UnTypStore(NumPredOps = 0, NumSuccOps = 0, ID = 7, RouteID
    * ================================================================== */
 
 
-
   /* ================================================================== *
    *                   LOOP -> PREDICATE INSTRUCTION                    *
    * ================================================================== */
-
 
 
   /* ================================================================== *
@@ -145,11 +142,9 @@ val st_0 = Module(new UnTypStore(NumPredOps = 0, NumSuccOps = 0, ID = 7, RouteID
    * ================================================================== */
 
 
-
   /* ================================================================== *
    *                   LOOP INPUT DATA DEPENDENCIES                     *
    * ================================================================== */
-
 
 
   /* ================================================================== *
@@ -157,11 +152,9 @@ val st_0 = Module(new UnTypStore(NumPredOps = 0, NumSuccOps = 0, ID = 7, RouteID
    * ================================================================== */
 
 
-
   /* ================================================================== *
    *                   LOOP DATA LIVE-OUT DEPENDENCIES                  *
    * ================================================================== */
-
 
 
   /* ================================================================== *
@@ -169,17 +162,14 @@ val st_0 = Module(new UnTypStore(NumPredOps = 0, NumSuccOps = 0, ID = 7, RouteID
    * ================================================================== */
 
 
-
   /* ================================================================== *
    *                   LOOP CARRY DEPENDENCIES                          *
    * ================================================================== */
 
 
-
   /* ================================================================== *
    *                   LOOP DATA CARRY DEPENDENCIES                     *
    * ================================================================== */
-
 
 
   /* ================================================================== *
@@ -204,9 +194,14 @@ val st_0 = Module(new UnTypStore(NumPredOps = 0, NumSuccOps = 0, ID = 7, RouteID
 
   ret_6.io.In.enable <> bb_0.io.Out(8)
   //-----------------------------------------p
-  st_0.io.enable <> bb_0.io.Out(9)
-  const2.io.enable <> bb_0.io.Out(10)
-//-----------------------------------------------v
+  //st_0.io.enable <> bb_0.io.Out(10)
+  st_0.io.enable.bits := ControlBundle.active()
+  st_0.io.enable.valid := true.B
+
+//  const2.io.enable.bits := ControlBundle.active()
+//  const2.io.enable.valid := true.B
+  //const2.io.enable <> bb_0.io.Out(9)
+  //-----------------------------------------------v
 
 
   /* ================================================================== *
@@ -214,11 +209,9 @@ val st_0 = Module(new UnTypStore(NumPredOps = 0, NumSuccOps = 0, ID = 7, RouteID
    * ================================================================== */
 
 
-
   /* ================================================================== *
    *                   PRINT ALLOCA OFFSET                              *
    * ================================================================== */
-
 
 
   /* ================================================================== *
@@ -228,12 +221,28 @@ val st_0 = Module(new UnTypStore(NumPredOps = 0, NumSuccOps = 0, ID = 7, RouteID
   MemCtrl.io.WriteIn(0) <> st_0.io.memReq
 
   st_0.io.memResp <> MemCtrl.io.WriteOut(0)
-//----------------------------------------------v
+
+  MemCtrl.io.ReadIn(0) <> DontCare
+  MemCtrl.io.ReadOut(0) <> DontCare
+
+
+  //MemCtrl.io.ReadIn(0) <> const2.io.Out
+
+  // <> MemCtrl.io.ReadOut(0)
+
+  // MemCtrl.io.ReadIn(1) <>
+
+  //<> MemCtrl.io.ReadOut(1)
+
+  // MemCtrl.io.WriteIn(0) <> st_10.io.memReq
+
+  //<> MemCtrl.io.WriteOut(0)
+
+  //----------------------------------------------v
 
   /* ================================================================== *
    *                   PRINT SHARED CONNECTIONS                         *
    * ================================================================== */
-
 
 
   /* ================================================================== *
@@ -271,9 +280,22 @@ val st_0 = Module(new UnTypStore(NumPredOps = 0, NumSuccOps = 0, ID = 7, RouteID
   binaryOp_4.io.LeftIO <> InputSplitter.io.Out.data.elements("field1")(2)
 
   //------------------------------------------p
+  //  binaryOp_4.io.LogCheck.get.ready := true.B
+  val data_queue = Queue(binaryOp_4.io.LogCheck.get, 20)
+  val addr_queue = Queue(binaryOp_4.io.LogCheckAddr.get, 20)
 
-  st_0.io.inData <> binaryOp_4.io.LogCheck.get.bits
-  st_0.io.GepAddr <> const2.io.Out
+  data_queue.nodeq()
+  addr_queue.nodeq()
+
+  when(st_0.io.inData.ready && data_queue.valid && addr_queue.valid){
+    st_0.io.inData.enq(data_queue.deq().asDataBundle())
+    st_0.io.GepAddr.enq(addr_queue.deq().asDataBundle())
+  }.otherwise{
+    st_0.io.inData.noenq()
+    st_0.io.GepAddr.noenq()
+  }
+  //  st_0.io.inData.valid := true.B
+//  st_0.io.GepAddr <> const2.io.Out
   st_0.io.Out(0).ready := true.B
 
   //------------------------------------------------------------v

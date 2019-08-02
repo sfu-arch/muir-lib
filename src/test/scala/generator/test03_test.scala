@@ -18,19 +18,20 @@ import dandelion.arbiters._
 import dandelion.loop._
 import dandelion.accel._
 import dandelion.junctions._
+import helpers._
 
-class test03MainIO(implicit val p: Parameters) extends Module with CoreParams with CacheParams {
-  val io = IO(new Bundle {
-    val in = Flipped(Decoupled(new Call(List(32, 32))))
-    val req = Flipped(Decoupled(new MemReq))
-    val resp = Output(Valid(new MemResp))
-    val out = Decoupled(new Call(List(32)))
-  })
+//class test03MainIO(implicit val p: Parameters) extends Module with CoreParams with CacheParams {
+//  val io = IO(new Bundle {
+//    val in = Flipped(Decoupled(new Call(List(32, 32))))
+//    val req = Flipped(Decoupled(new MemReq))
+//    val resp = Output(Valid(new MemResp))
+//    val out = Decoupled(new Call(List(32)))
+//  })
+//
+//  def cloneType = new test03MainIO().asInstanceOf[this.type]
+//}
 
-  def cloneType = new test03MainIO().asInstanceOf[this.type]
-}
-
-class test03Main(implicit p: Parameters) extends test03MainIO {
+class test03Main(implicit p: Parameters) extends AccelIO(List(32, 32), List(32)) {
 
   val cache = Module(new Cache) // Simple Nasti Cache
   val memModel = Module(new NastiMemSlave) // Model of DRAM to connect to Cache
@@ -67,6 +68,7 @@ class test03Main(implicit p: Parameters) extends test03MainIO {
   test03.io.in <> io.in
   io.out <> test03.io.out
 
+
   // Check if trace option is on or off
   if (p(TRACE) == false) {
     println(Console.RED + "****** Trace option is off. *********" + Console.RESET)
@@ -77,9 +79,11 @@ class test03Main(implicit p: Parameters) extends test03MainIO {
 
 }
 
+class test03Test01[T <: AccelIO](c: T)
+                                (inAddrVec: List[Int], inDataVec: List[Int],
+                                 outAddrVec: List[Int], outDataVec: List[Int])
+  extends AccelTesterLocal(c)(inAddrVec, inDataVec, outAddrVec, outDataVec) {
 
-//class test04Test01(c: test04CacheWrapper) extends PeekPokeTester(c) {
-class test03Test01[T <: test03MainIO](c: T) extends PeekPokeTester(c) {
 
   poke(c.io.in.bits.enable.control, false.B)
   poke(c.io.in.bits.enable.taskID, 0.U)
@@ -112,12 +116,13 @@ class test03Test01[T <: test03MainIO](c: T) extends PeekPokeTester(c) {
   step(1)
   var time = 1 //Cycle counter
   var result = false
-  while (time < 1500) {
+  while (time < 10) {
     time += 1
     step(1)
     if (peek(c.io.out.valid) == 1 &&
       peek(c.io.out.bits.data("field0").predicate) == 1
     ) {
+      dumpMemory("Debug.mem",0,10)
       result = true
       val data = peek(c.io.out.bits.data("field0").data)
       val expected = 225
@@ -131,6 +136,7 @@ class test03Test01[T <: test03MainIO](c: T) extends PeekPokeTester(c) {
   }
 
   if (!result) {
+    dumpMemory("Debug.mem",0,10)
     println("*** Timeout.")
     fail
   }
@@ -139,7 +145,7 @@ class test03Test01[T <: test03MainIO](c: T) extends PeekPokeTester(c) {
 
 class test03Tester extends FlatSpec with Matchers {
   implicit val p = Parameters.root((new MiniConfig).toInstance)
-  it should "Check that test04 works correctly." in {
+  it should "Check that test03 works correctly." in {
     // iotester flags:
     // -ll  = log level <Error|Warn|Info|Debug|Trace>
     // -tbn = backend <firrtl|verilator|vcs>
@@ -153,7 +159,8 @@ class test03Tester extends FlatSpec with Matchers {
         "-td", "test_run_dir/test03",
         "-tts", "0001"),
       () => new test03Main()) {
-      c => new test03Test01(c)
+//      c => new test03Test01(c)
+      c => new test03Test01(c)(List(), List(), List(), List())
     } should be(true)
   }
 }

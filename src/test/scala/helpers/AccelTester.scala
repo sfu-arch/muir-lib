@@ -72,6 +72,18 @@ class AccelTesterLocal[T <: AccelIO](c: T)
 
   }
 
+  def dumpMemory(path: String, begin: Int, end: Int) = {
+    //Writing mem states back to the file
+    val Addr = List.range((begin * 4), (end * 4), 4)
+    val pw = new PrintWriter(new File(path))
+    for (i <- begin until end) {
+      val data = MemRead(Addr(i))
+      pw.write("0X" + Addr(i).toHexString + " -> " + data + "\n")
+    }
+    pw.close
+  }
+
+
 
   def dumpMemoryFinal(path: String) = {
     //Writing mem states back to the file

@@ -43,6 +43,11 @@ class ComputeNode(NumOuts: Int, ID: Int, opCode: String)
   override val printfSigil = "[" + module_name + "] " + node_name + ": " + ID + " "
   val (cycleCount, _) = Counter(true.B, 32 * 1024)
 
+
+  val dbg_counter = Counter(1024)
+
+  //val a = dbg_counter.value << 2.U
+
   /*===========================================*
    *            Registers                      *
    *===========================================*/
@@ -115,7 +120,10 @@ class ComputeNode(NumOuts: Int, ID: Int, opCode: String)
         io.Out.foreach(_.bits := DataBundle(FU.io.out, taskID, predicate))
         io.Out.foreach(_.valid := true.B)
         ValidOut()
-        if (Debug) getData(state)
+        if (Debug){
+          dbg_counter.inc()
+          getData(state, (dbg_counter.value << 2.U).asUInt())
+        }
         state := s_COMPUTE
         //if(Debug){
         //  io.LogCheck.get.bits := DataBundle(state)
@@ -134,7 +142,10 @@ class ComputeNode(NumOuts: Int, ID: Int, opCode: String)
       //  io.LogCheck.get.valid := true.B
 
       //}
-      if (Debug) getData(state)
+      if (Debug){
+        dbg_counter.inc()
+        getData(state, (dbg_counter.value << 2.U).asUInt())
+      }
       //io.LogIO.bits := DataBundle(state)
       //io.LogIO.valid := true.B
       //v
