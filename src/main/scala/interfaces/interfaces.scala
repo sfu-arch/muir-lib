@@ -456,6 +456,14 @@ class CustomDataBundle[T <: Data](gen: T = UInt(32.W))(implicit p: Parameters) e
   val predicate = Bool()
   val taskID = UInt(tlen.W)
 
+  def asDataBundle(): DataBundle = {
+    val wire = Wire(new DataBundle)
+    wire.data := this.data.asUInt()
+    wire.predicate := this.predicate
+    wire.taskID := this.taskID
+    wire
+  }
+
 
   override def cloneType: this.type = new CustomDataBundle(gen).asInstanceOf[this.type]
 }
