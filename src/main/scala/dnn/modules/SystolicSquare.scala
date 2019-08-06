@@ -296,7 +296,11 @@ class SystolicSquareWrapper[T <: Data : MAC.OperatorMAC](gen: T, val N: Int)(imp
   extends Module with CoreParams with UniformPrintfs {
   val io = IO(new Bundle {
     val input_data = Flipped(Decoupled(UInt(xlen.W)))
+    val input_sop = Input(Bool())
+    val input_eop = Input(Bool())
     val output = Decoupled(UInt(xlen.W))
+    val output_sop = Input(Bool())
+    val output_eop = Input(Bool())
   })
 
   val s_idle :: s_read :: s_execute :: s_write :: Nil = Enum(4)
