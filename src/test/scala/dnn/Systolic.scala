@@ -70,12 +70,8 @@ class SystolicTestStream(df: SystolicSquareWrapper[UInt])(implicit p: config.Par
     }
   }
 
-//  for( i <- 0 to 10){
-//    step(1)
-//    if(peek(df.io.output.valid) == 1){
-//      println(s" Output($i): ${peek(df.io.output.bits)}")
-//    }
-//  }
+
+
 
   while( peek(df.io.output.valid) == 0){
     step(1)
@@ -84,7 +80,7 @@ class SystolicTestStream(df: SystolicSquareWrapper[UInt])(implicit p: config.Par
   println("Printing output")
 
   //while ( peek(df.io.output.valid) == 1){
-  for(i <- 0 to 20){
+  for(i <- 0 to 9){
     println(s"Output: ${peek(df.io.output.bits)}")
     step(1)
   }

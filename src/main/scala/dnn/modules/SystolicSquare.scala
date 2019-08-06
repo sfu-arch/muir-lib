@@ -298,9 +298,10 @@ class SystolicSquareWrapper[T <: Data : MAC.OperatorMAC](gen: T, val N: Int)(imp
     val input_data = Flipped(Decoupled(UInt(xlen.W)))
     val input_sop = Input(Bool())
     val input_eop = Input(Bool())
+    
     val output = Decoupled(UInt(xlen.W))
-    val output_sop = Input(Bool())
-    val output_eop = Input(Bool())
+    val output_sop = Output(Bool())
+    val output_eop = Output(Bool())
   })
 
   val s_idle :: s_read :: s_execute :: s_write :: Nil = Enum(4)
@@ -331,6 +332,9 @@ class SystolicSquareWrapper[T <: Data : MAC.OperatorMAC](gen: T, val N: Int)(imp
   io.output.bits := 0.U
   io.output.valid := false.B
 
+  io.output_sop := false.B
+  io.output_eop := false.B
+
   switch(state){
     is(s_idle) {
       when(io.input_data.fire) {
@@ -353,6 +357,19 @@ class SystolicSquareWrapper[T <: Data : MAC.OperatorMAC](gen: T, val N: Int)(imp
     is(s_write){
       io.output.valid := true.B
       io.output.bits := ScratchPad_output(output_counter.value)
+      //end-of-packet signal
+      when(output_counter.value === ((N*N) - 1).U){
+        io.output_eop := true.B
+      }.otherwise{
+        io.output_eop := false.B
+      }
+
+      //start-of-packet signal
+      when(output_counter.value === 0.U) {
+        io.output_sop := true.B
+      }.otherwise{
+        io.output_sop := false.B
+      }
       when(output_counter.value === ((N*N) - 1).U){
         state := s_idle
       }.otherwise{
