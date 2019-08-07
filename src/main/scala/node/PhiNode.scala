@@ -120,7 +120,6 @@ class PhiNode(NumInputs: Int,
   switch(state) {
     is(s_IDLE) {
       when((enable_valid_R) && mask_valid_R && in_data_valid_R(sel)) {
-        if(Debug) getData(state)
         state := s_COMPUTE
         when(enable_R.control) {
           out_data_R := in_data_R(sel)
@@ -137,8 +136,6 @@ class PhiNode(NumInputs: Int,
         out_data_R.predicate := false.B
 
         //Reset state
-        if(Debug) getData(state)
-        state := s_IDLE
         //Reset output
         Reset()
 

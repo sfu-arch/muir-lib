@@ -136,7 +136,6 @@ class UnTypLoadAlias(NumPredOps: Int,
         when(enable_R.control && predicate) {
           io.memReq.valid := true.B
           when(io.memReq.ready) {
-            if(Debug) getData(state)
             state := s_RECEIVING
           }
         }.otherwise {
@@ -145,7 +144,6 @@ class UnTypLoadAlias(NumPredOps: Int,
           ValidOut( )
           ValidAliasSucc( )
           // Completion state.
-          if(Debug) getData(state)
           state := s_Done
         }
       }
@@ -162,7 +160,6 @@ class UnTypLoadAlias(NumPredOps: Int,
         ValidAliasSucc( )
         ValidOut( )
         // Completion state.
-        if (Debug)getData (state)
         state := s_Done
 
       }
@@ -179,7 +176,6 @@ class UnTypLoadAlias(NumPredOps: Int,
         // Reset state.
         Reset( )
         // Reset state.
-        if(Debug) getData(state)
         state := s_idle
         printf("[LOG] " + "[" + module_name + "] [TID->%d] " + node_name + ": Output fired @ %d, Address:%d\n", enable_R.taskID, cycleCount, addr_R.data)
         //printf("DEBUG " + node_name + ": $%d = %d\n", addr_R.data, data_R.data)

@@ -48,12 +48,9 @@ class HandShakingIONPS[T <: Data](val NumOuts: Int, val Debug: Boolean = false)(
   // Output IO
   val Out    = Vec(NumOuts, Decoupled(gen))
   //p
-//  val LogCheck = Decoupled(new DataBundle())
 
-  //val LogCheck = if (Debug) Some(Decoupled(new CustomDataBundle(UInt(4.W)))) else None
   val LogCheck = if (Debug) Some (Decoupled(new CustomDataBundle(UInt (32.W)))) else None
   val LogCheckAddr = if (Debug) Some (Decoupled(new CustomDataBundle(UInt (32.W)))) else None
-  //val LogCheck = if (Debug) Some (Vec(NumOuts, Decoupled(gen))) else None
   //v
   override def cloneType = new HandShakingIONPS(NumOuts)(gen).asInstanceOf[this.type]
 
@@ -229,7 +226,7 @@ class HandShakingNPS[T <: Data](val NumOuts: Int,
     io.LogCheckAddr.get.valid := false.B
   }
 
-  def getData(data: UInt, addr: UInt = 0.U): Unit = {
+  def CaptureLog(data: UInt, addr: UInt = 0.U): Unit = {
     if (Debug) {
       io.LogCheck.get.bits := DataBundle(data)
       io.LogCheck.get.valid := true.B
@@ -370,7 +367,7 @@ class HandShakingFused[T <: PredicateT](val NumIns: Int, val NumOuts: Int,
     io.LogCheck.get.bits := DataBundle.default
   }
 
-  def getData(data: UInt): Unit = {
+  def CaptureLog(data: UInt): Unit = {
     if (Debug) {
       io.LogCheck.get.bits := DataBundle(data)
       io.LogCheck.get.valid := true.B
@@ -517,7 +514,7 @@ class HandShakingCtrlNPS(val NumOuts: Int,
     io.LogCheck.get.bits := DataBundle.default
   }
 
-  def getData(data: UInt): Unit = {
+  def CaptureLog(data: UInt): Unit = {
     if (Debug) {
       io.LogCheck.get.bits := DataBundle(data)
       io.LogCheck.get.valid := true.B
@@ -668,7 +665,7 @@ class HandShaking[T <: Data](val NumPredOps: Int,
     io.LogCheck.get.bits := DataBundle.default
   }
 
-  def getData(data: UInt): Unit = {
+  def CaptureLog(data: UInt): Unit = {
     if (Debug) {
       io.LogCheck.get.bits := DataBundle(data)
       io.LogCheck.get.valid := true.B
@@ -842,7 +839,7 @@ class HandShakingCtrlMask(val NumInputs: Int,
     io.LogCheck.get.bits := DataBundle.default
   }
 
-  def getData(data: UInt): Unit = {
+  def CaptureLog(data: UInt): Unit = {
     if (Debug) {
       io.LogCheck.get.bits := DataBundle(data)
       io.LogCheck.get.valid := true.B
@@ -951,7 +948,7 @@ class HandShakingCtrlNoMask(val NumInputs: Int,
     io.LogCheck.get.bits := DataBundle.default
   }
 
-  def getData(data: UInt): Unit = {
+  def CaptureLog(data: UInt): Unit = {
     if (Debug) {
       io.LogCheck.get.bits := DataBundle(data)
       io.LogCheck.get.valid := true.B

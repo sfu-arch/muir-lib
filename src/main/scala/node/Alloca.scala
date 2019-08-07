@@ -113,7 +113,7 @@ class AllocaNode(NumOuts: Int, ID: Int, RouteID: Int, FrameSize : Int = 16, Debu
     is (s_idle) {
       when (start & predicate) {
         req_valid := true.B
-        getData(state)
+
         state := s_req
 
       }
@@ -125,7 +125,6 @@ class AllocaNode(NumOuts: Int, ID: Int, RouteID: Int, FrameSize : Int = 16, Debu
         data_R := Cat(taskID_R,io.allocaRespIO.ptr(FrameBits-1,0))
         ValidOut()
         // Completion state.
-        if(Debug)getData(state)
         state := s_done
       }
     }
@@ -135,7 +134,6 @@ class AllocaNode(NumOuts: Int, ID: Int, RouteID: Int, FrameSize : Int = 16, Debu
         data_R := 0.U
         pred_R := false.B
         pred_R := false.B
-        if(Debug) getData(state)
         state := s_idle
         Reset()
         when (predicate) {printf("[LOG] " + "[" + module_name + "] [TID ->%d] [ALLOCA] " +

@@ -122,7 +122,7 @@ class ComputeNode(NumOuts: Int, ID: Int, opCode: String)
         ValidOut()
         if (Debug){
           dbg_counter.inc()
-          getData(state, (dbg_counter.value << 2.U).asUInt())
+          CaptureLog(state, (dbg_counter.value << 2.U).asUInt())
         }
         state := s_COMPUTE
         //if(Debug){
@@ -144,7 +144,7 @@ class ComputeNode(NumOuts: Int, ID: Int, opCode: String)
       //}
       if (Debug){
         dbg_counter.inc()
-        getData(state, (dbg_counter.value << 2.U).asUInt())
+        CaptureLog(state, (dbg_counter.value << 2.U).asUInt())
       }
       //io.LogIO.bits := DataBundle(state)
       //io.LogIO.valid := true.B

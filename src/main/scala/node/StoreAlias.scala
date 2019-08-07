@@ -149,7 +149,6 @@ class UnTypStoreAlias(NumPredOps: Int,
         when(enable_R.control && predicate) {
           io.memReq.valid := true.B
           when(io.memReq.ready) {
-            if (Debug) getData(state)
             state := s_RECEIVING
           }
         }.otherwise {
@@ -158,7 +157,6 @@ class UnTypStoreAlias(NumPredOps: Int,
           ValidOut( )
           ValidAliasSucc( )
           // Completion state
-          if (Debug) getData(state)
           state := s_Done
         }
       }
@@ -171,7 +169,6 @@ class UnTypStoreAlias(NumPredOps: Int,
         // Indicate to successors that alias has completed.
         ValidAliasSucc( )
         ValidOut( )
-        if(Debug) getData(state)
         state := s_Done
       }
     }
@@ -187,7 +184,6 @@ class UnTypStoreAlias(NumPredOps: Int,
         // Clear all other state
         Reset( )
         // Reset state.
-        if(Debug) getData (state)
         state := s_idle
         printf("[LOG] " + "[" + module_name + "] [TID->%d] " + node_name + ": Output fired @ %d, data: %d\n", enable_R.taskID, cycleCount, data_R.data)
         //printf("DEBUG " + node_name + ": $%d = %d\n", addr_R.data, data_R.data)

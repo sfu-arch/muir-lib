@@ -54,7 +54,6 @@ class CustomFunctionalNode(NumIns: Int, NumOuts: Int, ID: Int, opCode: String , 
    *============================================*/
 
   when(start & state =/= s_COMPUTE) {
-    if(Debug) getData(state)
     state := s_COMPUTE
   }
 
@@ -66,8 +65,6 @@ class CustomFunctionalNode(NumIns: Int, NumOuts: Int, ID: Int, opCode: String , 
   InvalidOut()
   when(IsOutReady() & (state === s_COMPUTE)) {
     // Reset data
-    if(Debug) getData(state)
-    state := s_idle
 
     // Valid out is a wire
     ValidOut()

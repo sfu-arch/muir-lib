@@ -129,14 +129,12 @@ class UnTypStore(NumPredOps: Int,
           when(enable_R.control && mem_req_fire) {
             io.memReq.valid := true.B
             when(io.memReq.ready) {
-              if (Debug) getData(state)
               state := s_RECEIVING
             }
           }.otherwise {
             ValidSucc()
             ValidOut()
             data_R.predicate := false.B
-            if (Debug) getData(state)
             state := s_Done
           }
         }
@@ -146,8 +144,6 @@ class UnTypStore(NumPredOps: Int,
       when(io.memResp.valid) {
         ValidSucc()
         ValidOut()
-        if(Debug) getData(state)
-        state := s_Done
       }
     }
     is(s_Done) {
@@ -162,7 +158,6 @@ class UnTypStore(NumPredOps: Int,
         // Clear all other state
         Reset()
         // Reset state.
-        if(Debug) getData(state)
         state := s_idle
         if (log) {
           printf("[LOG] " + "[" + module_name + "] [TID->%d] [STORE]" + node_name + ": Fired @ %d Mem[%d] = %d\n",
@@ -193,4 +188,6 @@ class UnTypStore(NumPredOps: Int,
   }
 
 }
+
+
 

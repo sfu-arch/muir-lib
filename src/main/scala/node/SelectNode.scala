@@ -106,7 +106,6 @@ class SelectNode(NumOuts: Int, ID: Int, Debug : Boolean = false)
         when(enable_valid_R && indata1_valid_R && indata2_valid_R && select_valid_R) {
           io.Out.foreach( _.valid := true.B)
           ValidOut()
-          if (Debug) getData(state)
           state := s_COMPUTE
           if(log){
             printf("[LOG] " + "[" + module_name + "] " + "[TID->%d] [SELECT] " +
@@ -124,7 +123,6 @@ class SelectNode(NumOuts: Int, ID: Int, Debug : Boolean = false)
         indata1_R := DataBundle.default
         indata2_R := DataBundle.default
         //Reset state
-        if(Debug) getData(state)
         state := s_IDLE
         //Reset output
         Reset()

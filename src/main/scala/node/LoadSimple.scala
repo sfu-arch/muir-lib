@@ -122,7 +122,6 @@ class UnTypLoad(NumPredOps: Int,
         when(enable_R.control && predicate) {
           io.memReq.valid := true.B
           when(io.memReq.ready) {
-            if (Debug) getData(state)
             state := s_RECEIVING
           }
         }.otherwise {
@@ -130,8 +129,6 @@ class UnTypLoad(NumPredOps: Int,
           ValidSucc()
           ValidOut()
           // Completion state.
-          if(Debug) getData(state)
-          state := s_Done
         }
       }
     }
@@ -145,7 +142,6 @@ class UnTypLoad(NumPredOps: Int,
         ValidSucc()
         ValidOut()
         // Completion state.
-        if(Debug) getData(state)
         state := s_Done
 
       }
@@ -162,7 +158,6 @@ class UnTypLoad(NumPredOps: Int,
         // Reset state.
         Reset()
         // Reset state.
-        if(Debug) getData(state)
         state := s_idle
         if (log) {
           printf("[LOG] " + "[" + module_name + "] [TID->%d] [LOAD] " + node_name + ": Output fired @ %d, Address:%d, Value: %d\n",

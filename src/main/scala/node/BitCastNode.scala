@@ -77,7 +77,6 @@ class BitCastNode(NumOuts: Int, ID: Int, Debug: Boolean= false)
         io.Out.foreach(_.bits := DataBundle(data_R.data, taskID, predicate))
         io.Out.foreach(_.valid := true.B)
         ValidOut()
-        if (Debug) getData(state)
         state := s_COMPUTE
         if (log) {
           printf("[LOG] " + "[" + module_name + "] " + "[TID->%d] [CMP] " +
@@ -91,7 +90,6 @@ class BitCastNode(NumOuts: Int, ID: Int, Debug: Boolean= false)
         data_valid_R := false.B
 
         out_data_R := 0.U
-        if (Debug) getData(state)
         //Reset state
         state := s_IDLE
         Reset()

@@ -139,7 +139,6 @@ class GepOneNode(NumOuts: Int, ID: Int, Debug : Boolean = false)
       when(enable_valid_R) {
         when((idx1_valid_R) && (base_addr_valid_R)) {
           ValidOut()
-          if (Debug) getData(state)
           state := s_COMPUTE
         }
       }
@@ -155,7 +154,6 @@ class GepOneNode(NumOuts: Int, ID: Int, Debug : Boolean = false)
         base_addr_valid_R := false.B
 
         // Reset state
-        if(Debug) getData(state)
         state := s_IDLE
 
         // Reset output
