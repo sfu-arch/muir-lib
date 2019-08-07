@@ -20,16 +20,6 @@ import dandelion.accel._
 import dandelion.junctions._
 import helpers._
 
-//class test03MainIO(implicit val p: Parameters) extends Module with CoreParams with CacheParams {
-//  val io = IO(new Bundle {
-//    val in = Flipped(Decoupled(new Call(List(32, 32))))
-//    val req = Flipped(Decoupled(new MemReq))
-//    val resp = Output(Valid(new MemResp))
-//    val out = Decoupled(new Call(List(32)))
-//  })
-//
-//  def cloneType = new test03MainIO().asInstanceOf[this.type]
-//}
 
 class test03Main(implicit p: Parameters) extends AccelIO(List(32, 32), List(32)) {
 
@@ -46,7 +36,6 @@ class test03Main(implicit p: Parameters) extends AccelIO(List(32, 32), List(32))
 
 
   // Wire up the cache and modules under test.
-  //  val test04 = Module(new test04DF())
   val test03 = Module(new test03DF())
 
   //Put an arbiter infront of cache
@@ -122,7 +111,6 @@ class test03Test01[T <: AccelIO](c: T)
     if (peek(c.io.out.valid) == 1 &&
       peek(c.io.out.bits.data("field0").predicate) == 1
     ) {
-      dumpMemory("Debug.mem",0,10)
       result = true
       val data = peek(c.io.out.bits.data("field0").data)
       val expected = 225
@@ -135,6 +123,9 @@ class test03Test01[T <: AccelIO](c: T)
     }
   }
 
+  step(50)
+  dumpMemory("Debug.mem",0,10)
+
   if (!result) {
     dumpMemory("Debug.mem",0,10)
     println("*** Timeout.")
@@ -144,6 +135,7 @@ class test03Test01[T <: AccelIO](c: T)
 }
 
 class test03Tester extends FlatSpec with Matchers {
+
   implicit val p = Parameters.root((new MiniConfig).toInstance)
   it should "Check that test03 works correctly." in {
     // iotester flags:
