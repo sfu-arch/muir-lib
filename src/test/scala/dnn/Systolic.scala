@@ -59,9 +59,22 @@ class SystolicTestStream(df: SystolicSquareWrapper[UInt])(implicit p: config.Par
   poke(df.io.output.ready, true)
 
   step(1)
-
+  var cnt = 0
   for( data <- data_input){
     if(peek(df.io.input_data.ready) == 1){
+
+      if(cnt == 0) {
+        poke(df.io.input_sop,true)
+      }else {
+        poke(df.io.input_sop,false)
+      }
+      if(cnt == (data_input.size - 1)) {
+        poke(df.io.input_eop,true)
+      }else {
+        poke(df.io.input_eop,false)
+      }
+
+      cnt = cnt + 1
       poke(df.io.input_data.bits, data)
       poke(df.io.input_data.valid, true)
       step(1)
@@ -69,7 +82,9 @@ class SystolicTestStream(df: SystolicSquareWrapper[UInt])(implicit p: config.Par
       println("ERROR")
     }
   }
-
+  poke(df.io.input_eop,false)
+  poke(df.io.input_sop,false)
+  poke(df.io.input_data.valid, false)
 
 
 

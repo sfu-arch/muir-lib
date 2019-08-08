@@ -298,7 +298,7 @@ class SystolicSquareWrapper[T <: Data : MAC.OperatorMAC](gen: T, val N: Int)(imp
     val input_data = Flipped(Decoupled(UInt(xlen.W)))
     val input_sop = Input(Bool())
     val input_eop = Input(Bool())
-    
+
     val output = Decoupled(UInt(xlen.W))
     val output_sop = Output(Bool())
     val output_eop = Output(Bool())
@@ -356,7 +356,8 @@ class SystolicSquareWrapper[T <: Data : MAC.OperatorMAC](gen: T, val N: Int)(imp
     }
     is(s_write){
       io.output.valid := true.B
-      io.output.bits := ScratchPad_output(output_counter.value)
+      //io.output.bits := ScratchPad_output(output_counter.value)
+      io.output.bits := output_counter.value
       //end-of-packet signal
       when(output_counter.value === ((N*N) - 1).U){
         io.output_eop := true.B
