@@ -7,7 +7,7 @@ import config.{Parameters, XLEN}
 import config._
 import dnn.types.{OperatorSCAL}
 import interfaces.CustomDataBundle
-import javafx.scene.chart.PieChart.Data
+//import javafx.scene.chart.PieChart.Data
 import node.{AluGenerator, HandShakingIONPS, HandShakingNPS, Shapes}
 
 class SCALModuleTop[L <: Shapes : OperatorSCAL](left: => L, lanes: Int, opCode: String)(implicit val p: Parameters) extends Module {
