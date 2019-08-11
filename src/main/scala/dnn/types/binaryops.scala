@@ -113,6 +113,7 @@ object TwoOperand {
         mac.io.in1 := l.value
         mac.io.in2 := r.value
         x.value := mac.io.out
+        printf(p"${mac.io.in1},${mac.io.in2},${mac.io.out}")
         x
       }
     }

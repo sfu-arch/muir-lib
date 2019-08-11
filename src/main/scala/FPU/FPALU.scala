@@ -66,6 +66,7 @@ object FType {
   val S = new FType(8, 24)
   val D = new FType(11, 53)
   val H = new FType(5, 11)
+  val M = new FType(exp = 3, sig = 5)
 }
 
 class FloatingPoint(val t: FType) extends Bundle {

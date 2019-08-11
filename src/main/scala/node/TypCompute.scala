@@ -118,7 +118,7 @@ class FPmatNxN(val N: Int, val t: FType)(implicit p: Parameters) extends Shapes 
   }
 
   def toVecUInt(): Vec[UInt] = {
-    val x = Wire(Vec(N, UInt(xlen.W)))
+    val x = Wire(Vec(N*N, UInt(xlen.W)))
     x := data.asTypeOf(x)
     x
   }
