@@ -108,7 +108,7 @@ class ComputeNode(NumOuts: Int, ID: Int, opCode: String)
   if (Debug){
     when(io.DebugIO.get){
       dbg_counter.inc()
-      CaptureLog(state + cycleCount, (dbg_counter.value << 2.U).asUInt())
+      CaptureLog(Cat(state, cycleCount), (dbg_counter.value << 2.U).asUInt())
     }
   }
   //------------------v
