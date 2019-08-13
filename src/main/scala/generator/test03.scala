@@ -69,7 +69,7 @@ class test03DF(implicit p: Parameters) extends test03DFIO()(p) {
    * ================================================================== */
   //---------------------p
   //  val bb_0 = Module(new BasicBlockNoMaskFastNode(NumInputs = 1, NumOuts = 9, BID = 0))
-  val bb_0 = Module(new BasicBlockNoMaskFastNode(NumInputs = 1, NumOuts = 9, BID = 0))
+  val bb_0 = Module(new BasicBlockNoMaskFastNode(NumInputs = 1, NumOuts = 10, BID = 0))
   //-----------------------------v
 
   /* ================================================================== *
@@ -113,7 +113,7 @@ class test03DF(implicit p: Parameters) extends test03DFIO()(p) {
   val const1 = Module(new ConstFastNode(value = 0, ID = 1))
 
   //-------------------------------------p
-//  val const2 = Module(new ConstFastNode(value = 1, ID = 2))
+  val const2 = Module(new ConstFastNode(value = 1, ID = 2))
   //-----------------------------------------------v
 
   /* ================================================================== *
@@ -201,7 +201,7 @@ class test03DF(implicit p: Parameters) extends test03DFIO()(p) {
 
 //  const2.io.enable.bits := ControlBundle.active()
 //  const2.io.enable.valid := true.B
-  //const2.io.enable <> bb_0.io.Out(9)
+  const2.io.enable <> bb_0.io.Out(9)
   //-----------------------------------------------v
 
 
@@ -281,7 +281,7 @@ class test03DF(implicit p: Parameters) extends test03DFIO()(p) {
   binaryOp_4.io.LeftIO <> InputSplitter.io.Out.data.elements("field1")(2)
 
   //------------------------------------------p
-   binaryOp_4.io.DebugIO := true.B
+   binaryOp_4.io.DebugIO.get <> const2.io.Out
   val data_queue = Queue(binaryOp_4.io.LogCheck.get, 20)
   val addr_queue = Queue(binaryOp_4.io.LogCheckAddr.get, 20)
 
