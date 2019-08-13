@@ -3,36 +3,44 @@ package dnn
 import chisel3._
 import chisel3.util.{Decoupled, Enum, Valid}
 import chisel3.{Bundle, Flipped, Module, Output, RegInit, UInt, assert, printf, when}
-import config.Parameters
-import dnn.types.{OperatorSCAL, SCAL_fns}
+import config.{Parameters, XLEN}
+import config._
+import dnn.types.{OperatorSCAL}
 import interfaces.CustomDataBundle
 //import javafx.scene.chart.PieChart.Data
 import node.{AluGenerator, HandShakingIONPS, HandShakingNPS, Shapes}
 
-class SCALModuleTop[L <: Shapes, R <: Bits](left: => L, right: => R, output: => L, val opCode: String)(implicit val p: Parameters) extends Module {
+class SCALModuleTop[L <: Shapes : OperatorSCAL](left: => L, lanes: Int, opCode: String)(implicit val p: Parameters) extends Module {
   val io = IO(new Bundle {
     val a = Flipped(Valid(left))
-    val b = Flipped(Valid(right))
-    val o = Output(Valid(output))
+    val b = Flipped(Valid(UInt(p(XLEN).W)))
+    val o = Output(Valid(left))
   })
 
 
+  val start = io.a.valid && io.b.valid
+  val FU = OperatorSCAL.magic(io.a.bits,io.b.bits, io.a.valid & io.b.valid, lanes, opCode)
+  io.o.bits := FU._1
+  val latency = FU._2
+  val latCnt = Module(new SatCounterModule(latency))
+  latCnt.io.start := start
+  io.o.valid := latCnt.io.wrap
 }
 
-class SCALIO[L <: Shapes, R <: Bits](NumOuts: Int)(left: => L, right: => R)(output: => L)(implicit p: Parameters)
-  extends HandShakingIONPS(NumOuts)(new CustomDataBundle(UInt(output.getWidth))) {
+class SCALIO[L <: Shapes](NumOuts: Int)(left: => L)(implicit p: Parameters)
+  extends HandShakingIONPS(NumOuts)(new CustomDataBundle(UInt(left.getWidth))) {
   // LeftIO: Left input data for computation
   val LeftIO = Flipped(Decoupled(new CustomDataBundle(UInt((left.getWidth).W))))
 
   // RightIO: Right input data for computation
-  val RightIO = Flipped(Decoupled(new CustomDataBundle(UInt(right.getWidth.W))))
+  val RightIO = Flipped(Decoupled(new CustomDataBundle(UInt(xlen.W))))
 
-  override def cloneType = new SCALIO(NumOuts)(left, right)(output).asInstanceOf[this.type]
+  override def cloneType = new SCALIO(NumOuts)(left).asInstanceOf[this.type]
 }
 
-class SCAL_NCycle[L <: Shapes, R <: Bits](NumOuts: Int, ID: Int, opCode: String)(sign: Boolean)(left: => L, right: R)(output: => L)(implicit p: Parameters)
-  extends HandShakingNPS(NumOuts, ID)(new CustomDataBundle(UInt(output.getWidth.W)))(p) {
-  override lazy val io = IO(new SCALIO(NumOuts)(left, right)(output))
+class SCAL_NCycle[L <: Shapes : OperatorSCAL](NumOuts: Int, ID: Int, lanes: Int, opCode: String)(left: => L)(implicit p: Parameters)
+  extends HandShakingNPS(NumOuts, ID)(new CustomDataBundle(UInt(left.getWidth.W)))(p) {
+  override lazy val io = IO(new SCALIO(NumOuts)(left))
 
   /*===========================================*
  *            Registers                      *
@@ -41,10 +49,10 @@ class SCAL_NCycle[L <: Shapes, R <: Bits](NumOuts: Int, ID: Int, opCode: String)
   val left_R = RegInit(CustomDataBundle.default(0.U((left.getWidth).W)))
 
   // Memory Response
-  val right_R = RegInit(CustomDataBundle.default(0.U((right.getWidth).W)))
+  val right_R = RegInit(CustomDataBundle.default(0.U((xlen).W)))
 
   // Output register
-  val data_R = RegInit(CustomDataBundle.default(0.U((output.getWidth).W)))
+  val data_R = RegInit(CustomDataBundle.default(0.U((left.getWidth).W)))
 
   val s_idle :: s_LATCH :: s_ACTIVE :: s_COMPUTE :: Nil = Enum(4)
   val state                                             = RegInit(s_idle)
@@ -57,7 +65,7 @@ class SCAL_NCycle[L <: Shapes, R <: Bits](NumOuts: Int, ID: Int, opCode: String)
   val start     = left_R.valid & right_R.valid & IsEnableValid( )
 
   /*===============================================*
-   *            Latch inputs. Wire up output       *
+   *            Latch inputs. Wire up left       *
    *===============================================*/
 
   // Predicate register
@@ -90,42 +98,53 @@ class SCAL_NCycle[L <: Shapes, R <: Bits](NumOuts: Int, ID: Int, opCode: String)
   }
 
   /*============================================*
-   *            ACTIONS (possibly dangerous)    *
-   *============================================*/
+ *            ACTIONS (possibly dangerous)    *
+ *============================================*/
 
-  val FU = Module(new SCALModuleTop(left, right, output, opCode))
+  val FU = Module(new SCALModuleTop(left,lanes,opCode))
   FU.io.a.bits := (left_R.data).asTypeOf(left)
-  FU.io.b.bits := (right_R.data).asTypeOf(right)
-  data_R.data := (FU.io.o.bits).asTypeOf(UInt(output.getWidth.W))
+  FU.io.b.bits := (right_R.data)
+
   data_R.predicate := predicate
   pred_R := predicate
-  FU.io.a.valid := left_R.valid
-  FU.io.b.valid := right_R.valid
-  data_R.valid := FU.io.o.valid
-
+  FU.io.a.valid := false.B
+  FU.io.b.valid := false.B
   //  This is written like this to enable FUs that are dangerous in the future.
   // If you don't start up then no value passed into function
-  when(start & predicate & state =/= s_COMPUTE) {
-    state := s_COMPUTE
-    // Next cycle it will become valid.
-    ValidOut( )
-  }.elsewhen(start && !predicate && state =/= s_COMPUTE) {
-    state := s_COMPUTE
-    ValidOut( )
+  when(start & state === s_idle) {
+    when(predicate) {
+      FU.io.a.valid := true.B
+      FU.io.b.valid := true.B
+      state := s_ACTIVE
+    }.otherwise {
+      state := s_COMPUTE
+      ValidOut( )
+    }
   }
 
+  when(state === s_ACTIVE) {
+    when(FU.io.o.valid) {
+      ValidOut( )
+      data_R.data := (FU.io.o.bits).asTypeOf(UInt(left.getWidth.W))
+      data_R.valid := FU.io.o.valid
+      state := s_COMPUTE
+    }.otherwise {
+      state := s_ACTIVE
+    }
+  }
   when(IsOutReady( ) && state === s_COMPUTE) {
     left_R := CustomDataBundle.default(0.U((left.getWidth).W))
-    right_R := CustomDataBundle.default(0.U((right.getWidth).W))
-    data_R := CustomDataBundle.default(0.U((output.getWidth).W))
+    right_R := CustomDataBundle.default(0.U((left.getWidth).W))
+    data_R := CustomDataBundle.default(0.U((left.getWidth).W))
     Reset( )
     state := s_idle
   }
 
-  printf(p"\n State : ${state} Predicate ${predicate} Left ${left_R} Right ${right_R} Output: ${data_R}")
+
+//  printf(p"\n State : ${state} Predicate ${predicate} Left ${left_R} Right ${right_R} Output: ${data_R}")
 
   var classname: String = (left.getClass).toString
-  var signed            = if (sign == true) "S" else "U"
+  var signed            = "S"
   override val printfSigil =
     opCode + "[" + classname.replaceAll("class node.", "") + "]_" + ID + ":"
 

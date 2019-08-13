@@ -52,6 +52,7 @@ class NCycle_SCAL[T <: Data : TwoOperand.OperatorTwoOperand](val gen: T, val N: 
     val scalar    = Input(UInt(xlen.W))
     val activate  = Input(Bool( ))
     val stat      = Output(UInt(xlen.W))
+    val valid     = Output(Bool ( ))
     val output    = Output(Vec(lanes, UInt(xlen.W)))
   })
 
@@ -59,7 +60,7 @@ class NCycle_SCAL[T <: Data : TwoOperand.OperatorTwoOperand](val gen: T, val N: 
   require(N % lanes == 0, "Size of vector should be multiple of lanes")
 
   def latency(): Int = {
-    N / lanes
+    N / lanes + 1
   }
 
   val PEs =
@@ -70,15 +71,16 @@ class NCycle_SCAL[T <: Data : TwoOperand.OperatorTwoOperand](val gen: T, val N: 
   /* PE Control */
   val s_idle :: s_ACTIVE :: s_COMPUTE :: Nil = Enum(3)
   val state                                  = RegInit(s_idle)
-  val input_steps                            = new Counter(latency)
+  val input_steps                            = new Counter(latency-1)
   io.stat := input_steps.value
+  io.valid := (state === s_ACTIVE)
   when(state === s_idle) {
     when(io.activate) {
       state := s_ACTIVE
     }
   }.elsewhen(state === s_ACTIVE) {
     input_steps.inc( )
-    when(input_steps.value === (latency - 1).U) {
+    when(input_steps.value === (latency - 2).U) {
       state := s_idle
     }
   }
