@@ -58,6 +58,7 @@ class test03DF(implicit p: Parameters) extends test03DFIO()(p) {
 
   val InputSplitter = Module(new SplitCallNew(List(3, 3)))
   InputSplitter.io.In <> io.in
+
   /* ================================================================== *
    *                   PRINTING LOOP HEADERS                            *
    * ================================================================== */
@@ -280,7 +281,7 @@ class test03DF(implicit p: Parameters) extends test03DFIO()(p) {
   binaryOp_4.io.LeftIO <> InputSplitter.io.Out.data.elements("field1")(2)
 
   //------------------------------------------p
-  //  binaryOp_4.io.LogCheck.get.ready := true.B
+   binaryOp_4.io.DebugIO := true.B
   val data_queue = Queue(binaryOp_4.io.LogCheck.get, 20)
   val addr_queue = Queue(binaryOp_4.io.LogCheckAddr.get, 20)
 

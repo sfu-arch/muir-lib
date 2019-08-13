@@ -23,6 +23,9 @@ class ComputeNodeIO(NumOuts: Int, Debug: Boolean)
 
   //p
   //val LogIO = Decoupled(new DataBundle())
+
+  val DebugIO = if (Debug) Some(Flipped(new Bool)) else None
+
   //v
   override def cloneType = new ComputeNodeIO(NumOuts, Debug).asInstanceOf[this.type]
 
@@ -101,8 +104,14 @@ class ComputeNode(NumOuts: Int, ID: Int, opCode: String)
     right_R <> io.RightIO.bits
     right_valid_R := true.B
   }
-
-
+  //-------------------p
+  if (Debug){
+    when(io.DebugIO){
+      dbg_counter.inc()
+      CaptureLog(state + cycleCount, (dbg_counter.value << 2.U).asUInt())
+    }
+  }
+  //------------------v
   // Wire up Outputs
   // The taskID's should be identical except in the case
   // when one input is tied to a constant.  In that case

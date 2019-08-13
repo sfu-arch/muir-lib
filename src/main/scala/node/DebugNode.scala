@@ -25,10 +25,9 @@ class DebugNode(Selection: Boolean = false, Nodes : List[Int] , NumNodes : Int =
 
   override lazy val io = IO(new DebugNodeIO(Selection, Nodes, NumNodes = 0))
 
-  // Printf debugging
   val node_name = name.value
   val module_name = file.value.split("/").tail.last.split("\\.").head.capitalize
-
+  val (cycleCount, _) = Counter(true.B, 32 * 1024)
 
   /*===========================================*
    *            Registers                      *
