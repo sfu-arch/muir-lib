@@ -5,6 +5,8 @@ import chisel3._
 import config.cde._
 import chisel3.util._
 import config._
+import shell.{AXIParams, VCRParams, VMEParams}
+import shell.AXIParams
 import util._
 //import examples._
 import regfile._
@@ -12,6 +14,7 @@ import junctions._
 import accel._
 import FPU._
 import FType._
+import shell._
 
 case object XLEN extends Field[Int]
 
@@ -34,6 +37,7 @@ case object CTRACE extends Field[Boolean]
 case object BuildRFile extends Field[Parameters => AbstractRFile]
 
 case object FTYP extends Field[FType]
+
 
 abstract trait CoreParams {
   implicit val p: Parameters
@@ -167,3 +171,25 @@ class Mat_VecConfig extends Config((site, here, up) => {
 }
 
 )
+
+
+
+
+/** PynqConfig. Shell configuration for Pynq */
+class PynqConfig extends Config((site, here, up) => {
+  case ShellKey => ShellParams(
+    hostParams = AXIParams(
+      coherent = false,
+      addrBits = 16,
+      dataBits = 32,
+      lenBits = 8,
+      userBits = 1),
+    memParams = AXIParams(
+      coherent = true,
+      addrBits = 32,
+      dataBits = 64,
+      lenBits = 8,
+      userBits = 1),
+    vcrParams = VCRParams(),
+    vmeParams = VMEParams())
+})
