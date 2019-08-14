@@ -19,14 +19,12 @@ package accel
  * under the License.
  */
 
-package accel
-
 import chisel3._
 import config._
 import shell._
 
 /** Core parameters */
-case class CoreParams (
+case class DNNCoreParams (
                         batch: Int = 1,
                         blockOut: Int = 16,
                         blockIn: Int = 16,
@@ -46,7 +44,26 @@ case class CoreParams (
   require (uopBits % 8 == 0, s"\n\n[VTA] [CoreParams] uopBits must be byte aligned\n\n")
 }
 
-case object CoreKey extends Field[CoreParams]
+case object CoreKey extends Field[DNNCoreParams]
+
+
+class CoreConfig extends Config((site, here, up) => {
+  case CoreKey => DNNCoreParams(
+    batch = 1,
+    blockOut = 16,
+    blockIn = 16,
+    inpBits = 8,
+    wgtBits = 8,
+    uopBits = 32,
+    accBits = 32,
+    outBits = 8,
+    uopMemDepth = 2048,
+    inpMemDepth = 2048,
+    wgtMemDepth = 1024,
+    accMemDepth = 2048,
+    outMemDepth = 2048,
+    instQueueEntries = 512)
+})
 
 /** Core.
   *
@@ -60,7 +77,7 @@ case object CoreKey extends Field[CoreParams]
   * More info about these interfaces and modules can be found in the shell
   * directory.
   */
-class Core(implicit p: Parameters) extends Module {
+class DNNCore(implicit p: Parameters) extends Module {
   val io = IO(new Bundle {
     val vcr = new VCRClient
     val vme = new VMEMaster
@@ -117,4 +134,20 @@ class Core(implicit p: Parameters) extends Module {
 //  // Finish instruction is executed and asserts the VCR finish flag
 //  val finish = RegNext(compute.io.finish)
 //  io.vcr.finish := finish
+}
+
+
+
+/** VTA.
+  *
+  * This file contains all the configurations supported by VTA.
+  * These configurations are built in a mix/match form based on core
+  * and shell configurations.
+  */
+
+class DefaultPynqConfig extends Config(new CoreConfig ++ new PynqConfig)
+
+object DefaultPynqConfig extends App {
+  implicit val p: Parameters = new DefaultPynqConfig
+  chisel3.Driver.execute(args, () => new XilinxShell)
 }
