@@ -2,14 +2,13 @@ package dnn
 
 import chisel3._
 import chisel3.util._
-
-import chisel3.iotesters.{ChiselFlatSpec, Driver, PeekPokeTester, OrderedDecoupledHWIOTester}
-import org.scalatest.{Matchers, FlatSpec}
-
+import chisel3.iotesters.{ChiselFlatSpec, Driver, OrderedDecoupledHWIOTester, PeekPokeTester}
+import org.scalatest.{FlatSpec, Matchers}
 import node._
 import dataflow._
 import muxes._
 import config._
+import dnn.wrappers.SystolicSquareWrapper
 import util._
 
 class SystolicBaseTests(df: SystolicSquareBuffered[UInt])(implicit p: config.Parameters) extends PeekPokeTester(df) {
