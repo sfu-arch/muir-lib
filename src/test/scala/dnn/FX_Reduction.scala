@@ -22,7 +22,7 @@ class ReductionTests(df: NCycle_Reduction[UInt])(implicit p: config.Parameters) 
   poke(df.io.activate, false.B)
   for (i <- 0 until df.latency( )) {
     print(peek(df.io.output))
-       print("\n")
+    print("\n")
     step(1)
   }
 }
