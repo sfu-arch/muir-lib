@@ -68,6 +68,12 @@ class ComputeNode(NumOuts: Int, ID: Int, opCode: String)
   val s_IDLE :: s_COMPUTE :: Nil = Enum(2)
   val state = RegInit(s_IDLE)
 
+  /**
+    * val debug = RegInit(0.U)
+    * debug := io.DebugIO.get
+    *
+    * val debug = RegNext(io.DebugIO.get, init = 0.U)
+    */
 
   //Output register
   val out_data_R = RegNext(Mux(enable_R.control, FU.io.out, 0.U), init = 0.U)
@@ -108,7 +114,8 @@ class ComputeNode(NumOuts: Int, ID: Int, opCode: String)
   if (Debug){
     when(io.DebugIO.get){
       dbg_counter.inc()
-      CaptureLog(Cat(state, cycleCount), (dbg_counter.value << 2.U).asUInt())
+      //CaptureLog(Cat(state, cycleCount), (dbg_counter.value << 2.U).asUInt())
+      CaptureLog( cycleCount, (dbg_counter.value << 2.U).asUInt())
     }
   }
   //------------------v
@@ -129,10 +136,10 @@ class ComputeNode(NumOuts: Int, ID: Int, opCode: String)
         io.Out.foreach(_.bits := DataBundle(FU.io.out, taskID, predicate))
         io.Out.foreach(_.valid := true.B)
         ValidOut()
-        if (Debug){
-          dbg_counter.inc()
-          CaptureLog(state, (dbg_counter.value << 2.U).asUInt())
-        }
+//        if (Debug){
+//          dbg_counter.inc()
+//          CaptureLog(state, (dbg_counter.value << 2.U).asUInt())
+//        }
         state := s_COMPUTE
         //if(Debug){
         //  io.LogCheck.get.bits := DataBundle(state)
@@ -151,10 +158,10 @@ class ComputeNode(NumOuts: Int, ID: Int, opCode: String)
       //  io.LogCheck.get.valid := true.B
 
       //}
-      if (Debug){
-        dbg_counter.inc()
-        CaptureLog(state, (dbg_counter.value << 2.U).asUInt())
-      }
+//      if (Debug){
+//        dbg_counter.inc()
+//        CaptureLog(state, (dbg_counter.value << 2.U).asUInt())
+//      }
       //io.LogIO.bits := DataBundle(state)
       //io.LogIO.valid := true.B
       //v

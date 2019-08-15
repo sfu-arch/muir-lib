@@ -124,7 +124,7 @@ class test03Test01[T <: AccelIO](c: T)
   }
 
   step(50)
-  dumpMemory("Debug.mem",0,10)
+  dumpMemory("Debug.mem",0,60)
 
   if (!result) {
     dumpMemory("Debug.mem",0,10)
