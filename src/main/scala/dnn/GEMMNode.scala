@@ -44,7 +44,7 @@ class SatCounterModule(n: Int) extends Module {
 
 
 
-class GEMMModuleTop[T <: Shapes : OperatorGEMM](operand: => T)(implicit val p: Parameters) extends Module {
+class GEMMFU[T <: Shapes : OperatorGEMM](operand: => T)(implicit val p: Parameters) extends Module {
   val io = IO(new Bundle {
     val a = Flipped(Valid(operand))
     val b = Flipped(Valid(operand))
@@ -77,7 +77,7 @@ class GEMMIO[T <: Shapes](NumOuts: Int)(operand: => T)(implicit p: Parameters)
   override def cloneType = new GEMMIO(NumOuts)(operand).asInstanceOf[this.type]
 }
 
-class GEMM_NCycle[T <: Shapes : OperatorGEMM](NumOuts: Int, ID: Int)(operand: => T)(implicit p: Parameters)
+class GEMMNode[T <: Shapes : OperatorGEMM](NumOuts: Int, ID: Int)(operand: => T)(implicit p: Parameters)
   extends HandShakingNPS(NumOuts, ID)(new CustomDataBundle(UInt(operand.getWidth.W)))(p) {
   override lazy val io = IO(new GEMMIO(NumOuts)(operand))
 
@@ -138,7 +138,7 @@ class GEMM_NCycle[T <: Shapes : OperatorGEMM](NumOuts: Int, ID: Int)(operand: =>
    *            ACTIONS (possibly dangerous)    *
    *============================================*/
 
-  val FU = Module(new GEMMModuleTop(operand))
+  val FU = Module(new GEMMFU(operand))
   FU.io.a.bits := (left_R.data).asTypeOf(operand)
   FU.io.b.bits := (right_R.data).asTypeOf(operand)
 

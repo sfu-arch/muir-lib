@@ -66,17 +66,7 @@ class NCycle_Reduction[T <: Data : TwoOperand.OperatorTwoOperand](val gen: T, va
   val state                                  = RegInit(s_idle)
   val input_steps                            = new Counter(latency - 1)
   io.stat := input_steps.value
-  io.valid := (state === s_ACTIVE)
-  when(state === s_idle) {
-    when(io.activate) {
-      state := s_ACTIVE
-    }
-  }.elsewhen(state === s_ACTIVE) {
-    input_steps.inc( )
-    when(input_steps.value === (latency - 2).U) {
-      state := s_idle
-    }
-  }
+
 
   for (i <- 0 until N-1) {
     PEs(i).io.left.bits := io.input_vec(i+1)
@@ -96,8 +86,19 @@ class NCycle_Reduction[T <: Data : TwoOperand.OperatorTwoOperand](val gen: T, va
   PEs(0).io.right.bits := io.input_vec(0)
   PEs(0).io.right.valid := false.B
 
-  when(state === s_ACTIVE) {
-    PEs(0).io.right.valid := true.B
+
+  when(state === s_idle) {
+    when(io.activate) {
+      state := s_ACTIVE
+      PEs(0).io.right.valid := true.B
+    }
+  }.elsewhen(state === s_ACTIVE) {
+    input_steps.inc( )
+    when(input_steps.value === 0.U) {
+    }
+    when(input_steps.value === (latency - 2).U) {
+      state := s_idle
+    }
   }
 
   //printf(p"\n ${input_steps.value}")

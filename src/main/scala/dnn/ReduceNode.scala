@@ -5,21 +5,20 @@ import chisel3.util.{Decoupled, Enum, Valid}
 import chisel3.{Bundle, Flipped, Module, Output, RegInit, UInt, assert, printf, when}
 import config.{Parameters, XLEN}
 import config._
-import dnn.types.{OperatorSCAL}
+import dnn.types.{OperatorReduction}
 import interfaces.CustomDataBundle
 //import javafx.scene.chart.PieChart.Data
 import node.{AluGenerator, HandShakingIONPS, HandShakingNPS, Shapes}
 
-class SCALModuleTop[L <: Shapes : OperatorSCAL](left: => L, lanes: Int, opCode: String)(implicit val p: Parameters) extends Module {
+class ReduceFU[L <: Shapes : OperatorReduction](left: => L, pipelined: Boolean, opCode: String)(implicit val p: Parameters) extends Module {
   val io = IO(new Bundle {
     val a = Flipped(Valid(left))
-    val b = Flipped(Valid(UInt(p(XLEN).W)))
-    val o = Output(Valid(left))
+    val o = Output(Valid(UInt(p(XLEN).W)))
   })
 
 
-  val start = io.a.valid && io.b.valid
-  val FU = OperatorSCAL.magic(io.a.bits,io.b.bits, io.a.valid & io.b.valid, lanes, opCode)
+  val start = io.a.valid
+  val FU = OperatorReduction.magic(io.a.bits, io.a.valid, pipelined, opCode)
   io.o.bits := FU._1
   val latency = FU._2
   val latCnt = Module(new SatCounterModule(latency))
@@ -27,20 +26,17 @@ class SCALModuleTop[L <: Shapes : OperatorSCAL](left: => L, lanes: Int, opCode: 
   io.o.valid := latCnt.io.wrap
 }
 
-class SCALIO[L <: Shapes](NumOuts: Int)(left: => L)(implicit p: Parameters)
+class ReduceIO[L <: Shapes](NumOuts: Int)(left: => L)(implicit p: Parameters)
   extends HandShakingIONPS(NumOuts)(new CustomDataBundle(UInt(left.getWidth))) {
   // LeftIO: Left input data for computation
   val LeftIO = Flipped(Decoupled(new CustomDataBundle(UInt((left.getWidth).W))))
 
-  // RightIO: Right input data for computation
-  val RightIO = Flipped(Decoupled(new CustomDataBundle(UInt(xlen.W))))
-
-  override def cloneType = new SCALIO(NumOuts)(left).asInstanceOf[this.type]
+  override def cloneType = new ReduceIO(NumOuts)(left).asInstanceOf[this.type]
 }
 
-class SCAL_NCycle[L <: Shapes : OperatorSCAL](NumOuts: Int, ID: Int, lanes: Int, opCode: String)(left: => L)(implicit p: Parameters)
+class ReduceNode[L <: Shapes : OperatorReduction](NumOuts: Int, ID: Int, pipelined: Boolean, opCode: String)(left: => L)(implicit p: Parameters)
   extends HandShakingNPS(NumOuts, ID)(new CustomDataBundle(UInt(left.getWidth.W)))(p) {
-  override lazy val io = IO(new SCALIO(NumOuts)(left))
+  override lazy val io = IO(new ReduceIO(NumOuts)(left))
 
   /*===========================================*
  *            Registers                      *
@@ -48,11 +44,8 @@ class SCAL_NCycle[L <: Shapes : OperatorSCAL](NumOuts: Int, ID: Int, lanes: Int,
   // OP Inputs
   val left_R = RegInit(CustomDataBundle.default(0.U((left.getWidth).W)))
 
-  // Memory Response
-  val right_R = RegInit(CustomDataBundle.default(0.U((xlen).W)))
-
   // Output register
-  val data_R = RegInit(CustomDataBundle.default(0.U((left.getWidth).W)))
+  val data_R = RegInit(CustomDataBundle.default(0.U((xlen).W)))
 
   val s_idle :: s_LATCH :: s_ACTIVE :: s_COMPUTE :: Nil = Enum(4)
   val state                                             = RegInit(s_idle)
@@ -61,8 +54,8 @@ class SCAL_NCycle[L <: Shapes : OperatorSCAL](NumOuts: Int, ID: Int, lanes: Int,
    *           Predicate Evaluation           *
    *==========================================*/
 
-  val predicate = left_R.predicate & right_R.predicate & IsEnable( )
-  val start     = left_R.valid & right_R.valid & IsEnableValid( )
+  val predicate = left_R.predicate  & IsEnable( )
+  val start     = left_R.valid &  IsEnableValid( )
 
   /*===============================================*
    *            Latch inputs. Wire up left       *
@@ -81,40 +74,29 @@ class SCAL_NCycle[L <: Shapes : OperatorSCAL](NumOuts: Int, ID: Int, lanes: Int,
     left_R.predicate := io.LeftIO.bits.predicate
   }
 
-  io.RightIO.ready := ~right_R.valid
-  when(io.RightIO.fire( )) {
-    //printfInfo("Latch right data\n")
-    right_R.data := io.RightIO.bits.data
-    right_R.valid := true.B
-    right_R.predicate := io.RightIO.bits.predicate
-  }
-
   // Wire up Outputs
   for (i <- 0 until NumOuts) {
     io.Out(i).bits.data := data_R.data
     io.Out(i).bits.valid := true.B
     io.Out(i).bits.predicate := predicate
-    io.Out(i).bits.taskID := left_R.taskID | right_R.taskID | enable_R.taskID
+    io.Out(i).bits.taskID := left_R.taskID  | enable_R.taskID
   }
 
   /*============================================*
  *            ACTIONS (possibly dangerous)    *
  *============================================*/
 
-  val FU = Module(new SCALModuleTop(left,lanes,opCode))
+  val FU = Module(new ReduceFU(left,pipelined,opCode))
   FU.io.a.bits := (left_R.data).asTypeOf(left)
-  FU.io.b.bits := (right_R.data)
 
   data_R.predicate := predicate
   pred_R := predicate
   FU.io.a.valid := false.B
-  FU.io.b.valid := false.B
   //  This is written like this to enable FUs that are dangerous in the future.
   // If you don't start up then no value passed into function
   when(start & state === s_idle) {
     when(predicate) {
       FU.io.a.valid := true.B
-      FU.io.b.valid := true.B
       state := s_ACTIVE
     }.otherwise {
       state := s_COMPUTE
@@ -134,14 +116,13 @@ class SCAL_NCycle[L <: Shapes : OperatorSCAL](NumOuts: Int, ID: Int, lanes: Int,
   }
   when(IsOutReady( ) && state === s_COMPUTE) {
     left_R := CustomDataBundle.default(0.U((left.getWidth).W))
-    right_R := CustomDataBundle.default(0.U((left.getWidth).W))
     data_R := CustomDataBundle.default(0.U((left.getWidth).W))
     Reset( )
     state := s_idle
   }
 
 
-//  printf(p"\n State : ${state} Predicate ${predicate} Left ${left_R} Right ${right_R} Output: ${data_R}")
+    printf(p"\n State : ${state} Predicate ${predicate} Left ${left_R} Output: ${data_R}")
 
   var classname: String = (left.getClass).toString
   var signed            = "S"
@@ -158,8 +139,8 @@ class SCAL_NCycle[L <: Shapes : OperatorSCAL](NumOuts: Int, ID: Int, lanes: Int,
       case "med" => {
       }
       case "low" => {
-        printfInfo("Cycle %d : { \"Inputs\": {\"Left\": %x, \"Right\": %x},", x, (left_R.valid), (right_R.valid))
-        printf("\"State\": {\"State\": \"%x\", \"(L,R)\": \"%x,%x\",  \"O(V,D,P)\": \"%x,%x,%x\" },", state, left_R.data, right_R.data, io.Out(0).valid, data_R.data, io.Out(0).bits.predicate)
+        printfInfo("Cycle %d : { \"Inputs\": {\"Left\": %x},", x, (left_R.valid))
+        printf("\"State\": {\"State\": \"%x\", \"(L)\": \"%x,%x\",  \"O(V,D,P)\": \"%x,%x,%x\" },", state, left_R.data, io.Out(0).valid, data_R.data, io.Out(0).bits.predicate)
         printf("\"Outputs\": {\"Out\": %x}", io.Out(0).fire( ))
         printf("}")
       }

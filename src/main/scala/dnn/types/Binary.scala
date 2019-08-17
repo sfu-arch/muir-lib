@@ -98,6 +98,7 @@ object TwoOperand {
         FXALU.io.in1 := l
         FXALU.io.in2 := r
         x := FXALU.io.out.asTypeOf(l)
+        printf("%x,%x,%x",l.asUInt,r.asUInt,FXALU.io.out)
         // Uncomment if you do not have access to DSP tools and need to use chisel3.experimental FixedPoint. DSP tools provides implicit support for truncation.
         //  val mul = ((l.data * r.data) >> l.fraction.U).asFixedPoint(l.fraction.BP)
         // x.data := mul + c.data
@@ -113,7 +114,7 @@ object TwoOperand {
         mac.io.in1 := l.value
         mac.io.in2 := r.value
         x.value := mac.io.out
-        printf(p"${mac.io.in1},${mac.io.in2},${mac.io.out}")
+      //  printf(p"${mac.io.in1},${mac.io.in2},${mac.io.out}")
         x
       }
     }
