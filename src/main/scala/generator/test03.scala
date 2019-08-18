@@ -47,9 +47,9 @@ class test03DF(implicit p: Parameters) extends test03DFIO()(p) {
   // io.MemResp <> DontCare
 
   //-----------------------------------------------------------------------p
-  val MemCtrl = Module(new UnifiedController(ID = 0, Size = 32, NReads = 1, NWrites = 1)
+  val MemCtrl = Module(new UnifiedController(ID = 0, Size = 32, NReads = 0, NWrites = 1)
   (WControl = new WriteMemoryController(NumOps = 1, BaseSize = 2, NumEntries = 2))
-  (RControl = new ReadMemoryController(NumOps = 1, BaseSize = 2, NumEntries = 2))
+  (RControl = new ReadMemoryController(NumOps = 0, BaseSize = 2, NumEntries = 2))
   (RWArbiter = new ReadWriteArbiter()))
   io.MemReq <> MemCtrl.io.MemReq
   MemCtrl.io.MemResp <> io.MemResp
@@ -219,25 +219,9 @@ class test03DF(implicit p: Parameters) extends test03DFIO()(p) {
    *                   CONNECTING MEMORY CONNECTIONS                    *
    * ================================================================== */
   //-----------------------------------p
+
   MemCtrl.io.WriteIn(0) <> st_0.io.memReq
-
   st_0.io.memResp <> MemCtrl.io.WriteOut(0)
-
-  MemCtrl.io.ReadIn(0) <> DontCare
-  MemCtrl.io.ReadOut(0) <> DontCare
-
-
-  //MemCtrl.io.ReadIn(0) <> const2.io.Out
-
-  // <> MemCtrl.io.ReadOut(0)
-
-  // MemCtrl.io.ReadIn(1) <>
-
-  //<> MemCtrl.io.ReadOut(1)
-
-  // MemCtrl.io.WriteIn(0) <> st_10.io.memReq
-
-  //<> MemCtrl.io.WriteOut(0)
 
   //----------------------------------------------v
 

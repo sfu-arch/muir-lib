@@ -46,7 +46,7 @@ class AccelTesterLocal[T <: AccelIO](c: T)
     result
   }
 
-  def MemWrite(addr: Int, data: Int): BigInt = {
+  def MemWrite(addr: Int, data: Int)  = {
     while (peek(c.io.req.ready) == 0) {
       step(1)
     }
@@ -58,7 +58,6 @@ class AccelTesterLocal[T <: AccelIO](c: T)
     poke(c.io.req.bits.mask, (1 << (c.io.req.bits.mask.getWidth)) - 1)
     step(1)
     poke(c.io.req.valid, 0)
-    1
   }
 
   def dumpMemoryInit(path: String) = {

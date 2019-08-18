@@ -169,10 +169,10 @@ class FilterDFTester(accel: => Accelerator)(implicit val p: Parameters) extends 
 
   switch(testState) {
     is(sIdle) {
-      switch(Vec(testVec)(testCnt).opCode) {
+      switch(VecInit(testVec)(testCnt).opCode) {
         is(rdCmd) {
           req.read := true.B
-          req.addr := Vec(testVec)(testCnt).op0
+          req.addr := VecInit(testVec)(testCnt).op0
           req.tag := testCnt % 16.U
           reqValid := true.B
           testState := sNastiReadReq
@@ -180,16 +180,16 @@ class FilterDFTester(accel: => Accelerator)(implicit val p: Parameters) extends 
         }
         is(wrCmd) {
           req.read := false.B
-          req.addr := Vec(testVec)(testCnt).op0
-          req.data := Vec(testVec)(testCnt).op1
-          req.mask := Vec(testVec)(testCnt).op2
+          req.addr := VecInit(testVec)(testCnt).op0
+          req.data := VecInit(testVec)(testCnt).op1
+          req.mask := VecInit(testVec)(testCnt).op2
           req.tag := testCnt % 16.U
           reqValid := true.B
           testState := sNastiWriteReq
         }
         is(pollCmd) {
           req.read := true.B
-          req.addr := Vec(testVec)(testCnt).op0
+          req.addr := VecInit(testVec)(testCnt).op0
           req.tag := testCnt % 16.U
           reqValid := true.B
           testState := sNastiReadReq
@@ -208,8 +208,8 @@ class FilterDFTester(accel: => Accelerator)(implicit val p: Parameters) extends 
     }
     is(sNastiReadResp) {
       when(hps.io.resp.valid && (hps.io.resp.bits.tag === testCnt % 16.U)) {
-        val expected = Vec(testVec)(testCnt).op1
-        val mask     = Vec(testVec)(testCnt).op2
+        val expected = VecInit(testVec)(testCnt).op1
+        val mask     = VecInit(testVec)(testCnt).op2
         when((hps.io.resp.bits.data & mask) =/= (expected & mask)) {
           when(!pollingRead) {
             printf("Read fail. Expected: 0x%x. Received: 0x%x.", expected, hps.io.resp.bits.data)

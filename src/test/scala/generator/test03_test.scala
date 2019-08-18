@@ -74,6 +74,7 @@ class test03Test01[T <: AccelIO](c: T)
   extends AccelTesterLocal(c)(inAddrVec, inDataVec, outAddrVec, outDataVec) {
 
 
+//  initMemory()
   poke(c.io.in.bits.enable.control, false.B)
   poke(c.io.in.bits.enable.taskID, 0.U)
   poke(c.io.in.valid, false.B)
@@ -123,7 +124,7 @@ class test03Test01[T <: AccelIO](c: T)
     }
   }
 
-  step(50)
+  step(1000)
   dumpMemory("Debug.mem",0,60)
 
   if (!result) {
@@ -135,6 +136,10 @@ class test03Test01[T <: AccelIO](c: T)
 }
 
 class test03Tester extends FlatSpec with Matchers {
+
+
+  val inAddrVec = List.range(0, (4 * 10), 4)
+  val inDataVec = List.fill(10)(10)
 
   implicit val p = Parameters.root((new MiniConfig).toInstance)
   it should "Check that test03 works correctly." in {
@@ -152,7 +157,7 @@ class test03Tester extends FlatSpec with Matchers {
         "-tts", "0001"),
       () => new test03Main()) {
 //      c => new test03Test01(c)
-      c => new test03Test01(c)(List(), List(), List(), List())
+      c => new test03Test01(c)(inAddrVec, inDataVec, List(), List())
     } should be(true)
   }
 }

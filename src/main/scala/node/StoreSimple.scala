@@ -18,7 +18,7 @@ import utility.UniformPrintfs
 
 class StoreIO(NumPredOps: Int,
               NumSuccOps: Int,
-              NumOuts: Int, Debug :Boolean =false)(implicit p: Parameters)
+              NumOuts: Int, Debug: Boolean = false)(implicit p: Parameters)
   extends HandShakingIOPS(NumPredOps, NumSuccOps, NumOuts, Debug)(new DataBundle) {
   // Node specific IO
   // GepAddr: The calculated address comming from GEP node
@@ -41,11 +41,11 @@ class StoreIO(NumPredOps: Int,
 class UnTypStore(NumPredOps: Int,
                  NumSuccOps: Int,
                  NumOuts: Int = 1,
-                 Typ: UInt = MT_W, ID: Int, RouteID: Int, Debug:Boolean = false)
+                 Typ: UInt = MT_W, ID: Int, RouteID: Int, Debug: Boolean = false)
                 (implicit p: Parameters,
                  name: sourcecode.Name,
                  file: sourcecode.File)
-  extends HandShaking(NumPredOps, NumSuccOps, NumOuts, ID, Debug )(new DataBundle)(p) {
+  extends HandShaking(NumPredOps, NumSuccOps, NumOuts, ID, Debug)(new DataBundle)(p) {
 
   // Set up StoreIO
   override lazy val io = IO(new StoreIO(NumPredOps, NumSuccOps, NumOuts, Debug))
@@ -144,6 +144,7 @@ class UnTypStore(NumPredOps: Int,
       when(io.memResp.valid) {
         ValidSucc()
         ValidOut()
+        state := s_Done
       }
     }
     is(s_Done) {
@@ -183,11 +184,10 @@ class UnTypStore(NumPredOps: Int,
       case everythingElse => {}
     }
   }
+
   def isDebug(): Boolean = {
     Debug
   }
 
 }
-
-
 
