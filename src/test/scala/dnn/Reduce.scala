@@ -13,7 +13,7 @@ class ReduceCompTests(df: ReduceNode[matNxN])
   poke(df.io.enable.valid, true)
   poke(df.io.enable.bits.control, true)
 
-  poke(df.io.LeftIO.bits.data, 0x04030201L)
+  poke(df.io.LeftIO.bits.data, 0x04FE0201L)
   poke(df.io.LeftIO.valid, true)
   poke(df.io.LeftIO.bits.predicate, true)
 
@@ -53,7 +53,7 @@ class ReduceCompTester extends FlatSpec with Matchers {
   implicit val p = config.Parameters.root((new Mat_VecConfig).toInstance)
   it should "Typ Compute Tester" in {
     chisel3.iotesters.Driver.execute(Array("--backend-name", "verilator", "--target-dir", "test_run_dir"),
-      () => new ReduceNode(NumOuts = 1, ID = 0, false, "Mul")(new matNxN(2))) {
+      () => new ReduceNode(NumOuts = 1, ID = 0, false, "Mul")(new matNxN(2, issign = true))) {
       c => new ReduceCompTests(c)
     } should be(true)
 

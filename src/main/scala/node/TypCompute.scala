@@ -40,7 +40,7 @@ class vecN(val N: Int, val isCol: Int = 0, val issign : Boolean = false)(implici
     x
   }
 
-  override def cloneType = new vecN(N).asInstanceOf[this.type]
+  override def cloneType = new vecN(N,isCol,issign).asInstanceOf[this.type]
 
 }
 

@@ -46,7 +46,11 @@ object OperatorReduction {
   implicit object matNxN_UInt extends OperatorReduction[matNxN] {
     def magic(l: matNxN, start: Bool, pipelined: Boolean, opcode: String)(implicit p: Parameters): (UInt, Int) = {
       val flatvec = l.toVecUInt( )
-      val FU      = Module(new NCycle_Reduction(l.data(0)(0), flatvec.length, pipelined = pipelined, opcode = opcode))
+      val FU = if (!l.issign) {
+        Module(new NCycle_Reduction(l.data(0)(0), flatvec.length, pipelined = pipelined, opcode))
+      } else {
+        Module(new NCycle_Reduction(SInt(l.data(0)(0).getWidth.W), flatvec.length, pipelined = pipelined, opcode))
+      }
       FU.io.activate := start
       flatvec zip FU.io.input_vec foreach { case (a, b) => b := a }
       (FU.io.output, FU.latency( ))
@@ -56,7 +60,11 @@ object OperatorReduction {
   implicit object vecN_UInt extends OperatorReduction[vecN] {
     def magic(l: vecN, start: Bool, pipelined: Boolean, opcode: String)(implicit p: Parameters): (UInt, Int) = {
       val flatvec = l.toVecUInt( )
-      val FU      = Module(new NCycle_Reduction(l.data(0), flatvec.length, pipelined = pipelined, opcode = opcode))
+      val FU = if (!l.issign) {
+        Module(new NCycle_Reduction(l.data(0), flatvec.length, pipelined = pipelined, opcode))
+      } else {
+        Module(new NCycle_Reduction(SInt(l.data(0)(0).getWidth.W), flatvec.length, pipelined = pipelined, opcode))
+      }
       FU.io.activate := start
       flatvec zip FU.io.input_vec foreach { case (a, b) => b := a }
       (FU.io.output, FU.latency( ))

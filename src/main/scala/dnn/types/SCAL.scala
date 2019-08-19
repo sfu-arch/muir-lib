@@ -102,7 +102,11 @@ object OperatorSCAL {
     def magic(l: vecN, r: UInt, start: Bool, lanes: Int, opcode: String)(implicit p: Parameters): (vecN, Int) = {
       val x       = Wire(l.cloneType)
       val flatvec = l.toVecUInt( )
-      val FU      = Module(new NCycle_SCAL(l.data(0), flatvec.length, lanes = lanes, opcode))
+      val FU = if (!l.issign) {
+        Module(new NCycle_SCAL(l.data(0), flatvec.length, lanes = lanes, opcode))
+      } else {
+        Module(new NCycle_SCAL(SInt(l.data(0).getWidth.W), flatvec.length, lanes = lanes, opcode))
+      }
       FU.io.activate := start
       flatvec zip FU.io.input_vec foreach { case (a, b) => b := a }
       FU.io.scalar := r

@@ -76,7 +76,11 @@ object OperatorDot {
       val x        = Wire(l.cloneType)
       val leftvec  = l.toVecUInt( )
       val rightvec = r.toVecUInt( )
-      val FU       = Module(new NCycle_Dot(l.data(0)(0), leftvec.length, lanes = lanes, opcode))
+      val FU = if (!l.issign) {
+        Module(new NCycle_Dot(l.data(0)(0), leftvec.length, lanes = lanes, opcode))
+      } else {
+        Module(new NCycle_Dot(SInt(l.data(0)(0).getWidth.W), leftvec.length, lanes = lanes, opcode))
+      }
       FU.io.activate := start
       leftvec zip FU.io.input_left_vec foreach { case (a, b) => b := a }
       rightvec zip FU.io.input_right_vec foreach { case (a, b) => b := a }
@@ -100,7 +104,11 @@ object OperatorDot {
       val x        = Wire(l.cloneType)
       val leftvec  = l.toVecUInt( )
       val rightvec = r.toVecUInt( )
-      val FU       = Module(new NCycle_Dot(l.data(0), leftvec.length, lanes = lanes, opcode))
+      val FU = if (!l.issign) {
+        Module(new NCycle_Dot(l.data(0), leftvec.length, lanes = lanes, opcode))
+      } else {
+        Module(new NCycle_Dot(SInt(l.data(0).getWidth.W), leftvec.length, lanes = lanes, opcode))
+      }
       FU.io.activate := start
       leftvec zip FU.io.input_left_vec foreach { case (a, b) => b := a }
       rightvec zip FU.io.input_right_vec foreach { case (a, b) => b := a }
