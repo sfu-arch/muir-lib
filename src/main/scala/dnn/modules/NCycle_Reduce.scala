@@ -68,16 +68,16 @@ class NCycle_Reduction[T <: Data : TwoOperand.OperatorTwoOperand](val gen: T, va
   io.stat := input_steps.value
 
 
-  for (i <- 0 until N-1) {
-    PEs(i).io.left.bits := io.input_vec(i+1)
+  for (i <- 0 until N - 1) {
+    PEs(i).io.left.bits := io.input_vec(i + 1)
     PEs(i).io.left.valid := true.B
   }
 
   PEs.drop(1) zip PE_reg_or_wire map {
-      case (current, prev) => {
-        current.io.right.bits := prev._1
-        current.io.right.valid := prev._2
-      }
+    case (current, prev) => {
+      current.io.right.bits := prev._1
+      current.io.right.valid := prev._2
+    }
   }
 
 
@@ -105,7 +105,7 @@ class NCycle_Reduction[T <: Data : TwoOperand.OperatorTwoOperand](val gen: T, va
   //  printf(p"1.U, 1.U ${
   //    Hexadecimal(PEs(0).io.out.bits)
   //  }")
-  val output_reg = RegInit(0.U(xlen.W))
+  val output_reg   = RegInit(0.U(xlen.W))
   val output_valid = RegNext(PEs(N - 2).io.out.valid)
   when(PEs(N - 2).io.out.valid) {
     output_reg := PEs(N - 2).io.out.bits

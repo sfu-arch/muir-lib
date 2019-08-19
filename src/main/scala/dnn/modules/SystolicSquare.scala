@@ -223,7 +223,7 @@ class SystolicSquareBuffered[T <: Data : MAC.OperatorMAC](gen: T, val N: Int)(im
     when(input_steps.value === ((3 * N) - 2).U) {
       state := s_idle
     }
-  }.otherwise{
+  }.otherwise {
     io.output.valid := false.B
   }
 

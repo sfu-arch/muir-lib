@@ -18,42 +18,15 @@ import node._
 import utility.UniformPrintfs
 
 
-////
-class TwoOperand_PE_IO(implicit p: Parameters) extends CoreBundle( )(p) {
-  // LeftIO: Left input data for computation
-  val left = Input(Valid(UInt(xlen.W)))
-
-  // RightIO: Right input data for computation
-  val right = Input(Valid(UInt(xlen.W)))
-
-  val out = Output(Valid(UInt(xlen.W)))
-
-}
-
-
-class TwoOperand_PE[T <: Data : TwoOperand.OperatorTwoOperand](gen: T, opcode: String)(implicit val p: Parameters)
-  extends Module with CoreParams with UniformPrintfs {
-  val io = IO(new TwoOperand_PE_IO( ))
-
-  io.out.valid := false.B
-  io.out.bits := TwoOperand.binaryop(io.left.bits.asTypeOf(gen), io.right.bits.asTypeOf(gen), opcode).asUInt
-
-  when(io.left.valid & io.right.valid) {
-    io.out.valid := true.B
-  }
-
-}
-
-
-class NCycle_SCAL[T <: Data : TwoOperand.OperatorTwoOperand](val gen: T, val N: Int, val lanes: Int, val opcode: String)(implicit val p: Parameters)
+class NCycle_Dot[T <: Data : TwoOperand.OperatorTwoOperand](val gen: T, val N: Int, val lanes: Int, val opcode: String)(implicit val p: Parameters)
   extends Module with CoreParams with UniformPrintfs {
   val io = IO(new Bundle {
-    val input_vec = Input(Vec(N, UInt(xlen.W)))
-    val scalar    = Input(UInt(xlen.W))
-    val activate  = Input(Bool( ))
-    val stat      = Output(UInt(xlen.W))
-    val valid     = Output(Bool( ))
-    val output    = Output(Vec(lanes, UInt(xlen.W)))
+    val input_left_vec  = Input(Vec(N, UInt(xlen.W)))
+    val input_right_vec = Input(Vec(N, UInt(xlen.W)))
+    val activate        = Input(Bool( ))
+    val stat            = Output(UInt(xlen.W))
+    val valid           = Output(Bool( ))
+    val output          = Output(Vec(lanes, UInt(xlen.W)))
   })
 
   require(gen.getWidth == xlen, "Size of element does not match xlen OR Size of vector does not match shape")
@@ -85,20 +58,32 @@ class NCycle_SCAL[T <: Data : TwoOperand.OperatorTwoOperand](val gen: T, val N: 
     }
   }
 
-  val io_inputs = for (i <- 0 until lanes) yield {
+  val left_inputs = for (i <- 0 until lanes) yield {
     for (j <- 0 until N / lanes) yield {
-      j.U -> io.input_vec(i + j * lanes)
+      j.U -> io.input_left_vec(i + j * lanes)
     }
   }
 
-  val input_muxes = for (i <- 0 until lanes) yield {
-    val mx = MuxLookup(input_steps.value, 0.U, io_inputs(i))
+  val right_inputs = for (i <- 0 until lanes) yield {
+    for (j <- 0 until N / lanes) yield {
+      j.U -> io.input_right_vec(i + j * lanes)
+    }
+  }
+
+  val left_muxes = for (i <- 0 until lanes) yield {
+    val mx = MuxLookup(input_steps.value, 0.U, left_inputs(i))
     mx
   }
 
+  val right_muxes = for (i <- 0 until lanes) yield {
+    val mx = MuxLookup(input_steps.value, 0.U, right_inputs(i))
+    mx
+  }
+
+
   for (i <- 0 until lanes) {
-    PEs(i).io.left.bits := input_muxes(i)
-    PEs(i).io.right.bits := io.scalar
+    PEs(i).io.left.bits := left_muxes(i)
+    PEs(i).io.right.bits := right_muxes(i)
     PEs(i).io.left.valid := false.B
     PEs(i).io.right.valid := false.B
   }
@@ -110,6 +95,10 @@ class NCycle_SCAL[T <: Data : TwoOperand.OperatorTwoOperand](val gen: T, val N: 
     }
   }
 
+  //printf(p"\n ${input_steps.value}")
+  //  printf(p"1.U, 1.U ${
+  //    Hexadecimal(PEs(0).io.out.bits)
+  //  }")
   for (i <- 0 until lanes) {
     io.output(i) <> PEs(i).io.out.bits
     when(state === s_idle) {

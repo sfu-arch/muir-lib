@@ -20,8 +20,8 @@ class SystolicBaseTests(df: SystolicSquareBuffered[UInt])(implicit p: config.Par
   step(1)
   poke(df.io.activate, false.B)
   step(1)
-  for(i <- 0 until 10){
-    if(peek(df.io.output.valid) == 1){
+  for (i <- 0 until 10) {
+    if (peek(df.io.output.valid) == 1) {
       for (i <- 0 until df.N * df.N) {
         print(peek(df.io.output.bits(i)) + ",")
       }
@@ -59,42 +59,41 @@ class SystolicTestStream(df: SystolicSquareWrapper[UInt])(implicit p: config.Par
 
   step(1)
   var cnt = 0
-  for( data <- data_input){
-    if(peek(df.io.input_data.ready) == 1){
+  for (data <- data_input) {
+    if (peek(df.io.input_data.ready) == 1) {
 
-      if(cnt == 0) {
-        poke(df.io.input_sop,true)
-      }else {
-        poke(df.io.input_sop,false)
+      if (cnt == 0) {
+        poke(df.io.input_sop, true)
+      } else {
+        poke(df.io.input_sop, false)
       }
-      if(cnt == (data_input.size - 1)) {
-        poke(df.io.input_eop,true)
-      }else {
-        poke(df.io.input_eop,false)
+      if (cnt == (data_input.size - 1)) {
+        poke(df.io.input_eop, true)
+      } else {
+        poke(df.io.input_eop, false)
       }
 
       cnt = cnt + 1
       poke(df.io.input_data.bits, data)
       poke(df.io.input_data.valid, true)
       step(1)
-    }else{
+    } else {
       println("ERROR")
     }
   }
-  poke(df.io.input_eop,false)
-  poke(df.io.input_sop,false)
+  poke(df.io.input_eop, false)
+  poke(df.io.input_sop, false)
   poke(df.io.input_data.valid, false)
 
 
-
-  while( peek(df.io.output.valid) == 0){
+  while (peek(df.io.output.valid) == 0) {
     step(1)
   }
 
   println("Printing output")
 
   //while ( peek(df.io.output.valid) == 1){
-  for(i <- 0 to 9){
+  for (i <- 0 to 9) {
     println(s"Output: ${peek(df.io.output.bits)}")
     step(1)
   }
@@ -111,8 +110,8 @@ class Systolic_Tester extends FlatSpec with Matchers {
     } should be(true)
 
     //chisel3.iotesters.Driver.execute(Array("--backend-name", "verilator", "--target-dir", "test_run_dir"),
-      //() => new SystolicBLAS(UInt(p(XLEN).W), 3, 3, 1)) {
-      //c => new SystolicTests(c)
+    //() => new SystolicBLAS(UInt(p(XLEN).W), 3, 3, 1)) {
+    //c => new SystolicTests(c)
     //} should be(true)
   }
 }
@@ -126,8 +125,8 @@ class SystolicWrapper_Tester extends FlatSpec with Matchers {
     } should be(true)
 
     //chisel3.iotesters.Driver.execute(Array("--backend-name", "verilator", "--target-dir", "test_run_dir"),
-      //() => new SystolicBLAS(UInt(p(XLEN).W), 3, 3, 1)) {
-      //c => new SystolicTests(c)
+    //() => new SystolicBLAS(UInt(p(XLEN).W), 3, 3, 1)) {
+    //c => new SystolicTests(c)
     //} should be(true)
   }
 }

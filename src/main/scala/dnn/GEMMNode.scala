@@ -42,8 +42,6 @@ class SatCounterModule(n: Int) extends Module {
 }
 
 
-
-
 class GEMMFU[T <: Shapes : OperatorGEMM](operand: => T)(implicit val p: Parameters) extends Module {
   val io = IO(new Bundle {
     val a = Flipped(Valid(operand))

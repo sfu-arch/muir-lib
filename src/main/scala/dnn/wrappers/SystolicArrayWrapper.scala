@@ -24,38 +24,38 @@ class SystolicSquareWrapper[T <: Data : MAC.OperatorMAC](gen: T, val N: Int)(imp
   extends Module with CoreParams with UniformPrintfs {
   val io = IO(new Bundle {
     val input_data = Flipped(Decoupled(UInt(xlen.W)))
-    val input_sop = Input(Bool())
-    val input_eop = Input(Bool())
+    val input_sop  = Input(Bool( ))
+    val input_eop  = Input(Bool( ))
 
-    val output = Decoupled(UInt(xlen.W))
-    val output_sop = Output(Bool())
-    val output_eop = Output(Bool())
+    val output     = Decoupled(UInt(xlen.W))
+    val output_sop = Output(Bool( ))
+    val output_eop = Output(Bool( ))
   })
 
   val s_idle :: s_read :: s_execute :: s_write :: Nil = Enum(4)
-  val state = RegInit(s_idle)
+  val state                                           = RegInit(s_idle)
 
-  val ScratchPad_input  = RegInit(VecInit(Seq.fill(2*N*N)(0.U(xlen.W))))
-  val ScratchPad_output = RegInit(VecInit(Seq.fill(N*N)((0.U(xlen.W)))))
+  val ScratchPad_input  = RegInit(VecInit(Seq.fill(2 * N * N)(0.U(xlen.W))))
+  val ScratchPad_output = RegInit(VecInit(Seq.fill(N * N)((0.U(xlen.W)))))
 
-  val input_counter  = Counter(2*N*N)
-  val output_counter = Counter(N*N)
+  val input_counter  = Counter(2 * N * N)
+  val output_counter = Counter(N * N)
 
   val PE = Module(new SystolicSquareBuffered(UInt(p(XLEN).W), 3))
 
 
-  for( i <- 0 until 2 * N * N){
-    if(i < N * N){
+  for (i <- 0 until 2 * N * N) {
+    if (i < N * N) {
       PE.io.left(i) := ScratchPad_input(i)
-    }else{
+    } else {
       PE.io.right(i - (N * N)) := ScratchPad_input(i)
     }
   }
 
-  (ScratchPad_output zip PE.io.output.bits).foreach{ case (mem, pe_out) => mem := Mux(PE.io.output.valid, pe_out, mem)}
+  (ScratchPad_output zip PE.io.output.bits).foreach { case (mem, pe_out) => mem := Mux(PE.io.output.valid, pe_out, mem) }
 
   io.input_data.ready := ((state === s_idle) || (state === s_read))
-  PE.io.activate := Mux(input_counter.value === ((2*N*N) - 1).U, true.B, false.B)
+  PE.io.activate := Mux(input_counter.value === ((2 * N * N) - 1).U, true.B, false.B)
   PE.io.async_reset := false.B
   io.output.bits := 0.U
   io.output.valid := false.B
@@ -63,47 +63,47 @@ class SystolicSquareWrapper[T <: Data : MAC.OperatorMAC](gen: T, val N: Int)(imp
   io.output_sop := false.B
   io.output_eop := false.B
 
-  switch(state){
+  switch(state) {
     is(s_idle) {
       when(io.input_data.fire) {
         state := s_read
       }
     }
-    is(s_read){
-      when(input_counter.value === ((2*N*N) - 1).U ){
+    is(s_read) {
+      when(input_counter.value === ((2 * N * N) - 1).U) {
         state := s_execute
-      }.otherwise{
+      }.otherwise {
         ScratchPad_input(input_counter.value) := io.input_data.bits
-        input_counter.inc()
+        input_counter.inc( )
       }
     }
-    is(s_execute){
-      when(PE.io.output.valid){
+    is(s_execute) {
+      when(PE.io.output.valid) {
         state := s_write
       }
     }
-    is(s_write){
+    is(s_write) {
       io.output.valid := true.B
       io.output.bits := ScratchPad_output(output_counter.value)
       //io.output.bits := output_counter.value
       //end-of-packet signal
-      when(output_counter.value === ((N*N) - 1).U){
+      when(output_counter.value === ((N * N) - 1).U) {
         io.output_eop := true.B
-      }.otherwise{
+      }.otherwise {
         io.output_eop := false.B
       }
 
       //start-of-packet signal
       when(output_counter.value === 0.U) {
         io.output_sop := true.B
-      }.otherwise{
+      }.otherwise {
         io.output_sop := false.B
       }
-      when(output_counter.value === ((N*N) - 1).U){
+      when(output_counter.value === ((N * N) - 1).U) {
         state := s_idle
-      }.otherwise{
-        when(io.output.fire){
-          output_counter.inc()
+      }.otherwise {
+        when(io.output.fire) {
+          output_counter.inc( )
         }
       }
     }
@@ -120,12 +120,12 @@ object SystolicSquareWrapperMain extends App {
   implicit val p = config.Parameters.root((new MiniConfig).toInstance)
   val chirrtl = firrtl.Parser.parse(chisel3.Driver.emit(() => new SystolicSquareWrapper(UInt(p(XLEN).W), 3)))
 
-//  () => new SystolicSquareWrapper(UInt(p(XLEN).W), 3)
+  //  () => new SystolicSquareWrapper(UInt(p(XLEN).W), 3)
 
-  val verilogFile = new File(dir, s"${chirrtl.main}.v")
+  val verilogFile   = new File(dir, s"${chirrtl.main}.v")
   val verilogWriter = new FileWriter(verilogFile)
   val compileResult = (new firrtl.VerilogCompiler).compileAndEmit(firrtl.CircuitState(chirrtl, firrtl.ChirrtlForm))
   val compiledStuff = compileResult.getEmittedCircuit
   verilogWriter.write(compiledStuff.value)
-  verilogWriter.close()
+  verilogWriter.close( )
 }

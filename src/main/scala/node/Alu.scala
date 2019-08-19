@@ -187,10 +187,10 @@ class UALU(val xlen: Int, val opCode: String, val issign: Boolean = false) exten
       AluOpCode.Or -> (in1S | in2S),
       AluOpCode.Xor -> (in1S ^ in2S),
       AluOpCode.Xnor -> (~(in1S ^ in2S)),
-      AluOpCode.ShiftLeft -> (in1S << in2S(8, 0)),
-      AluOpCode.ShiftRight -> (in1S >> in2S(8, 0)),
-      AluOpCode.ShiftRightLogical -> (in1S.asUInt >> in2S(8, 0)).asUInt, // Chisel only performs arithmetic right-shift on SInt
-      AluOpCode.ShiftRightArithmetic -> (in1S.asSInt >> in2S(8, 0)).asUInt, // Chisel only performs arithmetic right-shift on SInt
+      AluOpCode.ShiftLeft -> (in1S << in2S(7, 0)),
+      AluOpCode.ShiftRight -> (in1S >> in2S(7, 0)),
+      AluOpCode.ShiftRightLogical -> (in1S.asUInt >> in2S(7, 0)).asUInt, // Chisel only performs arithmetic right-shift on SInt
+      AluOpCode.ShiftRightArithmetic -> (in1S.asSInt >> in2S(7, 0)).asUInt, // Chisel only performs arithmetic right-shift on SInt
       AluOpCode.LT -> (io.in1.asSInt < io.in2.asSInt),
       AluOpCode.GT -> (io.in1.asSInt < io.in2.asSInt),
       AluOpCode.EQ -> (io.in1.asSInt === io.in2.asSInt),

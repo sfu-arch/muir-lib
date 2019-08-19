@@ -13,12 +13,12 @@ class GEMMCompTests(df: GEMMNode[matNxN])
   poke(df.io.enable.valid, true)
   poke(df.io.enable.bits.control, true)
 
-  poke(df.io.LeftIO.bits.data, 0x01010101L)
+  poke(df.io.LeftIO.bits.data, 0x01020304L)
   poke(df.io.LeftIO.valid, true)
   poke(df.io.LeftIO.bits.predicate, true)
 
 
-  poke(df.io.RightIO.bits.data, 0x02020202L)
+  poke(df.io.RightIO.bits.data, 0x04030201L)
   poke(df.io.RightIO.valid, true)
   poke(df.io.RightIO.bits.predicate, true)
 

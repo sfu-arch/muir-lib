@@ -35,49 +35,49 @@ import dnn._
   * other modules such as Compute.
   */
 class Load(debug: Boolean = false)(implicit p: Parameters) extends Module {
-  val mp = p(ShellKey).memParams
-  val io = IO(new Bundle {
-    val i_post = Input(Bool())
-    val o_post = Output(Bool())
-    val inst = Flipped(Decoupled(UInt(INST_BITS.W)))
+  val mp                            = p(ShellKey).memParams
+  val io                            = IO(new Bundle {
+    val i_post    = Input(Bool( ))
+    val o_post    = Output(Bool( ))
+    val inst      = Flipped(Decoupled(UInt(INST_BITS.W)))
     val inp_baddr = Input(UInt(mp.addrBits.W))
     val wgt_baddr = Input(UInt(mp.addrBits.W))
-    val vme_rd = Vec(2, new VMEReadMaster)
-    val inp = new TensorClient(tensorType = "inp")
-    val wgt = new TensorClient(tensorType = "wgt")
+    val vme_rd    = Vec(2, new VMEReadMaster)
+    val inp       = new TensorClient(tensorType = "inp")
+    val wgt       = new TensorClient(tensorType = "wgt")
   })
   val sIdle :: sSync :: sExe :: Nil = Enum(3)
-  val state = RegInit(sIdle)
+  val state                         = RegInit(sIdle)
 
-  val s = Module(new Semaphore(counterBits = 8, counterInitValue = 0))
+  val s      = Module(new Semaphore(counterBits = 8, counterInitValue = 0))
   val inst_q = Module(new Queue(UInt(INST_BITS.W), p(CoreKey).instQueueEntries))
 
   val dec = Module(new LoadDecode)
   dec.io.inst := inst_q.io.deq.bits
 
   val tensorType = Seq("inp", "wgt")
-  val tensorDec = Seq(dec.io.isInput, dec.io.isWeight)
+  val tensorDec  = Seq(dec.io.isInput, dec.io.isWeight)
   val tensorLoad = Seq.tabulate(2)(i => Module(new TensorLoad(tensorType = tensorType(i))))
 
   val start = inst_q.io.deq.valid & Mux(dec.io.pop_next, s.io.sready, true.B)
-  val done = Mux(dec.io.isInput, tensorLoad(0).io.done, tensorLoad(1).io.done)
+  val done  = Mux(dec.io.isInput, tensorLoad(0).io.done, tensorLoad(1).io.done)
 
   // control
-  switch (state) {
-    is (sIdle) {
-      when (start) {
-        when (dec.io.isSync) {
+  switch(state) {
+    is(sIdle) {
+      when(start) {
+        when(dec.io.isSync) {
           state := sSync
-        } .elsewhen (dec.io.isInput || dec.io.isWeight) {
+        }.elsewhen(dec.io.isInput || dec.io.isWeight) {
           state := sExe
         }
       }
     }
-    is (sSync) {
+    is(sSync) {
       state := sIdle
     }
-    is (sExe) {
-      when (done) {
+    is(sExe) {
+      when(done) {
         state := sIdle
       }
     }
@@ -90,7 +90,7 @@ class Load(debug: Boolean = false)(implicit p: Parameters) extends Module {
   // load tensor
   // [0] input (inp)
   // [1] weight (wgt)
-  val ptr = Seq(io.inp_baddr, io.wgt_baddr)
+  val ptr  = Seq(io.inp_baddr, io.wgt_baddr)
   val tsor = Seq(io.inp, io.wgt)
   for (i <- 0 until 2) {
     tensorLoad(i).io.start := state === sIdle & start & tensorDec(i)
@@ -108,24 +108,24 @@ class Load(debug: Boolean = false)(implicit p: Parameters) extends Module {
   // debug
   if (debug) {
     // start
-    when (state === sIdle && start) {
-      when (dec.io.isSync) {
+    when(state === sIdle && start) {
+      when(dec.io.isSync) {
         printf("[Load] start sync\n")
-      } .elsewhen (dec.io.isInput) {
+      }.elsewhen(dec.io.isInput) {
         printf("[Load] start input\n")
-      } .elsewhen (dec.io.isWeight) {
+      }.elsewhen(dec.io.isWeight) {
         printf("[Load] start weight\n")
       }
     }
     // done
-    when (state === sSync) {
+    when(state === sSync) {
       printf("[Load] done sync\n")
     }
-    when (state === sExe) {
-      when (done) {
-        when (dec.io.isInput) {
+    when(state === sExe) {
+      when(done) {
+        when(dec.io.isInput) {
           printf("[Load] done input\n")
-        } .elsewhen (dec.io.isWeight) {
+        }.elsewhen(dec.io.isWeight) {
           printf("[Load] done weight\n")
         }
       }

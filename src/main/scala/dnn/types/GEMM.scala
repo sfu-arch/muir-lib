@@ -16,7 +16,6 @@ import node._
 import dnn._
 
 
-
 object GEMM {
 
   // Declare trait to encapsulate implicit functions
@@ -30,7 +29,7 @@ object GEMM {
     //    FX Operations
     implicit object FXmatNxN extends OperatorGEMM[FXmatNxN] {
       def multiplication(l: FXmatNxN, r: FXmatNxN, start: Bool)(implicit p: Parameters): (FXmatNxN, Int) = {
-        val x = Wire(new FXmatNxN(l.N, l.fraction))
+        val x    = Wire(new FXmatNxN(l.N, l.fraction))
         val GEMM = Module(new SystolicSquare(l.data(0)(0).cloneType, l.N))
         GEMM.io.activate := start
         l.toVecUInt( ) zip GEMM.io.left foreach { case (a, b) => b := a }
@@ -42,7 +41,7 @@ object GEMM {
 
     implicit object matNxN extends OperatorGEMM[matNxN] {
       def multiplication(l: matNxN, r: matNxN, start: Bool)(implicit p: Parameters): (matNxN, Int) = {
-        val x = Wire(new matNxN(l.N))
+        val x    = Wire(new matNxN(l.N))
         val GEMM = Module(new SystolicSquare(l.data(0)(0).cloneType, l.N))
         GEMM.io.activate := start
         GEMM.io.async_reset := false.B
@@ -55,7 +54,7 @@ object GEMM {
 
     implicit object FPmatNxN extends OperatorGEMM[FPmatNxN] {
       def multiplication(l: FPmatNxN, r: FPmatNxN, start: Bool)(implicit p: Parameters): (FPmatNxN, Int) = {
-        val x = Wire(new FPmatNxN(l.N, l.Ftyp))
+        val x    = Wire(new FPmatNxN(l.N, l.Ftyp))
         val GEMM = Module(new SystolicSquare(new FloatingPoint(l.Ftyp), l.N))
         GEMM.io.activate := start
         GEMM.io.async_reset := false.B

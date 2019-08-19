@@ -13,7 +13,7 @@ class SCALCompTests(df: SCALNode[matNxN])
   poke(df.io.enable.valid, true)
   poke(df.io.enable.bits.control, true)
 
-  poke(df.io.LeftIO.bits.data, 0x02020202L)
+  poke(df.io.LeftIO.bits.data, 0xFEFEFEFEL)
   poke(df.io.LeftIO.valid, true)
   poke(df.io.LeftIO.bits.predicate, true)
 
@@ -28,7 +28,7 @@ class SCALCompTests(df: SCALNode[matNxN])
 
 
 class FXSCALCompTests(df: SCALNode[FXmatNxN])
-                   (implicit p: config.Parameters) extends PeekPokeTester(df) {
+                     (implicit p: config.Parameters) extends PeekPokeTester(df) {
   poke(df.io.enable.valid, true)
   poke(df.io.enable.bits.control, true)
   // 0x32 0011.0010 . Fixed point 3.125 in fixed point 4 BP.
@@ -64,23 +64,21 @@ class FPSCALCompTests(df: SCALNode[FPmatNxN])
 }
 
 
-
-
 class SCALCompTester extends FlatSpec with Matchers {
   implicit val p = config.Parameters.root((new Mat_VecConfig).toInstance)
   it should "Typ Compute Tester" in {
     chisel3.iotesters.Driver.execute(Array("--backend-name", "verilator", "--target-dir", "test_run_dir"),
-      () => new SCALNode(NumOuts = 1, ID = 0, 4, "Max")(new matNxN(2))) {
+      () => new SCALNode(NumOuts = 1, ID = 0, 1, "Add")(new matNxN(2, true))) {
       c => new SCALCompTests(c)
     } should be(true)
 
-    chisel3.iotesters.Driver.execute(Array("--backend-name", "verilator", "--target-dir", "test_run_dir"),
-      () => new SCALNode(NumOuts = 1, ID = 0, 4, "Mul")(new FXmatNxN(2,4))) {
-      c => new FXSCALCompTests(c)
-    } should be(true)
-    chisel3.iotesters.Driver.execute(Array("--backend-name", "verilator", "--target-dir", "test_run_dir"),
-      () => new SCALNode(NumOuts = 1, ID = 0, 4, "Mul")(new FPmatNxN(2, t = FType.M))) {
-      c => new FPSCALCompTests(c)
-    } should be(true)
+    //    chisel3.iotesters.Driver.execute(Array("--backend-name", "verilator", "--target-dir", "test_run_dir"),
+    //      () => new SCALNode(NumOuts = 1, ID = 0, 4, "Mul")(new FXmatNxN(2,4))) {
+    //      c => new FXSCALCompTests(c)
+    //    } should be(true)
+    //    chisel3.iotesters.Driver.execute(Array("--backend-name", "verilator", "--target-dir", "test_run_dir"),
+    //      () => new SCALNode(NumOuts = 1, ID = 0, 4, "Mul")(new FPmatNxN(2, t = FType.M))) {
+    //      c => new FPSCALCompTests(c)
+    //    } should be(true)
   }
 }

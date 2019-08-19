@@ -75,7 +75,7 @@ object OperatorGEMV {
     }
 
     def multiplication(l: FXmatNxN, r: FXvecN)(implicit p: Parameters): FXvecN = {
-      val x = Wire(new FXvecN(r.N, r.fraction))
+      val x        = Wire(new FXvecN(r.N, r.fraction))
       val products = for (i <- 0 until l.N) yield {
         for (j <- 0 until l.N) yield {
           l.data(i)(j) * r.data(j)
@@ -126,7 +126,7 @@ object OperatorGEMV {
     }
 
     def multiplication(l: matNxN, r: vecN)(implicit p: Parameters): vecN = {
-      val x = Wire(new vecN(l.N))
+      val x        = Wire(new vecN(l.N))
       val products = for (i <- 0 until l.N) yield {
         for (j <- 0 until l.N) yield {
           l.data(i)(j) * r.data(j)
@@ -154,7 +154,7 @@ object GEMV_fns {
   def getfns(l: => Shapes, r: => Shapes)(implicit p: Parameters): Array[(Int, Shapes)] = {
     val lclass = l.getClass.getSimpleName
     val rclass = r.getClass.getSimpleName
-    val parse = "(.*)(mat|vec|Bit)([a-zA-Z]*)".r
+    val parse  = "(.*)(mat|vec|Bit)([a-zA-Z]*)".r
 
     val parse(ltype, lshape, lsize) = lclass
     val parse(rtype, rshape, rsize) = rclass

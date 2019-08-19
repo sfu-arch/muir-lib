@@ -30,13 +30,17 @@ import chisel3.util._
   * hazards.
   */
 class Semaphore(counterBits: Int = 1, counterInitValue: Int = 1) extends Module {
-  val io = IO(new Bundle {
-    val spost = Input(Bool())
-    val swait = Input(Bool())
-    val sready = Output(Bool())
+  val io  = IO(new Bundle {
+    val spost  = Input(Bool( ))
+    val swait  = Input(Bool( ))
+    val sready = Output(Bool( ))
   })
   val cnt = RegInit(counterInitValue.U(counterBits.W))
-  when (io.spost && !io.swait && cnt =/= ((1 << counterBits) - 1).asUInt) { cnt := cnt + 1.U }
-  when (!io.spost && io.swait && cnt =/= 0.U) { cnt := cnt - 1.U }
+  when(io.spost && !io.swait && cnt =/= ((1 << counterBits) - 1).asUInt) {
+    cnt := cnt + 1.U
+  }
+  when(!io.spost && io.swait && cnt =/= 0.U) {
+    cnt := cnt - 1.U
+  }
   io.sready := cnt =/= 0.U
 }

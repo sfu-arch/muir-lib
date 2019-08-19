@@ -19,10 +19,10 @@ class SCALFU[L <: Shapes : OperatorSCAL](left: => L, lanes: Int, opCode: String)
 
 
   val start = io.a.valid && io.b.valid
-  val FU = OperatorSCAL.magic(io.a.bits,io.b.bits, io.a.valid & io.b.valid, lanes, opCode)
+  val FU    = OperatorSCAL.magic(io.a.bits, io.b.bits, io.a.valid & io.b.valid, lanes, opCode)
   io.o.bits := FU._1
   val latency = FU._2
-  val latCnt = Module(new SatCounterModule(latency))
+  val latCnt  = Module(new SatCounterModule(latency))
   latCnt.io.start := start
   io.o.valid := latCnt.io.wrap
 }
@@ -101,7 +101,7 @@ class SCALNode[L <: Shapes : OperatorSCAL](NumOuts: Int, ID: Int, lanes: Int, op
  *            ACTIONS (possibly dangerous)    *
  *============================================*/
 
-  val FU = Module(new SCALFU(left,lanes,opCode))
+  val FU = Module(new SCALFU(left, lanes, opCode))
   FU.io.a.bits := (left_R.data).asTypeOf(left)
   FU.io.b.bits := (right_R.data)
 
@@ -141,7 +141,7 @@ class SCALNode[L <: Shapes : OperatorSCAL](NumOuts: Int, ID: Int, lanes: Int, op
   }
 
 
-//  printf(p"\n State : ${state} Predicate ${predicate} Left ${left_R} Right ${right_R} Output: ${data_R}")
+  printf(p"\n State : ${state} Predicate ${predicate} Left ${left_R} Right ${right_R} Output: ${data_R}")
 
   var classname: String = (left.getClass).toString
   var signed            = "S"

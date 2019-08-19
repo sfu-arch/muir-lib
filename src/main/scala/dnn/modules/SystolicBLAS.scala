@@ -31,7 +31,7 @@ class SystolicBLAS[T <: Data : MAC.OperatorMAC](gen: T, val M: Int, val K: Int, 
 
   def latency(): Int = {
     val tallorwide = if (M < N) M else N
-    val latency = 2 * K + tallorwide - 1
+    val latency    = 2 * K + tallorwide - 1
     latency
   }
 

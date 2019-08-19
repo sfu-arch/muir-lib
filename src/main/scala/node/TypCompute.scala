@@ -23,7 +23,7 @@ abstract class Shapes(implicit p: Parameters) extends CoreBundle( )(p) {
 }
 
 
-class vecN(val N: Int, val isCol: Int = 0)(implicit p: Parameters) extends Shapes {
+class vecN(val N: Int, val isCol: Int = 0, val issign : Boolean = false)(implicit p: Parameters) extends Shapes {
   val data = Vec(N, UInt(xlen.W))
 
   def fromVecUInt(input: Vec[UInt]) = {
@@ -44,7 +44,7 @@ class vecN(val N: Int, val isCol: Int = 0)(implicit p: Parameters) extends Shape
 
 }
 
-class matNxN(val N: Int)(implicit p: Parameters) extends Shapes {
+class matNxN(val N: Int = 0, val issign : Boolean = false)(implicit p: Parameters) extends Shapes {
   val data = Vec(N, Vec(N, UInt(xlen.W)))
 
   def fromVecUInt(input: Vec[UInt]) = {
@@ -61,7 +61,7 @@ class matNxN(val N: Int)(implicit p: Parameters) extends Shapes {
     x
   }
 
-  override def cloneType = new matNxN(N).asInstanceOf[this.type]
+  override def cloneType = new matNxN(N,issign).asInstanceOf[this.type]
 }
 
 
