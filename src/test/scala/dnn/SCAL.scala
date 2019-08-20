@@ -32,12 +32,12 @@ class FXSCALCompTests(df: SCALNode[FXmatNxN])
   poke(df.io.enable.valid, true)
   poke(df.io.enable.bits.control, true)
   // 0x32 0011.0010 . Fixed point 3.125 in fixed point 4 BP.
-  poke(df.io.LeftIO.bits.data, 0x49494949L)
+  poke(df.io.LeftIO.bits.data, 0x32323232L)
   poke(df.io.LeftIO.valid, true)
   poke(df.io.LeftIO.bits.predicate, true)
 
   // 0x32 (3.125) * 0x20 (2.0) = 6.25 (0x64 or 100)
-  poke(df.io.RightIO.bits.data, 0x40L)
+  poke(df.io.RightIO.bits.data, 0x20L)
   poke(df.io.RightIO.valid, true)
   poke(df.io.RightIO.bits.predicate, true)
 
@@ -67,15 +67,15 @@ class FPSCALCompTests(df: SCALNode[FPmatNxN])
 class SCALCompTester extends FlatSpec with Matchers {
   implicit val p = config.Parameters.root((new Mat_VecConfig).toInstance)
   it should "Typ Compute Tester" in {
-    chisel3.iotesters.Driver.execute(Array("--backend-name", "verilator", "--target-dir", "test_run_dir"),
-      () => new SCALNode(NumOuts = 1, ID = 0, 1, "Add")(new matNxN(2, true))) {
-      c => new SCALCompTests(c)
-    } should be(true)
-
     //    chisel3.iotesters.Driver.execute(Array("--backend-name", "verilator", "--target-dir", "test_run_dir"),
-    //      () => new SCALNode(NumOuts = 1, ID = 0, 4, "Mul")(new FXmatNxN(2,4))) {
-    //      c => new FXSCALCompTests(c)
+    //      () => new SCALNode(NumOuts = 1, ID = 0, 1, "Add")(new matNxN(2, true))) {
+    //      c => new SCALCompTests(c)
     //    } should be(true)
+
+    chisel3.iotesters.Driver.execute(Array("--backend-name", "verilator", "--target-dir", "test_run_dir"),
+      () => new SCALNode(NumOuts = 1, ID = 0, 4, "add")(new FXmatNxN(2, 4))) {
+      c => new FXSCALCompTests(c)
+    } should be(true)
     //    chisel3.iotesters.Driver.execute(Array("--backend-name", "verilator", "--target-dir", "test_run_dir"),
     //      () => new SCALNode(NumOuts = 1, ID = 0, 4, "Mul")(new FPmatNxN(2, t = FType.M))) {
     //      c => new FPSCALCompTests(c)

@@ -10,6 +10,59 @@ import dsptools.numbers.implicits._
 import dsptools.DspContext
 import dsptools.numbers.RealTrig
 
+trait OperatorResize[T] {
+  def halfwidth(l: T): T
+
+  def doublewidth(l: T): T
+}
+
+object OperatorResize {
+
+  implicit object UIntResize extends OperatorResize[UInt] {
+    def halfwidth(in: UInt): UInt = {
+      val x = Wire(UInt((in.getWidth / 2).W))
+      x := in
+      x
+    }
+
+    def doublewidth(in: UInt): UInt = {
+      val x = Wire(UInt((in.getWidth * 2).W))
+      x := Cat(0.U(in.getWidth), in(in.getWidth - 1, 0))
+      x
+    }
+  }
+
+  implicit object FXResize extends OperatorResize[FixedPoint] {
+    def halfwidth(in: FixedPoint): FixedPoint = {
+      val in_W    = in.getWidth
+      val in_BP   = in.binaryPoint.get
+      val x       = Wire(FixedPoint((in_W / 2).W, (in_BP / 2).BP))
+      val shifted = in.asUInt >> (in_BP - (in_BP / 2)).U
+      x := shifted.asFixedPoint(x.binaryPoint)
+      x
+    }
+
+    def doublewidth(in: FixedPoint): FixedPoint = {
+      val in_W    = in.getWidth
+      val in_BP   = in.binaryPoint.get
+      val out_W   = in_W * 2
+      val out_BP  = in_BP * 2
+      val in_UInt = in.asUInt
+      val x       = Wire(UInt(out_W.W))
+      x := Cat(Fill((out_W - 1) - (in_W + out_BP - in_BP) + 1, in_UInt(in_W - 1)), in_UInt << (out_BP - in_BP).U)
+      x.asFixedPoint(out_BP.BP)
+    }
+  }
+
+  def halfwidth[T](l: T)(implicit op: OperatorResize[T]): (T) = op.halfwidth(l)
+
+  def doublewidth[T](l: T)(implicit op: OperatorResize[T]): (T) = op.doublewidth(l)
+}
+
+abstract class Numbers() extends Bundle {
+
+}
+
 
 /**
   * List of compute operations which we can support
@@ -163,7 +216,7 @@ class UALU(val xlen: Int, val opCode: String, val issign: Boolean = false) exten
       AluOpCode.Xor -> (io.in1 ^ io.in2),
       AluOpCode.Xnor -> (~(io.in1 ^ io.in2)),
       AluOpCode.ShiftLeft -> (io.in1 << io.in2(math.min(in2S.getWidth - 1, 8), 0)),
-      AluOpCode.ShiftRight -> (io.in1 >> io.in2(math.min(in2S.getWidth - 1, 8) , 0)),
+      AluOpCode.ShiftRight -> (io.in1 >> io.in2(math.min(in2S.getWidth - 1, 8), 0)),
       AluOpCode.ShiftRightLogical -> (io.in1.asUInt >> io.in2(math.min(in2S.getWidth - 1, 8), 0)).asUInt, // Chisel only performs arithmetic right-shift on SInt
       AluOpCode.ShiftRightArithmetic -> (io.in1.asSInt >> io.in2(math.min(in2S.getWidth - 1, 8), 0)).asUInt, // Chisel only performs arithmetic right-shift on SInt
       AluOpCode.LT -> (io.in1.asUInt < io.in2.asUInt),

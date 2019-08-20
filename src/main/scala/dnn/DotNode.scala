@@ -19,7 +19,7 @@ class DotFU[gen <: Shapes : OperatorDot](left: => gen, lanes: Int, opCode: Strin
 
 
   val start = io.a.valid && io.b.valid
-  val FU    = OperatorDot.magic(io.a.bits, io.b.bits, io.a.valid & io.b.valid, lanes, opCode)
+  val FU    = OperatorDot.magic(io.a.bits, io.b.bits, start, lanes, opCode)
   io.o.bits := FU._1
   val latency = FU._2
   val latCnt  = Module(new SatCounterModule(latency))

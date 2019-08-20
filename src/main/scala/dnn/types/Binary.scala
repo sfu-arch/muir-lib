@@ -86,7 +86,7 @@ object TwoOperand {
         FXALU.io.in1 := l.asUInt
         FXALU.io.in2 := r.asUInt
         x := FXALU.io.out.asTypeOf(l)
-        printf("%x,%x,%x \n", l.asUInt, r.asUInt, FXALU.io.out)
+        //       printf("%x,%x,%x \n", l.asUInt, r.asUInt, FXALU.io.out)
         x
       }
     }
@@ -95,14 +95,12 @@ object TwoOperand {
     implicit object FixedPointTwoOperand extends OperatorTwoOperand[FixedPoint] {
       def binaryop(l: FixedPoint, r: FixedPoint, opcode: String)(implicit p: Parameters): FixedPoint = {
         val x     = Wire(l.cloneType)
-        val FXALU = Module(new DSPALU(FixedPoint(l.getWidth.W, l.binaryPoint), opcode))
+        //       val FXALU = Module(new DSPALU(FixedPoint(l.getWidth.W, l.binaryPoint), opcode))
+        val FXALU = Module(new DSPorCORDIC(l.getWidth, l.binaryPoint.get, opcode))
         FXALU.io.in1 := l
         FXALU.io.in2 := r
-        x := FXALU.io.out.asTypeOf(l)
+        x := FXALU.io.out //asTypeOf(l)
         //        printf("%x,%x,%x",l.asUInt,r.asUInt,FXALU.io.out)
-        // Uncomment if you do not have access to DSP tools and need to use chisel3.experimental FixedPoint. DSP tools provides implicit support for truncation.
-        //  val mul = ((l.data * r.data) >> l.fraction.U).asFixedPoint(l.fraction.BP)
-        // x.data := mul + c.data
         x
       }
     }

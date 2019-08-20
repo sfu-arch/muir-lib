@@ -119,3 +119,23 @@ class CORDICALU(val xlen: Int, val fraction: Int, val opCode: String) extends Mo
   io.out := op
   io.outUInt := op.asUInt
 }
+
+
+class DSPorCORDIC(val xlen: Int, val fraction: Int, val opCode: String) extends Module {
+  val io = IO(new CORDICIO(xlen, fraction, opCode))
+
+  if (!CORDICOpCode.opMap.contains(opCode)) {
+    val FU = Module(new DSPALU(FixedPoint(xlen.W, fraction.BP), opCode))
+    FU.io.in1 <> io.in1
+    FU.io.in2 <> io.in2
+    require(AluOpCode.DSPopMap(opCode) != AluOpCode.Mac, "You cannot use MAC in SCAL operator. MACs require 3 inputs. SCAL nodes only supply 2")
+    io.outUInt <> FU.io.out
+    io.out <> FU.io.out.asFixedPoint(fraction.BP)
+  } else {
+    val FU = Module(new CORDICALU(xlen = xlen, fraction = fraction, opCode))
+    FU.io.in1 <> io.in1
+    FU.io.in2 <> io.in2
+    io.out <> FU.io.out
+    io.outUInt <> FU.io.outUInt
+  }
+}

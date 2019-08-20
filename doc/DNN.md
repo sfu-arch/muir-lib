@@ -10,6 +10,21 @@ The low-level set of operators enables a set of hardware independent, but microa
 The low-level set of operators allow the hardware accelerator to create and optimize scatter/gather DMA operations. Hiding the latency of memory operations is important for utilizing the execution units of the hardware effectively, and the instruction-based representation allows the compiler to create a schedule that hides the latency of the memory operations.
 
 ---
+# Summary of Operators 
+
+| Node   | Inputs                            | Function Unit  | IsSign? | IsCol? | IsHalf? | Primitive     | CORDIC opcodes (Non-Synthesizable) |
+|--------|-----------------------------------|----------------|---------|--------|---------|---------------|------------------------------------|
+| GEMM   | mat, [][] * [][]                  | SystolicSquare | --      | --     | --      | mac           | ---                                |
+| GEMV   | mat, vec                          | GEMV Types     | ---     | Y      | --      | +,- (not ALU) | ---                                |
+| SCAL   | mat/vec, scalar                   | NCycle_SCAL    | Y       | ---    | ---     | TwoOperand_PE | Y                                  |
+| Dot    | mat, mat OR vec,vec e.g., [] . [] | NCycle_Dot     | Y       | ---    | ---     | TwoOperand_PE | ---                                |
+| Reduce | mat or vec (output: scalar)       | NCycle_Reduce  | Y       | ---    | ---     | TwoOperand_PE | ---                                |
+|        |                                   |                |         |        |         |               |                                    |
+Building CORDIC units can take a long time even for small designs (10+ minutes).
+
+### Future Plans
+1. Support for Half width ALUs
+
 
 # Design Overview
 
