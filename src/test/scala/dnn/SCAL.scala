@@ -60,7 +60,9 @@ class FPSCALCompTests(df: SCALNode[FPmatNxN])
   poke(df.io.RightIO.bits.predicate, true)
 
   poke(df.io.Out(0).ready, true.B)
-  step(20)
+
+  for (i <- 0 until 20)
+    step(1)
 }
 
 
@@ -73,7 +75,7 @@ class SCALCompTester extends FlatSpec with Matchers {
     //    } should be(true)
 
     chisel3.iotesters.Driver.execute(Array("--backend-name", "verilator", "--target-dir", "test_run_dir"),
-      () => new SCALNode(NumOuts = 1, ID = 0, 4, "add")(new FXmatNxN(2, 4))) {
+      () => new SCALNode(NumOuts = 1, ID = 0, 1, "sqrt")(new FXmatNxN(2, 4))) {
       c => new FXSCALCompTests(c)
     } should be(true)
     //    chisel3.iotesters.Driver.execute(Array("--backend-name", "verilator", "--target-dir", "test_run_dir"),

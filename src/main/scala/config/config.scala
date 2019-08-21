@@ -126,7 +126,7 @@ class Mat_VecConfig extends Config((site, here, up) => {
   case TYPSZ => 64
   case VERBOSITY => "low"
   //    case COMPONENTS => "TYPLOAD;TYPOP;TYPSTORE"
-  case COMPONENTS => ""
+  case COMPONENTS => "TYPOP"
   // Max size of type memory system may see
   case TRACE => true
   case CTRACE => false
@@ -173,8 +173,6 @@ class Mat_VecConfig extends Config((site, here, up) => {
 )
 
 
-
-
 /** PynqConfig. Shell configuration for Pynq */
 class PynqConfig extends Config((site, here, up) => {
   case ShellKey => ShellParams(
@@ -190,6 +188,6 @@ class PynqConfig extends Config((site, here, up) => {
       dataBits = 64,
       lenBits = 8,
       userBits = 1),
-    vcrParams = VCRParams(),
-    vmeParams = VMEParams())
+    vcrParams = VCRParams( ),
+    vmeParams = VMEParams( ))
 })

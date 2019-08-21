@@ -122,7 +122,7 @@ class ReduceNode[L <: Shapes : OperatorReduction](NumOuts: Int, ID: Int, pipelin
   }
 
 
-  printf(p"\n State : ${state} Predicate ${predicate} Left ${left_R} Output: ${data_R}")
+  printf(p"\n State : ${state} Output: ${data_R}")
 
   var classname: String = (left.getClass).toString
   var signed            = "S"

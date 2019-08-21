@@ -10,6 +10,7 @@ import dsptools.numbers.implicits._
 import dsptools.DspContext
 import dsptools.numbers.RealTrig
 
+
 trait OperatorResize[T] {
   def halfwidth(l: T): T
 
@@ -18,6 +19,7 @@ trait OperatorResize[T] {
 
 object OperatorResize {
 
+  // FIXME: Add SINT support.
   implicit object UIntResize extends OperatorResize[UInt] {
     def halfwidth(in: UInt): UInt = {
       val x = Wire(UInt((in.getWidth / 2).W))
@@ -32,12 +34,27 @@ object OperatorResize {
     }
   }
 
+  implicit object SIntResize extends OperatorResize[SInt] {
+    def halfwidth(in: SInt): SInt = {
+      val x = Wire(UInt((in.getWidth / 2).W))
+      x := in
+      x.asSInt
+    }
+
+    def doublewidth(in: SInt): SInt = {
+      val x = Wire(UInt((in.getWidth * 2).W))
+      x := Cat(Fill(in.getWidth, in(in.getWidth - 1)), in(in.getWidth - 1, 0))
+      x.asSInt
+    }
+  }
+
+
   implicit object FXResize extends OperatorResize[FixedPoint] {
     def halfwidth(in: FixedPoint): FixedPoint = {
       val in_W    = in.getWidth
       val in_BP   = in.binaryPoint.get
       val x       = Wire(FixedPoint((in_W / 2).W, (in_BP / 2).BP))
-      val shifted = in.asUInt >> (in_BP - (in_BP / 2)).U
+      val shifted = (in.asUInt >> (in_BP - (in_BP / 2)).U).asTypeOf(UInt((in.getWidth / 2).W))
       x := shifted.asFixedPoint(x.binaryPoint)
       x
     }
@@ -49,7 +66,8 @@ object OperatorResize {
       val out_BP  = in_BP * 2
       val in_UInt = in.asUInt
       val x       = Wire(UInt(out_W.W))
-      x := Cat(Fill((out_W - 1) - (in_W + out_BP - in_BP) + 1, in_UInt(in_W - 1)), in_UInt << (out_BP - in_BP).U)
+      val shifted = (in_UInt << (out_BP - in_BP).U).asTypeOf(UInt((in_W + out_BP - in_BP).W))
+      x := Cat(Fill(out_W - (shifted.getWidth), shifted(shifted.getWidth - 1)), shifted)
       x.asFixedPoint(out_BP.BP)
     }
   }

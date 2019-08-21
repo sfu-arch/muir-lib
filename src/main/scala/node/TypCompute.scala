@@ -16,14 +16,24 @@ import util._
 import scala.reflect.runtime.universe._
 
 
+//////////////////////////////////SHAPE DEFINITIONS//////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////
+
 abstract class Shapes(implicit p: Parameters) extends CoreBundle( )(p) {
+  // Gather and Scatter from flat vectors
   def fromVecUInt(input: Vec[UInt])
 
   def toVecUInt(): Vec[UInt]
+
+  def getdouble(): UInt
+
+  def gethalf(): UInt
+
 }
 
 
-class vecN(val N: Int, val isCol: Int = 0, val issign : Boolean = false)(implicit p: Parameters) extends Shapes {
+class vecN(val N: Int, val isCol: Int = 0, val issign: Boolean = false)(implicit p: Parameters) extends Shapes {
   val data = Vec(N, UInt(xlen.W))
 
   def fromVecUInt(input: Vec[UInt]) = {
@@ -40,11 +50,32 @@ class vecN(val N: Int, val isCol: Int = 0, val issign : Boolean = false)(implici
     x
   }
 
-  override def cloneType = new vecN(N,isCol,issign).asInstanceOf[this.type]
+  // FIXME : Add sign support
+  def getdouble(): UInt = {
+    val uintdata = Wire(Vec(N, Vec(N, UInt((data(0).getWidth * 2).W))))
+    if (!issign) {
+      uintdata zip data map { case (a, b) => a := OperatorResize.doublewidth(b) }
+    } else {
+      uintdata zip data map { case (a, b) => a := OperatorResize.doublewidth(b.asSInt).asUInt }
+    }
+    uintdata.asUInt
+  }
+
+  def gethalf(): UInt = {
+    val uintdata = Wire(Vec(N, Vec(N, UInt((data(0).getWidth / 2).W))))
+    if (!issign) {
+      uintdata zip data map { case (a, b) => a := OperatorResize.halfwidth(b) }
+    } else {
+      uintdata zip data map { case (a, b) => a := OperatorResize.halfwidth(b.asSInt).asUInt }
+    }
+    uintdata.asUInt
+  }
+
+  override def cloneType = new vecN(N, isCol, issign).asInstanceOf[this.type]
 
 }
 
-class matNxN(val N: Int = 0, val issign : Boolean = false)(implicit p: Parameters) extends Shapes {
+class matNxN(val N: Int = 0, val issign: Boolean = false)(implicit p: Parameters) extends Shapes {
   val data = Vec(N, Vec(N, UInt(xlen.W)))
 
   def fromVecUInt(input: Vec[UInt]) = {
@@ -61,7 +92,27 @@ class matNxN(val N: Int = 0, val issign : Boolean = false)(implicit p: Parameter
     x
   }
 
-  override def cloneType = new matNxN(N,issign).asInstanceOf[this.type]
+  def getdouble(): UInt = {
+    val uintdata = Wire(Vec(N, Vec(N, UInt((data(0)(0).getWidth * 2).W))))
+    if (!issign) {
+      uintdata.flatten zip data.flatten map { case (a, b) => a := OperatorResize.doublewidth(b) }
+    } else {
+      uintdata.flatten zip data.flatten map { case (a, b) => a := OperatorResize.doublewidth(b.asSInt).asUInt }
+    }
+    uintdata.asUInt
+  }
+
+  def gethalf(): UInt = {
+    val uintdata = Wire(Vec(N, Vec(N, UInt((data(0)(0).getWidth / 2).W))))
+    if (!issign) {
+      uintdata.flatten zip data.flatten map { case (a, b) => a := OperatorResize.halfwidth(b) }
+    } else {
+      uintdata.flatten zip data.flatten map { case (a, b) => a := OperatorResize.halfwidth(b.asSInt).asUInt }
+    }
+    uintdata.asUInt
+  }
+
+  override def cloneType = new matNxN(N, issign).asInstanceOf[this.type]
 }
 
 
@@ -82,6 +133,18 @@ class FXmatNxN(val N: Int, val fraction: Int)(implicit p: Parameters) extends Sh
     x
   }
 
+  def getdouble(): UInt = {
+    val uintdata = Wire(Vec(N, Vec(N, FixedPoint((data(0)(0).getWidth * 2).W, (data(0)(0).binaryPoint.get * 2).BP))))
+    uintdata.flatten zip data.flatten map { case (a, b) => a := OperatorResize.doublewidth(b) }
+    uintdata.asUInt
+  }
+
+  def gethalf(): UInt = {
+    val uintdata = Wire(Vec(N, Vec(N, FixedPoint((data(0)(0).getWidth / 2).W, (data(0)(0).binaryPoint.get / 2).BP))))
+    uintdata.flatten zip data.flatten map { case (a, b) => a := OperatorResize.halfwidth(b) }
+    uintdata.asUInt
+  }
+
   override def cloneType = new FXmatNxN(N, fraction).asInstanceOf[this.type]
 }
 
@@ -97,9 +160,21 @@ class FXvecN(val N: Int, val fraction: Int, val isCol: Int = 0)(implicit p: Para
   }
 
   def toVecUInt(): Vec[UInt] = {
-    val x = Wire(Vec(N * N, UInt(xlen.W)))
+    val x = Wire(Vec(N, UInt(xlen.W)))
     x := data.asTypeOf(x)
     x
+  }
+
+  def getdouble(): UInt = {
+    val uintdata = Wire(Vec(N, FixedPoint((data(0).getWidth * 2).W, (data(0).binaryPoint.get * 2).BP)))
+    uintdata zip data map { case (a, b) => a := OperatorResize.doublewidth(b) }
+    uintdata.asUInt
+  }
+
+  def gethalf(): UInt = {
+    val uintdata = Wire(Vec(N, FixedPoint((data(0).getWidth / 2).W, (data(0).binaryPoint.get / 2).BP)))
+    uintdata zip data map { case (a, b) => a := OperatorResize.halfwidth(b) }
+    uintdata.asUInt
   }
 
   override def cloneType = new FXvecN(N, fraction).asInstanceOf[this.type]
@@ -118,9 +193,19 @@ class FPmatNxN(val N: Int, val t: FType)(implicit p: Parameters) extends Shapes 
   }
 
   def toVecUInt(): Vec[UInt] = {
-    val x = Wire(Vec(N*N, UInt(xlen.W)))
+    val x = Wire(Vec(N * N, UInt(xlen.W)))
     x := data.asTypeOf(x)
     x
+  }
+
+  def getdouble(): UInt = {
+    assert(false.B, "FPs do not have implicit resizing. Use ResizeFN function unit")
+    0.U
+  }
+
+  def gethalf(): UInt = {
+    assert(false.B, "FPs do not have implicit resizing. Use ResizeFN function unit")
+    0.U
   }
 
   override def cloneType = new FPmatNxN(N, t).asInstanceOf[this.type]
@@ -143,11 +228,111 @@ class FPvecN(val N: Int, val t: FType, val isCol: Int = 0)(implicit p: Parameter
     x
   }
 
+  def getdouble(): UInt = {
+    assert(false.B, "FPs do not have implicit resizing. Use ResizeFN function unit")
+    0.U
+  }
+
+  def gethalf(): UInt = {
+    assert(false.B, "FPs do not have implicit resizing. Use ResizeFN function unit")
+    0.U
+  }
+
   override def cloneType = new FPmatNxN(N, t).asInstanceOf[this.type]
 }
 
 
+// Wrapper for converting bits -> Shape and then invoking half/double and
+// then convert back to bits.
+class changeWidth[T <: Shapes](gen: T, val halfordouble: String) extends Module {
+  val io    = IO(new Bundle {
+    val in  = Input(UInt(gen.getWidth.W))
+    val out =
+      if (halfordouble == "double") {
+        Output(UInt((gen.getWidth * 2).W))
+      } else {
+        Output(UInt((gen.getWidth / 2).W))
+      }
+  })
+  val shape = io.in.asTypeOf(gen)
+  if (halfordouble == "double") {
+    io.out := shape.getdouble( )
+  } else {
+    io.out := shape.gethalf( )
+  }
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////// Generic Typeclass Op for a Shape ///////////////////////////
+/////////////////////// To use: Uncomment and fill empty functions /////////////////////
+//trait OperatorX[T] {
+//  def X(l: T)(implicit p: Parameters): T
+//}
+//
+//object OperatorX {
+//
+//  implicit object FXmatNxN extends OperatorX[FXmatNxN] {
+//    def magic(l: FXmatNxN)(implicit p: Parameters): FXmatNxN = {
+//      val x       = Wire(l.cloneType)
+//      x
+//    }
+//  }
+//
+//  implicit object FXvecN extends OperatorX[FXvecN] {
+//    def magic(l: FXvecN)(implicit p: Parameters): FXvecN = {
+//      val x       = Wire(l.cloneType)
+//      x
+//    }
+//  }
+//
+//  implicit object matNxN extends OperatorX[matNxN] {
+//    def magic(l: matNxN)(implicit p: Parameters): matNxN = {
+//      val x       = Wire(l.cloneType)
+//      x
+//    }
+//  }
+//
+//
+//  implicit object vecN extends OperatorX[vecN] {
+//    def magic(l: vecN)(implicit p: Parameters): vecN = {
+//      val x       = Wire(l.cloneType)
+//      x
+//    }
+//  }
+//
+//  implicit object FPmatNxN extends OperatorX[FPmatNxN] {
+//    def magic(l: FPmatNxN)(implicit p: Parameters): FPmatNxN = {
+//      val x       = Wire(l.cloneType)
+//      x
+//    }
+//  }
+//
+//  implicit object FPvecN extends OperatorX[FPvecN] {
+//    def magic(l: FPvecN)(implicit p: Parameters): FPvecN = {
+//      val x       = Wire(l.cloneType)
+//      x
+//    }
+//  }
+//
+//  def X[T](l: T)(implicit op: OperatorX[T], p: Parameters): T = op.X(l)
+//
+//}
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 object operation {
+
+  def addition[T](l: T, r: T)(implicit op: OperatorLike[T], p: Parameters): T = op.addition(l, r)
+
+  def subtraction[T](l: T, r: T)(implicit op: OperatorLike[T], p: Parameters): T = op.subtraction(l, r)
+
+  def multiplication[T](l: T, r: T)(implicit op: OperatorLike[T], p: Parameters): T = op.multiplication(l, r)
+
+  def OpMagic[T](l: T, r: T, opcode: String
+                )(
+                  implicit op: OperatorLike[T]
+                  , p: Parameters
+                ): T = op.OpMagic(l, r, opcode)
 
   trait OperatorLike[T] {
     def addition(l: T, r: T)(implicit p: Parameters): T
@@ -250,7 +435,7 @@ object operation {
       }
 
       def multiplication(l: matNxN, r: matNxN)(implicit p: Parameters): matNxN = {
-        val x = Wire(new matNxN(l.N))
+        val x        = Wire(new matNxN(l.N))
         val products = for (i <- 0 until l.N) yield {
           for (j <- 0 until l.N) yield {
             for (k <- 0 until l.N) yield
@@ -300,7 +485,7 @@ object operation {
       }
 
       def OpMagic(l: vecN, r: vecN, opcode: String)(implicit p: Parameters): vecN = {
-        val x = Wire(new vecN(l.N))
+        val x      = Wire(new vecN(l.N))
         val Op_FUs = Seq.fill(l.N)(Module(new UALU(p(XLEN), opcode)))
         for (i <- 0 until l.N) {
           Op_FUs(i).io.in1 := l.data(i)
@@ -312,18 +497,6 @@ object operation {
     }
 
   }
-
-  def addition[T](l: T, r: T)(implicit op: OperatorLike[T], p: Parameters): T = op.addition(l, r)
-
-  def subtraction[T](l: T, r: T)(implicit op: OperatorLike[T], p: Parameters): T = op.subtraction(l, r)
-
-  def multiplication[T](l: T, r: T)(implicit op: OperatorLike[T], p: Parameters): T = op.multiplication(l, r)
-
-  def OpMagic[T](l: T, r: T, opcode: String
-                )(
-                  implicit op: OperatorLike[T]
-                  , p: Parameters
-                ): T = op.OpMagic(l, r, opcode)
 
 }
 
@@ -363,36 +536,29 @@ class TypComputeIO(NumOuts: Int)(implicit p: Parameters)
 
 class TypCompute[T <: Shapes : OperatorLike](NumOuts: Int, ID: Int, opCode: String)(sign: Boolean)(gen: => T)(implicit p: Parameters)
   extends HandShakingNPS(NumOuts, ID)(new TypBundle)(p) {
-  override lazy val io = IO(new TypComputeIO(NumOuts))
-
+  override lazy val io          = IO(new TypComputeIO(NumOuts))
+  override      val printfSigil = opCode + "[" + classname.replaceAll("class node.", "") + "]_" + ID + ":"
   /*===========================================*
    *            Registers                      *
    *===========================================*/
   // OP Inputs
-  val left_R = RegInit(TypBundle.default)
-
+  val left_R                                = RegInit(TypBundle.default)
   // Memory Response
-  val right_R = RegInit(TypBundle.default)
-
+  val right_R                               = RegInit(TypBundle.default)
   // Output register
-  val data_R = RegInit(TypBundle.default)
-
+  val data_R                                = RegInit(TypBundle.default)
   val s_idle :: s_LATCH :: s_COMPUTE :: Nil = Enum(3)
-  val state                                 = RegInit(s_idle)
 
   /*==========================================*
    *           Predicate Evaluation           *
    *==========================================*/
-
+  val state     = RegInit(s_idle)
   val predicate = left_R.predicate & right_R.predicate & IsEnable( )
-  val start     = left_R.valid & right_R.valid & IsEnableValid( )
 
   /*===============================================*
    *            Latch inputs. Wire up output       *
    *===============================================*/
-
-  // Predicate register
-  val pred_R = RegInit(init = false.B)
+  val start = left_R.valid & right_R.valid & IsEnableValid( )
 
   //printfInfo("start: %x\n", start)
 
@@ -425,8 +591,8 @@ class TypCompute[T <: Shapes : OperatorLike](NumOuts: Int, ID: Int, opCode: Stri
   /*============================================*
    *            ACTIONS (possibly dangerous)    *
    *============================================*/
-
-  val FU = Module(new OperatorModule(gen, opCode))
+  // Predicate register
+  val pred_R = RegInit(init = false.B)
 
   FU.io.a.bits := (left_R.data).asTypeOf(gen)
   FU.io.b.bits := (right_R.data).asTypeOf(gen)
@@ -453,9 +619,9 @@ class TypCompute[T <: Shapes : OperatorLike](NumOuts: Int, ID: Int, opCode: Stri
     Reset( )
     state := s_idle
   }
+  val FU                = Module(new OperatorModule(gen, opCode))
   var classname: String = (gen.getClass).toString
   var signed            = if (sign == true) "S" else "U"
-  override val printfSigil = opCode + "[" + classname.replaceAll("class node.", "") + "]_" + ID + ":"
 
   if (log == true && (comp contains "TYPOP")) {
     val x = RegInit(0.U(xlen.W))

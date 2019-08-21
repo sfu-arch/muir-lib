@@ -92,7 +92,7 @@ class SCALNode[L <: Shapes : OperatorSCAL](NumOuts: Int, ID: Int, lanes: Int, op
   // Wire up Outputs
   for (i <- 0 until NumOuts) {
     io.Out(i).bits.data := data_R.data
-    io.Out(i).bits.valid := true.B
+    io.Out(i).bits.valid := data_R.valid
     io.Out(i).bits.predicate := predicate
     io.Out(i).bits.taskID := left_R.taskID | right_R.taskID | enable_R.taskID
   }
@@ -126,13 +126,13 @@ class SCALNode[L <: Shapes : OperatorSCAL](NumOuts: Int, ID: Int, lanes: Int, op
     when(FU.io.o.valid) {
       ValidOut( )
       data_R.data := (FU.io.o.bits).asTypeOf(UInt(left.getWidth.W))
-      data_R.valid := FU.io.o.valid
+      data_R.valid := true.B
       state := s_COMPUTE
     }.otherwise {
       state := s_ACTIVE
     }
   }
-  when(IsOutReady( ) && state === s_COMPUTE) {
+  when((IsOutReady( )) && (state === s_COMPUTE)) {
     left_R := CustomDataBundle.default(0.U((left.getWidth).W))
     right_R := CustomDataBundle.default(0.U((left.getWidth).W))
     data_R := CustomDataBundle.default(0.U((left.getWidth).W))
@@ -140,8 +140,6 @@ class SCALNode[L <: Shapes : OperatorSCAL](NumOuts: Int, ID: Int, lanes: Int, op
     state := s_idle
   }
 
-
-  printf(p"\n State : ${state} Predicate ${predicate} Left ${left_R} Right ${right_R} Output: ${data_R}")
 
   var classname: String = (left.getClass).toString
   var signed            = "S"
