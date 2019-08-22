@@ -14,8 +14,9 @@ import muxes._
 import util._
 import node._
 
-class OperatorMatVecModule[L <: Shapes, R <: Shapes, O <: Shapes](left: => L, right: => R, output: => O, val opCode: String)(implicit val p: Parameters) extends Module {
-  val io     = IO(new Bundle {
+class OperatorMatVecModule[L <: Shapes, R <: Shapes, O <: Shapes](left: => L, right: => R, output: => O, val opCode: String)
+                                                                 (implicit val p: Parameters) extends Module {
+  val io = IO(new Bundle {
     val a = Flipped(Valid(left))
     val b = Flipped(Valid(right))
     val o = Output(Valid(output))
@@ -36,7 +37,7 @@ class OperatorMatVecModule[L <: Shapes, R <: Shapes, O <: Shapes](left: => L, ri
 }
 
 class GEMVIO[L <: Shapes, R <: Shapes, O <: Shapes](NumOuts: Int)(left: => L, right: => R)(output: => O)(implicit p: Parameters)
-  extends HandShakingIONPS(NumOuts)(new CustomDataBundle(UInt(output.getWidth))) {
+  extends HandShakingIONPS(NumOuts)(new CustomDataBundle(UInt((output.getWidth).W))) {
   // LeftIO: Left input data for computation
   val LeftIO = Flipped(Decoupled(new CustomDataBundle(UInt((left.getWidth).W))))
 
@@ -46,7 +47,8 @@ class GEMVIO[L <: Shapes, R <: Shapes, O <: Shapes](NumOuts: Int)(left: => L, ri
   override def cloneType = new GEMVIO(NumOuts)(left, right)(output).asInstanceOf[this.type]
 }
 
-class GEMV_1Cycle[L <: Shapes, R <: Shapes, O <: Shapes](NumOuts: Int, ID: Int, opCode: String)(sign: Boolean)(left: => L, right: R)(output: => O)(implicit p: Parameters)
+class GEMV_1Cycle[L <: Shapes, R <: Shapes, O <: Shapes](NumOuts: Int, ID: Int, opCode: String)
+                                                        (sign: Boolean)(left: => L, right: R)(output: => O)(implicit p: Parameters)
   extends HandShakingNPS(NumOuts, ID)(new CustomDataBundle(UInt(output.getWidth.W)))(p) {
   override lazy val io = IO(new GEMVIO(NumOuts)(left, right)(output))
 
@@ -63,14 +65,14 @@ class GEMV_1Cycle[L <: Shapes, R <: Shapes, O <: Shapes](NumOuts: Int, ID: Int, 
   val data_R = RegInit(CustomDataBundle.default(0.U((output.getWidth).W)))
 
   val s_idle :: s_LATCH :: s_ACTIVE :: s_COMPUTE :: Nil = Enum(4)
-  val state                                             = RegInit(s_idle)
+  val state = RegInit(s_idle)
 
   /*==========================================*
    *           Predicate Evaluation           *
    *==========================================*/
 
-  val predicate = left_R.predicate & right_R.predicate & IsEnable( )
-  val start     = left_R.valid & right_R.valid & IsEnableValid( )
+  val predicate = left_R.predicate & right_R.predicate & IsEnable()
+  val start = left_R.valid & right_R.valid & IsEnableValid()
 
   /*===============================================*
    *            Latch inputs. Wire up output       *
@@ -82,7 +84,7 @@ class GEMV_1Cycle[L <: Shapes, R <: Shapes, O <: Shapes](NumOuts: Int, ID: Int, 
   //printfInfo("start: %x\n", start)
 
   io.LeftIO.ready := ~left_R.valid
-  when(io.LeftIO.fire( )) {
+  when(io.LeftIO.fire()) {
     //printfInfo("Latch left data\n")
     left_R.data := io.LeftIO.bits.data
     left_R.valid := true.B
@@ -90,7 +92,7 @@ class GEMV_1Cycle[L <: Shapes, R <: Shapes, O <: Shapes](NumOuts: Int, ID: Int, 
   }
 
   io.RightIO.ready := ~right_R.valid
-  when(io.RightIO.fire( )) {
+  when(io.RightIO.fire()) {
     //printfInfo("Latch right data\n")
     right_R.data := io.RightIO.bits.data
     right_R.valid := true.B
@@ -124,28 +126,28 @@ class GEMV_1Cycle[L <: Shapes, R <: Shapes, O <: Shapes](NumOuts: Int, ID: Int, 
   when(start & predicate & state =/= s_COMPUTE) {
     state := s_COMPUTE
     // Next cycle it will become valid.
-    ValidOut( )
+    ValidOut()
   }.elsewhen(start && !predicate && state =/= s_COMPUTE) {
     state := s_COMPUTE
-    ValidOut( )
+    ValidOut()
   }
 
-  when(IsOutReady( ) && state === s_COMPUTE) {
+  when(IsOutReady() && state === s_COMPUTE) {
     left_R := CustomDataBundle.default(0.U((left.getWidth).W))
     right_R := CustomDataBundle.default(0.U((right.getWidth).W))
     data_R := CustomDataBundle.default(0.U((output.getWidth).W))
-    Reset( )
+    Reset()
     state := s_idle
   }
 
   printf(p"\n State : ${state} Predicate ${predicate} Left ${left_R} Right ${right_R} Output: ${data_R}")
 
   var classname: String = (left.getClass).toString
-  var signed            = if (sign == true) "S" else "U"
+  var signed = if (sign == true) "S" else "U"
   override val printfSigil =
     opCode + "[" + classname.replaceAll("class node.", "") + "]_" + ID + ":"
 
-  if (log == true && (comp contains "TYPOP")) {
+  if ((log == true) && (comp contains "TYPOP")) {
     val x = RegInit(0.U(xlen.W))
     x := x + 1.U
 
@@ -156,8 +158,9 @@ class GEMV_1Cycle[L <: Shapes, R <: Shapes, O <: Shapes](NumOuts: Int, ID: Int, 
       }
       case "low" => {
         printfInfo("Cycle %d : { \"Inputs\": {\"Left\": %x, \"Right\": %x},", x, (left_R.valid), (right_R.valid))
-        printf("\"State\": {\"State\": \"%x\", \"(L,R)\": \"%x,%x\",  \"O(V,D,P)\": \"%x,%x,%x\" },", state, left_R.data, right_R.data, io.Out(0).valid, data_R.data, io.Out(0).bits.predicate)
-        printf("\"Outputs\": {\"Out\": %x}", io.Out(0).fire( ))
+        printf("\"State\": {\"State\": \"%x\", \"(L,R)\": \"%x,%x\",  \"O(V,D,P)\": \"%x,%x,%x\" },",
+          state, left_R.data, right_R.data, io.Out(0).valid, data_R.data, io.Out(0).bits.predicate)
+        printf("\"Outputs\": {\"Out\": %x}", io.Out(0).fire())
         printf("}")
       }
       case everythingElse => {

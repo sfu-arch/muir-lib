@@ -18,8 +18,8 @@ def scalacOptionsVersion(scalaVersion: String): Seq[String] = {
 }
 
 autoAPIMappings := true
-scalaVersion := "2.12.6"
-crossScalaVersions := Seq("2.12.6", "2.11.12")
+scalaVersion := "2.12.8"
+crossScalaVersions := Seq("2.12.8", "2.11.12")
 scalacOptions :=
   Seq("-deprecation", "-feature", "-unchecked", "-language:reflectiveCalls") ++ scalacOptionsVersion(scalaVersion.value)
 
@@ -38,14 +38,14 @@ resolvers ++= Seq(
 
 // Provide a managed dependency on X if -DXVersion="" is supplied on the command line.
 val defaultVersions = Map(
-  "chisel3" -> "3.1.+",
-  "chisel-iotesters" -> "1.2.+",
-  "dsptools" -> "1.1.8"
+  "chisel3" -> "3.2-SNAPSHOT",
+  "chisel-iotesters" -> "1.3-SNAPSHOT",
+  "dsptools" -> "1.2-SNAPSHOT"
 )
 
-libraryDependencies ++= (Seq("chisel3", "chisel-iotesters","dsptools").map {
+libraryDependencies ++= Seq("chisel3", "chisel-iotesters","dsptools").map {
   dep: String => "edu.berkeley.cs" %% dep % sys.props.getOrElse(dep + "Version", defaultVersions(dep))
-})
+}
 
 libraryDependencies ++= Seq(
   "org.scalatest" %% "scalatest" % "3.0.1",
@@ -54,8 +54,8 @@ libraryDependencies ++= Seq(
 )
 
 // Berkley hardfloat. locally published (built with chisel2 scala 2.11)
-//libraryDependencies ++= Seq("edu.berkeley.cs" %% "dsptools" % "1.2-SNAPSHOT")
-libraryDependencies ++= Seq("edu.berkeley.cs" %% "hardfloat" % "1.2")
+libraryDependencies ++= Seq("edu.berkeley.cs" %% "dsptools" % "1.2-SNAPSHOT")
+libraryDependencies ++= Seq("edu.berkeley.cs" %% "hardfloat" % "1.2-SNAPSHOT")
 
 
 resolvers ++= Seq(
