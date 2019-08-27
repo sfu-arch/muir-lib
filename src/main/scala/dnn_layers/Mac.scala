@@ -6,21 +6,21 @@ import chisel3.{Bundle, Flipped, Module, Output, RegInit, UInt, assert, printf, 
 import config.{Parameters, XLEN}
 import config._
 import dnn.SatCounterModule
-import dnn.types.OperatorSCAL
+import dnn.types.OperatorDot
 import interfaces.CustomDataBundle
 //import javafx.scene.chart.PieChart.Data
 import node.{AluGenerator, HandShakingIONPS, HandShakingNPS, Shapes}
 
-class SCALFU[L <: Shapes : OperatorSCAL](left: => L, lanes: Int, opCode: String)(implicit val p: Parameters) extends Module {
+class DotFU[gen <: Shapes : OperatorDot](left: => gen, lanes: Int, opCode: String)(implicit val p: Parameters) extends Module {
   val io = IO(new Bundle {
     val a = Flipped(Valid(left))
-    val b = Flipped(Valid(UInt(p(XLEN).W)))
+    val b = Flipped(Valid(left))
     val o = Output(Valid(left))
   })
 
 
   val start = io.a.valid && io.b.valid
-  val FU    = OperatorSCAL.magic(io.a.bits, io.b.bits, start, lanes, opCode)
+  val FU    = OperatorDot.magic(io.a.bits, io.b.bits, start, lanes, opCode)
   io.o.bits := FU._1
   val latency = FU._2
   val latCnt  = Module(new SatCounterModule(latency))
@@ -28,20 +28,20 @@ class SCALFU[L <: Shapes : OperatorSCAL](left: => L, lanes: Int, opCode: String)
   io.o.valid := latCnt.io.wrap
 }
 
-class SCALIO[L <: Shapes](NumOuts: Int)(left: => L)(implicit p: Parameters)
+class DotIO[gen <: Shapes](NumOuts: Int)(left: => gen)(implicit p: Parameters)
   extends HandShakingIONPS(NumOuts)(new CustomDataBundle(UInt((left.getWidth).W))) {
   // LeftIO: Left input data for computation
   val LeftIO = Flipped(Decoupled(new CustomDataBundle(UInt((left.getWidth).W))))
 
   // RightIO: Right input data for computation
-  val RightIO = Flipped(Decoupled(new CustomDataBundle(UInt(xlen.W))))
+  val RightIO = Flipped(Decoupled(new CustomDataBundle(UInt((left.getWidth).W))))
 
-  override def cloneType = new SCALIO(NumOuts)(left).asInstanceOf[this.type]
+  override def cloneType = new DotIO(NumOuts)(left).asInstanceOf[this.type]
 }
 
-class Mac[L <: Shapes : OperatorSCAL](NumOuts: Int, ID: Int, lanes: Int, opCode: String)(left: => L)(implicit p: Parameters)
+class Mac[L <: Shapes : OperatorDot](NumOuts: Int, ID: Int, lanes: Int, opCode: String)(left: => L)(implicit p: Parameters)
   extends HandShakingNPS(NumOuts, ID)(new CustomDataBundle(UInt(left.getWidth.W)))(p) {
-  override lazy val io = IO(new SCALIO(NumOuts)(left))
+  override lazy val io = IO(new DotIO(NumOuts)(left))
 
   /*===========================================*
  *            Registers                      *
@@ -50,7 +50,7 @@ class Mac[L <: Shapes : OperatorSCAL](NumOuts: Int, ID: Int, lanes: Int, opCode:
   val left_R = RegInit(CustomDataBundle.default(0.U((left.getWidth).W)))
 
   // Memory Response
-  val right_R = RegInit(CustomDataBundle.default(0.U((xlen).W)))
+  val right_R = RegInit(CustomDataBundle.default(0.U((left.getWidth).W)))
 
   // Output register
   val data_R = RegInit(CustomDataBundle.default(0.U((left.getWidth).W)))
@@ -102,9 +102,9 @@ class Mac[L <: Shapes : OperatorSCAL](NumOuts: Int, ID: Int, lanes: Int, opCode:
  *            ACTIONS (possibly dangerous)    *
  *============================================*/
 
-  val FU = Module(new SCALFU(left, lanes, opCode))
+  val FU = Module(new DotFU(left, lanes, opCode))
   FU.io.a.bits := (left_R.data).asTypeOf(left)
-  FU.io.b.bits := (right_R.data)
+  FU.io.b.bits := (right_R.data).asTypeOf(left)
 
   data_R.predicate := predicate
   pred_R := predicate
@@ -160,8 +160,7 @@ class Mac[L <: Shapes : OperatorSCAL](NumOuts: Int, ID: Int, lanes: Int, opCode:
       }
       case "low" => {
         printfInfo("Cycle %d : { \"Inputs\": {\"Left\": %x, \"Right\": %x},", x, (left_R.valid), (right_R.valid))
-        printf("\"State\": {\"State\": \"%x\", \"(L,R)\": \"%x,%x\",  \"O(V,D,P)\": \"%x,%x,%x\" },",
-          state, left_R.data, right_R.data, io.Out(0).valid, data_R.data, io.Out(0).bits.predicate)
+        printf("\"State\": {\"State\": \"%x\", \"(L,R)\": \"%x,%x\",  \"O(V,D,P)\": \"%x,%x,%x\" },", state, left_R.data, right_R.data, io.Out(0).valid, data_R.data, io.Out(0).bits.predicate)
         printf("\"Outputs\": {\"Out\": %x}", io.Out(0).fire( ))
         printf("}")
       }
