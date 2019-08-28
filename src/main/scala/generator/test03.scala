@@ -69,7 +69,7 @@ class test03DF(implicit p: Parameters) extends test03DFIO()(p) {
    * ================================================================== */
   //---------------------p
   //  val bb_0 = Module(new BasicBlockNoMaskFastNode(NumInputs = 1, NumOuts = 9, BID = 0))
-  val bb_0 = Module(new BasicBlockNoMaskFastNode(NumInputs = 1, NumOuts = 9, BID = 0))
+  val bb_0 = Module(new BasicBlockNoMaskFastNode(NumInputs = 1, NumOuts = 11, BID = 0))
   //-----------------------------v
 
   /* ================================================================== *
@@ -101,7 +101,8 @@ class test03DF(implicit p: Parameters) extends test03DFIO()(p) {
   //-----------------------------------------------------------------------------------p
   val st_0 = Module(new UnTypStore(NumPredOps = 0, NumSuccOps = 0, ID = 7, RouteID = 0))
   //------------------------------------------------------------------------------------v
-
+ // val sink = Module(new SinkNode(Enable = true))
+ // val source = Module(new SourceNode(Enable = true))
   /* ================================================================== *
    *                   PRINTING CONSTANTS NODES                         *
    * ================================================================== */
@@ -203,7 +204,6 @@ class test03DF(implicit p: Parameters) extends test03DFIO()(p) {
 //  const2.io.enable.valid := true.B
   //const2.io.enable <> bb_0.io.Out(9)
   //-----------------------------------------------v
-
 
   /* ================================================================== *
    *                   CONNECTING PHI NODES                             *
