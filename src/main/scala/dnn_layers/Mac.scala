@@ -1,12 +1,11 @@
 package dnn_layers
 
-import dnn.{DotIO, DotNode}
+import dnn.{DotIO, DotNode, ReduceNode, SatCounterModule}
 import chisel3._
 import chisel3.util.{Decoupled, Enum, Valid}
 import chisel3.{Bundle, Flipped, Module, Output, RegInit, UInt, assert, printf, when}
 import config.{Parameters, XLEN}
 import config._
-import dnn.SatCounterModule
 import dnn.types.OperatorDot
 import interfaces.CustomDataBundle
 import node.FXmatNxN
@@ -48,7 +47,9 @@ class Mac[L <: Shapes : OperatorDot](NumOuts: Int, ID: Int, lanes: Int, opCode: 
 //  val dotio =  IO(Flipped(new DotIO(NumOuts)(left)))
 
   val dotNode = Module(new DotNode(NumOuts = NumOuts, ID = ID, lanes, "Mul")(left))
-  val 
+//  val redNode = new ReduceNode(NumOuts = NumOuts, ID = ID, false, "Add")(new FXmatNxN(2,4))
+
+  // Connect IO to dotNode
   dotNode.io.enable <> io.enable
   dotNode.io.LeftIO <> io.LeftIO
   dotNode.io.RightIO <> io.RightIO
@@ -58,6 +59,10 @@ class Mac[L <: Shapes : OperatorDot](NumOuts: Int, ID: Int, lanes: Int, opCode: 
       io.Out(i)  <> dotNode.io.Out(i)
     }
 
+  // Connect dotNode to RedNode
+//  for (i <- 0 until NumOuts) {
+//    io.Out(i)
+//  }
 
   /*===========================================*
  *            Registers                      *
