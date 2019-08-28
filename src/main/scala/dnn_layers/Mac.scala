@@ -46,18 +46,31 @@ class Mac[L <: Shapes : OperatorDot](NumOuts: Int, ID: Int, lanes: Int, opCode: 
 
 //  val dotio =  IO(Flipped(new DotIO(NumOuts)(left)))
 
-  val dotNode = Module(new DotNode(NumOuts = NumOuts, ID = ID, lanes, "Mul")(left))
-//  val redNode = new ReduceNode(NumOuts = NumOuts, ID = ID, false, "Add")(new FXmatNxN(2,4))
+  val dotNode = Module(new DotNode(NumOuts = 1, ID = ID, lanes, "Mul")(left))
+//  val redNode = Module(new ReduceNode(NumOuts = 1, ID = ID, false, "Add")(new FXmatNxN(2,4)))
 
   // Connect IO to dotNode
   dotNode.io.enable <> io.enable
   dotNode.io.LeftIO <> io.LeftIO
   dotNode.io.RightIO <> io.RightIO
 
-    // Wire up Outputs
-    for (i <- 0 until NumOuts) {
-      io.Out(i)  <> dotNode.io.Out(i)
-    }
+
+//  val data_V = CustomDataBundle.default(0.U((xlen).W))
+//  data_V.data := (io.Out(0).bits).asTypeOf(UInt(left.getWidth.W))
+//  data_V.valid := io.Out(0).valid
+//  data_V.taskID := 0.U
+//  data_V.predicate :=
+//  redNode.io.enable <> dotNode.io.Out(0)
+//  redNode.io.LeftIO.bits := dotNode.io.Out(0).bits.asTypeOf(left)
+//  redNode.io.LeftIO.bits.taskID := ID.U
+//  redNode.io.LeftIO.bits.valid := dotNode.io.Out(0).valid
+
+
+  // Wire up Outputs
+  for (i <- 0 until NumOuts) {
+    io.Out(i) <> dotNode.io.Out(0)
+  }
+
 
   // Connect dotNode to RedNode
 //  for (i <- 0 until NumOuts) {

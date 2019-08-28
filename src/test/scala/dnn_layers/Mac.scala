@@ -35,7 +35,7 @@ class DotCompTester extends FlatSpec with Matchers {
   implicit val p = config.Parameters.root((new Mat_VecConfig).toInstance)
   it should "Typ Compute Tester" in {
     chisel3.iotesters.Driver.execute(Array("--backend-name", "verilator", "--target-dir", "test_run_dir"),
-      () => new Mac(NumOuts = 2, ID = 0, 4, "Mul")(new FXmatNxN(2,4))) {
+      () => new Mac(NumOuts = 1, ID = 0, 4, "Mul")(new FXmatNxN(2,4))) {
       c => new FXDotCompTests(c)
     } should be(true)
   }
