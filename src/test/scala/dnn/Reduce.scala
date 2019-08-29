@@ -27,7 +27,7 @@ class FXReduceCompTests(df: ReduceNode[FXmatNxN])
   poke(df.io.enable.valid, true)
   poke(df.io.enable.bits.control, true)
   // 0x32 0011.0010 . Fixed point 3.125 in fixed point 4 BP.
-  poke(df.io.LeftIO.bits.data, 0x32323232L)
+  poke(df.io.LeftIO.bits.data, 0x24242424L)
   poke(df.io.LeftIO.valid, true)
   poke(df.io.LeftIO.bits.predicate, true)
 
