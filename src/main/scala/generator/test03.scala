@@ -8,6 +8,7 @@ import chisel3.util._
 import chisel3.Module._
 import chisel3.testers._
 import chisel3.iotesters._
+import chisel3.util.experimental.BoringUtils
 import dandelion.config._
 import dandelion.control._
 import dandelion.interfaces._
@@ -27,7 +28,7 @@ import util._
  * ================================================================== */
 
 abstract class test03DFIO(implicit val p: Parameters) extends Module with CoreParams {
-  val io = IO(new Bundle {
+    val io = IO(new Bundle {
     val in = Flipped(Decoupled(new Call(List(32, 32))))
     val MemResp = Flipped(Valid(new MemResp))
     val MemReq = Decoupled(new MemReq)
@@ -69,7 +70,7 @@ class test03DF(implicit p: Parameters) extends test03DFIO()(p) {
    * ================================================================== */
   //---------------------p
   //  val bb_0 = Module(new BasicBlockNoMaskFastNode(NumInputs = 1, NumOuts = 9, BID = 0))
-  val bb_0 = Module(new BasicBlockNoMaskFastNode(NumInputs = 1, NumOuts = 11, BID = 0))
+  val bb_0 = Module(new BasicBlockNoMaskFastNode(NumInputs = 1, NumOuts = 9, BID = 0))
   //-----------------------------v
 
   /* ================================================================== *
@@ -101,8 +102,8 @@ class test03DF(implicit p: Parameters) extends test03DFIO()(p) {
   //-----------------------------------------------------------------------------------p
   val st_0 = Module(new UnTypStore(NumPredOps = 0, NumSuccOps = 0, ID = 7, RouteID = 0))
   //------------------------------------------------------------------------------------v
- // val sink = Module(new SinkNode(Enable = true))
- // val source = Module(new SourceNode(Enable = true))
+  //val sink = Module(new SinkNode(Enable = true))
+  //val source = Module(new SourceNode(Enable = true))
   /* ================================================================== *
    *                   PRINTING CONSTANTS NODES                         *
    * ================================================================== */
@@ -199,12 +200,11 @@ class test03DF(implicit p: Parameters) extends test03DFIO()(p) {
   //st_0.io.enable <> bb_0.io.Out(10)
   st_0.io.enable.bits := ControlBundle.active()
   st_0.io.enable.valid := true.B
-
+  binaryOp_4.io.DebugIO.get <> bb_0.io.DebugEnable
 //  const2.io.enable.bits := ControlBundle.active()
 //  const2.io.enable.valid := true.B
   //const2.io.enable <> bb_0.io.Out(9)
   //-----------------------------------------------v
-
   /* ================================================================== *
    *                   CONNECTING PHI NODES                             *
    * ================================================================== */
@@ -265,10 +265,14 @@ class test03DF(implicit p: Parameters) extends test03DFIO()(p) {
   binaryOp_4.io.LeftIO <> InputSplitter.io.Out.data.elements("field1")(2)
 
   //------------------------------------------p
-   binaryOp_4.io.DebugIO.get := true.B
+  // binaryOp_4.io.DebugIO.get := true.B
+
   val data_queue = Queue(binaryOp_4.io.LogCheck.get, 20)
   val addr_queue = Queue(binaryOp_4.io.LogCheckAddr.get, 20)
-
+  //-------val x = Module(new Queue(UInt(4.W),20))
+  //---------BoringUtils.addSink(x.io.enq,"")
+  //---------st_0.io.inData  <> x.io.deq
+  //--------data_queue.
   data_queue.nodeq()
   addr_queue.nodeq()
 
@@ -280,7 +284,7 @@ class test03DF(implicit p: Parameters) extends test03DFIO()(p) {
     st_0.io.GepAddr.noenq()
   }
   //  st_0.io.inData.valid := true.B
-//  st_0.io.GepAddr <> const2.io.Out
+  //  st_0.io.GepAddr <> const2.io.Out
   st_0.io.Out(0).ready := true.B
 
   //------------------------------------------------------------v

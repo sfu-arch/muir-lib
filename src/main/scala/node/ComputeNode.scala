@@ -5,6 +5,7 @@ import chisel3.iotesters.{ChiselFlatSpec, Driver, OrderedDecoupledHWIOTester, Pe
 import chisel3.Module
 import chisel3.testers._
 import chisel3.util._
+import chisel3.util.experimental.BoringUtils
 import org.scalatest.{FlatSpec, Matchers}
 import dandelion.config._
 import dandelion.interfaces._
@@ -42,10 +43,17 @@ class ComputeNode(NumOuts: Int, ID: Int, opCode: String)
   // Printf debugging
   val node_name = name.value
   val module_name = file.value.split("/").tail.last.split("\\.").head.capitalize
-
+  //---------------------------------
+  val Uniq_name =  "me"
+  if (ID == 4) {
+    val sourceVal = Wire (UInt(6.W))
+    sourceVal := 5.U
+    BoringUtils.addSource(sourceVal, Uniq_name)
+  }
+  //-----------------------------------------
   override val printfSigil = "[" + module_name + "] " + node_name + ": " + ID + " "
   val (cycleCount, _) = Counter(true.B, 32 * 1024)
-
+  
 
   val dbg_counter = Counter(1024)
 

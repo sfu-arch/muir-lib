@@ -940,13 +940,15 @@ class LoopFastHead(val BID: Int, val NumOuts: Int, val NumPhi: Int)
   * Clean nodes
   * =============================
   */
-
+// this one
 class BasicBlockNoMaskFastVecIO(val NumInputs: Int, val NumOuts: Int)(implicit p: Parameters)
   extends CoreBundle()(p) {
   // Output IO
   val predicateIn = Vec(NumInputs, Flipped(Decoupled(new ControlBundle())))
   val Out = Vec(NumOuts, Decoupled(new ControlBundle))
-
+  //-------------------------------------------------------------
+  val DebugEnable = new Bool
+  //-------------------------------------------------------------
   override def cloneType = new BasicBlockNoMaskFastVecIO(NumInputs, NumOuts).asInstanceOf[this.type]
 }
 
@@ -967,7 +969,7 @@ class BasicBlockNoMaskFastVecIO(val NumInputs: Int, val NumOuts: Int)(implicit p
   * @param name
   * @param file
   */
-
+// this one
 class BasicBlockNoMaskFastNode(BID: Int, val NumInputs: Int = 1, val NumOuts: Int)
                               (implicit val p: Parameters,
                                name: sourcecode.Name,
@@ -975,6 +977,7 @@ class BasicBlockNoMaskFastNode(BID: Int, val NumInputs: Int = 1, val NumOuts: In
   extends Module with CoreParams with UniformPrintfs {
 
   val io = IO(new BasicBlockNoMaskFastVecIO(NumInputs, NumOuts)(p))
+  io.DebugEnable := true.B
 
   // Printf debugging
   val node_name = name.value

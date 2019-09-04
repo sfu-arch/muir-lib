@@ -2,6 +2,7 @@ package dandelion.node
 
 import chisel3.{RegInit, _}
 import chisel3.util._
+import chisel3.util.experimental.BoringUtils
 import org.scalacheck.Prop.False
 import dandelion.config._
 import dandelion.interfaces._
@@ -70,7 +71,16 @@ class UnTypStore(NumPredOps: Int,
   val state = RegInit(s_idle)
 
   val ReqValid = RegInit(false.B)
+ //------------------------------
 
+  if (ID == 7) {
+    val SinkVal = Wire (UInt(6.W))
+    SinkVal:= 0.U
+    val Uniq_name = "me"
+    BoringUtils.addSink(SinkVal, Uniq_name)
+    printf("[***************************sinksource*******************" + SinkVal)
+  }
+  //----------------------------------
   /*============================================
   =            Predicate Evaluation            =
   ============================================*/
