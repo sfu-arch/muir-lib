@@ -65,7 +65,7 @@ class GEMMFU[T <: Shapes : OperatorGEMM](operand: => T)(implicit val p: Paramete
 }
 
 class GEMMIO[T <: Shapes](NumOuts: Int)(operand: => T)(implicit p: Parameters)
-  extends HandShakingIONPS(NumOuts)(new CustomDataBundle(UInt(operand.getWidth))) {
+  extends HandShakingIONPS(NumOuts)(new CustomDataBundle(UInt((operand.getWidth).W))) {
   // LeftIO: Left input data for computation
   val LeftIO = Flipped(Decoupled(new CustomDataBundle(UInt((operand.getWidth).W))))
 

@@ -39,30 +39,6 @@ class StackTester(df: Stack)
   step(1)
   println(s"Output: ${peek(df.io.OutData(3))}\n")
 
-//
-//
-//  step(1)
-//
-//  println(s"Output: ${peek(df.io.Out(0))}\n")
-//
-//  println(s"t: -1\n -------------------------------------")
-//  step(1)
-//
-//
-//  for( i <- 0 until 10){
-//    println(s"Output: ${peek(df.io.Out(0))}\n")
-//
-//    println(s"t: ${i}\n -------------------------------------")
-//    step(1)
-//  }
-//  poke(df.io.CmpIn.valid, false.B)
-//  poke(df.io.CmpIn.bits, false.B)
-//
-//  println(s"Node input : ${peek(df.io.CmpIn)}")
-//  println(s"Node output: ${peek(df.io.OutIO)}")
-//
-//  step(1)
-//
  }
 
 

@@ -28,7 +28,7 @@ class SCALFU[L <: Shapes : OperatorSCAL](left: => L, lanes: Int, opCode: String)
 }
 
 class SCALIO[L <: Shapes](NumOuts: Int)(left: => L)(implicit p: Parameters)
-  extends HandShakingIONPS(NumOuts)(new CustomDataBundle(UInt(left.getWidth))) {
+  extends HandShakingIONPS(NumOuts)(new CustomDataBundle(UInt((left.getWidth).W))) {
   // LeftIO: Left input data for computation
   val LeftIO = Flipped(Decoupled(new CustomDataBundle(UInt((left.getWidth).W))))
 
@@ -157,7 +157,8 @@ class SCALNode[L <: Shapes : OperatorSCAL](NumOuts: Int, ID: Int, lanes: Int, op
       }
       case "low" => {
         printfInfo("Cycle %d : { \"Inputs\": {\"Left\": %x, \"Right\": %x},", x, (left_R.valid), (right_R.valid))
-        printf("\"State\": {\"State\": \"%x\", \"(L,R)\": \"%x,%x\",  \"O(V,D,P)\": \"%x,%x,%x\" },", state, left_R.data, right_R.data, io.Out(0).valid, data_R.data, io.Out(0).bits.predicate)
+        printf("\"State\": {\"State\": \"%x\", \"(L,R)\": \"%x,%x\",  \"O(V,D,P)\": \"%x,%x,%x\" },",
+          state, left_R.data, right_R.data, io.Out(0).valid, data_R.data, io.Out(0).bits.predicate)
         printf("\"Outputs\": {\"Out\": %x}", io.Out(0).fire( ))
         printf("}")
       }

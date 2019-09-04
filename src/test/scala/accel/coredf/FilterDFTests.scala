@@ -1,9 +1,5 @@
 package accel.coredf
 
-/**
-  * Created by vnaveen0 on 29/6/17.
-  */
-
 // See LICENSE for license details.
 
 import accel._
@@ -48,7 +44,7 @@ class FilterDFTester(accel: => Accelerator)(implicit val p: config.Parameters) e
   dutMem.b.valid := memState === sMemWrAck
   dutMem.b.bits := NastiWriteResponseChannel(0.U)
   dutMem.r.valid := memState === sMemRead
-  dutMem.r.bits := NastiReadDataChannel(0.U, mem((dutMem.ar.bits.addr >> size) + rCnt), rDone)
+  dutMem.r.bits := NastiReadDataChannel(0.U, mem((dutMem.ar.bits.addr >> size).asUInt() + rCnt.asUInt()), rDone)
 
   switch(memState) {
     is(sMemIdle) {
@@ -62,8 +58,8 @@ class FilterDFTester(accel: => Accelerator)(implicit val p: config.Parameters) e
       assert(dutMem.aw.bits.size === size)
       assert(dutMem.aw.bits.len === len)
       when(dutMem.w.valid) {
-        mem((dutMem.aw.bits.addr >> size) + wCnt) := dutMem.w.bits.data
-        printf("[write] mem[%x] <= %x\n", (dutMem.aw.bits.addr >> size) + wCnt, dutMem.w.bits.data)
+        mem((dutMem.aw.bits.addr >> size).asUInt() + wCnt.asUInt()) := dutMem.w.bits.data
+        printf("[write] mem[%x] <= %x\n", (dutMem.aw.bits.addr >> size).asUInt() + wCnt.asUInt(), dutMem.w.bits.data)
         dutMem.w.ready := true.B
       }
       when(wDone) {
@@ -78,7 +74,7 @@ class FilterDFTester(accel: => Accelerator)(implicit val p: config.Parameters) e
     }
     is(sMemRead) {
       when(dutMem.r.ready) {
-        printf("[read] mem[%x] => %x\n", (dutMem.ar.bits.addr >> size) + rCnt, dutMem.r.bits.data)
+        printf("[read] mem[%x] => %x\n", (dutMem.ar.bits.addr >> size).asUInt() + rCnt.asUInt(), dutMem.r.bits.data)
       }
       when(rDone) {
         dutMem.ar.ready := true.B
@@ -173,10 +169,10 @@ class FilterDFTester(accel: => Accelerator)(implicit val p: config.Parameters) e
 
   switch(testState) {
     is(sIdle) {
-      switch(Vec(testVec)(testCnt).opCode) {
+      switch(VecInit(testVec)(testCnt).opCode) {
         is(rdCmd) {
           req.read := true.B
-          req.addr := Vec(testVec)(testCnt).op0
+          req.addr := VecInit(testVec)(testCnt).op0
           req.tag := testCnt % 16.U
           reqValid := true.B
           testState := sNastiReadReq
@@ -184,16 +180,16 @@ class FilterDFTester(accel: => Accelerator)(implicit val p: config.Parameters) e
         }
         is(wrCmd) {
           req.read := false.B
-          req.addr := Vec(testVec)(testCnt).op0
-          req.data := Vec(testVec)(testCnt).op1
-          req.mask := Vec(testVec)(testCnt).op2
+          req.addr := VecInit(testVec)(testCnt).op0
+          req.data := VecInit(testVec)(testCnt).op1
+          req.mask := VecInit(testVec)(testCnt).op2
           req.tag := testCnt % 16.U
           reqValid := true.B
           testState := sNastiWriteReq
         }
         is(pollCmd) {
           req.read := true.B
-          req.addr := Vec(testVec)(testCnt).op0
+          req.addr := VecInit(testVec)(testCnt).op0
           req.tag := testCnt % 16.U
           reqValid := true.B
           testState := sNastiReadReq
@@ -212,8 +208,8 @@ class FilterDFTester(accel: => Accelerator)(implicit val p: config.Parameters) e
     }
     is(sNastiReadResp) {
       when(hps.io.resp.valid && (hps.io.resp.bits.tag === testCnt % 16.U)) {
-        val expected = Vec(testVec)(testCnt).op1
-        val mask     = Vec(testVec)(testCnt).op2
+        val expected = VecInit(testVec)(testCnt).op1
+        val mask     = VecInit(testVec)(testCnt).op2
         when((hps.io.resp.bits.data & mask) =/= (expected & mask)) {
           when(!pollingRead) {
             printf("Read fail. Expected: 0x%x. Received: 0x%x.", expected, hps.io.resp.bits.data)

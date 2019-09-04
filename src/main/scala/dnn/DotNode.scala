@@ -28,7 +28,7 @@ class DotFU[gen <: Shapes : OperatorDot](left: => gen, lanes: Int, opCode: Strin
 }
 
 class DotIO[gen <: Shapes](NumOuts: Int)(left: => gen)(implicit p: Parameters)
-  extends HandShakingIONPS(NumOuts)(new CustomDataBundle(UInt(left.getWidth))) {
+  extends HandShakingIONPS(NumOuts)(new CustomDataBundle(UInt((left.getWidth).W))) {
   // LeftIO: Left input data for computation
   val LeftIO = Flipped(Decoupled(new CustomDataBundle(UInt((left.getWidth).W))))
 

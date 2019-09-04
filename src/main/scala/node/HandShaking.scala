@@ -964,7 +964,9 @@ class HandShakingAlias[T <: Data](NumPredOps: Int,
       val pred_valid = VecInit(alias_pred_valid_R).asUInt
       val waitlist = (pred_valid | ~hits)
       val result = waitlist.andR && AliasInfoAvail( )
-      printf(p"\n Alias_R (): ${Vec(alias_in_valid_R)} Alias addr: ${alias_in_bundle_R(0).data} hits: ${hits} pred_valid ${pred_valid} waitlist ${waitlist} result ${result}")
+      printf(p"\n Alias_R (): ${VecInit(alias_in_valid_R)} " +
+        p"Alias addr: ${alias_in_bundle_R(0).data} hits: ${hits} " +
+        p"pred_valid ${pred_valid} waitlist ${waitlist} result ${result}")
       result
     } else {
       true.B

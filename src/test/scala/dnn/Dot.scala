@@ -37,7 +37,7 @@ class FXDotCompTests(df: DotNode[FXmatNxN])
   poke(df.io.LeftIO.bits.predicate, true)
 
   // 0x32 (3.125) * 0x20 (2.0) = 6.25 (0x64 or 100)
-  poke(df.io.RightIO.bits.data, 0x40L)
+  poke(df.io.RightIO.bits.data, 0x40404040L)
   poke(df.io.RightIO.valid, true)
   poke(df.io.RightIO.bits.predicate, true)
 
@@ -55,7 +55,7 @@ class FPDotCompTests(df: DotNode[FPmatNxN])
   poke(df.io.LeftIO.bits.predicate, true)
 
   // 0x4e - 3.7 . Result : 103.
-  poke(df.io.RightIO.bits.data, 0x4eL)
+  poke(df.io.RightIO.bits.data, 0x40404040L)
   poke(df.io.RightIO.valid, true)
   poke(df.io.RightIO.bits.predicate, true)
 
@@ -67,15 +67,15 @@ class FPDotCompTests(df: DotNode[FPmatNxN])
 class DotCompTester extends FlatSpec with Matchers {
   implicit val p = config.Parameters.root((new Mat_VecConfig).toInstance)
   it should "Typ Compute Tester" in {
-    chisel3.iotesters.Driver.execute(Array("--backend-name", "verilator", "--target-dir", "test_run_dir"),
-      () => new DotNode(NumOuts = 1, ID = 0, 4, "Add")(new matNxN(2, true))) {
-      c => new DotCompTests(c)
-    } should be(true)
+//    chisel3.iotesters.Driver.execute(Array("--backend-name", "verilator", "--target-dir", "test_run_dir"),
+//      () => new DotNode(NumOuts = 1, ID = 0, 4, "Add")(new matNxN(2, true))) {
+//      c => new DotCompTests(c)
+//    } should be(true)
 
-    //    chisel3.iotesters.Driver.execute(Array("--backend-name", "verilator", "--target-dir", "test_run_dir"),
-    //      () => new DotNode(NumOuts = 1, ID = 0, 4, "Mul")(new FXmatNxN(2,4))) {
-    //      c => new FXDotCompTests(c)
-    //    } should be(true)
+        chisel3.iotesters.Driver.execute(Array("--backend-name", "verilator", "--target-dir", "test_run_dir"),
+          () => new DotNode(NumOuts = 1, ID = 0, 4, "Mul")(new FXmatNxN(2,4))) {
+          c => new FXDotCompTests(c)
+        } should be(true)
     //    chisel3.iotesters.Driver.execute(Array("--backend-name", "verilator", "--target-dir", "test_run_dir"),
     //      () => new DotNode(NumOuts = 1, ID = 0, 4, "Mul")(new FPmatNxN(2, t = FType.M))) {
     //      c => new FPDotCompTests(c)

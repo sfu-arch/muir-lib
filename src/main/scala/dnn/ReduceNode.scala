@@ -10,7 +10,8 @@ import interfaces.CustomDataBundle
 //import javafx.scene.chart.PieChart.Data
 import node.{AluGenerator, HandShakingIONPS, HandShakingNPS, Shapes}
 
-class ReduceFU[L <: Shapes : OperatorReduction](left: => L, pipelined: Boolean, opCode: String)(implicit val p: Parameters) extends Module {
+class ReduceFU[L <: Shapes : OperatorReduction](left: => L, pipelined: Boolean, opCode: String)
+                                               (implicit val p: Parameters) extends Module {
   val io = IO(new Bundle {
     val a = Flipped(Valid(left))
     val o = Output(Valid(UInt(p(XLEN).W)))
@@ -27,7 +28,7 @@ class ReduceFU[L <: Shapes : OperatorReduction](left: => L, pipelined: Boolean, 
 }
 
 class ReduceIO[L <: Shapes](NumOuts: Int)(left: => L)(implicit p: Parameters)
-  extends HandShakingIONPS(NumOuts)(new CustomDataBundle(UInt(left.getWidth))) {
+  extends HandShakingIONPS(NumOuts)(new CustomDataBundle(UInt((left.getWidth).W))) {
   // LeftIO: Left input data for computation
   val LeftIO = Flipped(Decoupled(new CustomDataBundle(UInt((left.getWidth).W))))
 
