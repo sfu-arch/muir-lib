@@ -43,6 +43,7 @@ class TypeStackFile(ID: Int,
     val WriteOut = Vec(NWrites, Output(new WriteResp()))
     val ReadIn = Vec(NReads, Flipped(Decoupled(new ReadReq())))
     val ReadOut = Vec(NReads, Output(new ReadResp()))
+    //val RegFi = Flipped(new RegFileBundle())
   })
 
   require(Size > 0)
@@ -140,3 +141,6 @@ class TypeStackFile(ID: Int,
   // for (i <- 0 until Typ_SZ)
   // {
 }
+// val TS = new TypeStackFile
+// val Reg = new RegFile();;;
+// Reg.io <> TS.io.RegFi

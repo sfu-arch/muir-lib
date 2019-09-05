@@ -19,8 +19,14 @@ package accel
  * under the License.
  */
 
+import arbiters.TypeStackFile
 import chisel3._
 import config._
+import control.BasicBlockNoMaskNode
+import dnn.{DotNode, ReduceNode}
+import junctions.SplitCallNew
+import memory.{ReadTypMemoryController, WriteTypMemoryController}
+import node.{FXmatNxN, TypLoad, TypStore}
 import shell._
 
 /** Core parameters */
@@ -82,7 +88,35 @@ class DNNCore(implicit p: Parameters) extends Module {
     val vcr = new VCRClient
     val vme = new VMEMaster
   })
-//  val fetch = Module(new Fetch)
+
+
+  val shape = new FXmatNxN(2,4)
+
+  val StackFile = Module(new TypeStackFile(ID = 0, Size = 32, NReads = 2, NWrites = 1)
+  (WControl = new WriteTypMemoryController(NumOps = 1, BaseSize = 2, NumEntries = 1))
+  (RControl = new ReadTypMemoryController(NumOps = 2, BaseSize = 2, NumEntries = 2)))
+
+  val InputSplitter = Module(new SplitCallNew(List(1, 1, 1)))
+  InputSplitter.io.In <> io.vme
+
+
+  StackFile.io.
+
+  val conv_bb = Module(new BasicBlockNoMaskNode(NumInputs = 1, NumOuts = 5, BID = 0))
+
+  val LoadA = Module(new TypLoad(NumPredOps = 0, NumSuccOps = 1, NumOuts = 1, ID = 0, RouteID = 0))
+  val LoadB = Module(new TypLoad(NumPredOps = 0, NumSuccOps = 1, NumOuts = 1, ID = 0, RouteID = 1))
+  val StoreType = Module(new TypStore(NumPredOps = 2, NumSuccOps = 0, NumOuts = 1, ID = 0, RouteID = 0))
+
+  val dotNode = Module(new DotNode(NumOuts = 1, ID = 0, 4, "Mul")(shape))
+  val reduceNode = Module(new ReduceNode(NumOuts = 1, ID = 1, false, "Add")(shape))
+
+  conv_bb.io.predicateIn <> InputSplitter.io.Out.enable
+  /* ================================================================== *
+   *                          Enable signals                            *
+   * ================================================================== */
+
+  //  val fetch = Module(new Fetch)
 //  val load = Module(new Load)
 //  val compute = Module(new Compute)
 //  val store = Module(new Store)
