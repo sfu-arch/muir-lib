@@ -34,6 +34,7 @@ class ComputeNodeIO(NumOuts: Int, Debug: Boolean)
 
 class ComputeNode(NumOuts: Int, ID: Int, opCode: String)
                  (sign: Boolean, Debug: Boolean = false)
+                 (uniq_name: String = "me")
                  (implicit p: Parameters,
                   name: sourcecode.Name,
                   file: sourcecode.File)
@@ -44,10 +45,10 @@ class ComputeNode(NumOuts: Int, ID: Int, opCode: String)
   val node_name = name.value
   val module_name = file.value.split("/").tail.last.split("\\.").head.capitalize
   //---------------------------------
-  val Uniq_name =  "me"
+
   if (ID == 4) {
-    val sourceVal = Wire (UInt(6.W))
-    sourceVal := 5.U
+    val Uniq_name =  "me"
+    val sourceVal = WireInit(5.U(6.W))
     BoringUtils.addSource(sourceVal, Uniq_name)
   }
   //-----------------------------------------

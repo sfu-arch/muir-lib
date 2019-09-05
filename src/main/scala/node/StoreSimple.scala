@@ -71,6 +71,8 @@ class UnTypStore(NumPredOps: Int,
   val state = RegInit(s_idle)
 
   val ReqValid = RegInit(false.B)
+
+
  //------------------------------
 
   if (ID == 7) {
@@ -78,9 +80,11 @@ class UnTypStore(NumPredOps: Int,
     SinkVal:= 0.U
     val Uniq_name = "me"
     BoringUtils.addSink(SinkVal, Uniq_name)
-    printf("[***************************sinksource*******************" + SinkVal)
+    //printf("[***************************sinksource*******************" + SinkVal)
   }
   //----------------------------------
+
+
   /*============================================
   =            Predicate Evaluation            =
   ============================================*/
@@ -201,3 +205,76 @@ class UnTypStore(NumPredOps: Int,
 
 }
 
+
+class DebugBufferIO(NumPredOps: Int = 0,
+              NumSuccOps: Int = 0,
+              NumOuts: Int = 1)(implicit p: Parameters)
+  extends HandShakingIOPS(NumPredOps, NumSuccOps, NumOuts)(new DataBundle) {
+  // Node specific IO
+  // GepAddr: The calculated address comming from GEP node
+  val GepAddr = Flipped(Decoupled(new DataBundle))
+  // Store data.
+  val inData = Flipped(Decoupled(new DataBundle))
+  // Memory request
+  val memReq = Decoupled(new WriteReq())
+  // Memory response.
+  val memResp = Input(Flipped(new WriteResp()))
+
+  override def cloneType = new StoreIO(NumPredOps, NumSuccOps, NumOuts, Debug).asInstanceOf[this.type]
+}
+
+/**
+  * @brief Store Node. Implements store operations
+  * @details [long description]
+  * @param NumPredOps [Number of predicate memory operations]
+  */
+class DebugBufferNode(NumPredOps: Int = 0, NumSuccOps: Int = 0, NumOuts: Int = 1,
+                 Typ: UInt = MT_W, ID: Int, RouteID: Int)
+                (implicit p: Parameters,
+                 name: sourcecode.Name,  file: sourcecode.File)
+  extends HandShaking(NumPredOps, NumSuccOps, NumOuts, ID)(new DataBundle)(p) {
+
+  // Set up StoreIO
+  override lazy val io = IO(new DebugBufferIO(NumPredOps, NumSuccOps, NumOuts))
+  // Printf debugging
+  val node_name = name.value
+  val module_name = file.value.split("/").tail.last.split("\\.").head.capitalize
+  override val printfSigil = "[" + module_name + "] " + node_name + ": " + ID + " "
+  val (cycleCount, _) = Counter(true.B, 32 * 1024)
+
+
+  //------------------------------
+
+  if (ID == 7) {
+    val SinkVal = Wire (UInt(6.W))
+    SinkVal:= 0.U
+    val Uniq_name = "me"
+    BoringUtils.addSink(SinkVal, Uniq_name)
+    //printf("[***************************sinksource*******************" + SinkVal)
+  }
+  //----------------------------------
+
+
+  val st_node = Module(new UnTypStore(NumPredOps = 0, NumSuccOps = 0, ID = 0, RouteID = 0))
+
+  st_node.io.enable.bits := ControlBundle.active()
+  st_node.io.enable.valid := true.B
+
+  val data_queue = Queue(binaryOp_4.io.LogCheck.get, 20)
+  val addr_queue = Queue(binaryOp_4.io.LogCheckAddr.get, 20)
+  //-------val x = Module(new Queue(UInt(4.W),20))
+  //---------BoringUtils.addSink(x.io.enq,"")
+  //---------st_0.io.inData  <> x.io.deq
+  //--------data_queue.
+  data_queue.nodeq()
+  addr_queue.nodeq()
+
+  when(st_node.io.inData.ready && data_queue.valid && addr_queue.valid){
+    st_node.io.inData.enq(data_queue.deq().asDataBundle())
+    st_node.io.GepAddr.enq(addr_queue.deq().asDataBundle())
+  }.otherwise{
+    st_node.io.inData.noenq()
+    st_node.io.GepAddr.noenq()
+  }
+
+}

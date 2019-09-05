@@ -977,6 +977,7 @@ class BasicBlockNoMaskFastNode(BID: Int, val NumInputs: Int = 1, val NumOuts: In
   extends Module with CoreParams with UniformPrintfs {
 
   val io = IO(new BasicBlockNoMaskFastVecIO(NumInputs, NumOuts)(p))
+  //------------
   io.DebugEnable := true.B
 
   // Printf debugging
