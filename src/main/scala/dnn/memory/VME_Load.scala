@@ -23,6 +23,8 @@ import chisel3._
 import chisel3.util._
 import config._
 import dnn._
+import interfaces.{ControlBundle, DataBundle, TypBundle, WriteReq, WriteResp}
+import node.TypStore
 import shell._
 
 /** Load.
@@ -35,99 +37,73 @@ import shell._
 class VME_Load(debug: Boolean = false)(implicit p: Parameters) extends Module {
   val mp = p(ShellKey).memParams
   val io = IO(new Bundle {
-    val i_post = Input(Bool())
-    val o_post = Output(Bool())
-    val inst = Flipped(Decoupled(UInt(INST_BITS.W)))
-    val inp_baddr = Input(UInt(mp.addrBits.W))
-    val wgt_baddr = Input(UInt(mp.addrBits.W))
-    val vme_rd = Vec(2, new VMEReadMaster)
-    val inp = new TensorClient(tensorType = "inp")
-    val wgt = new TensorClient(tensorType = "wgt")
+    val nRd = p(ShellKey).vmeParams.nReadClients
+    val nWr = p(ShellKey).vmeParams.nWriteClients
+    val start = Input(Bool())
+    val done = Output(Bool())
+    val vme_cmd = Flipped(Decoupled(new VMECmd()))
+    val vme_read = new VMEReadMaster()
+    val base_addr = Input(new DataBundle())
+    val memReq = Decoupled(new WriteReq())
+    val memResp = Input(Flipped(new WriteResp()))
+
   })
-  val sIdle :: sSync :: sExe :: Nil = Enum(3)
+
+  val inDataCounter = Counter(math.pow(2, io.vme_cmd.bits.lenBits).toInt)
+
+  val StoreType = Module(new TypStore(NumPredOps = 0, NumSuccOps = 0, NumOuts = 1, ID = 0, RouteID = 0))
+
+  StoreType.io.enable.bits := ControlBundle.active()
+  StoreType.io.enable.valid := true.B
+  StoreType.io.Out(0).ready := true.B
+
+  io.memReq <> StoreType.io.memReq
+  StoreType.io.memResp <> io.memResp
+
+  val vme_data_queue = Queue(io.vme_read.data, 50)
+
+  io.vme_read.cmd <> io.vme_cmd
+
+  val sIdle :: sReadData :: sGepAddr :: Nil = Enum(3)
   val state = RegInit(sIdle)
 
-  val s = Module(new Semaphore(counterBits = 8, counterInitValue = 0))
-  val inst_q = Module(new Queue(UInt(INST_BITS.W), p(CoreKey).instQueueEntries))
-
-  val dec = Module(new LoadDecode)
-  dec.io.inst := inst_q.io.deq.bits
-
-  val tensorType = Seq("inp", "wgt")
-  val tensorDec = Seq(dec.io.isInput, dec.io.isWeight)
-  val tensorLoad =
-    Seq.tabulate(2)(i => Module(new TensorLoad(tensorType = tensorType(i))))
-
-  val start = inst_q.io.deq.valid & Mux(dec.io.pop_next, s.io.sready, true.B)
-  val done = Mux(dec.io.isInput, tensorLoad(0).io.done, tensorLoad(1).io.done)
-
-  // control
+  io.done := false.B
   switch(state) {
     is(sIdle) {
-      when(start) {
-        when(dec.io.isSync) {
-          state := sSync
-        }.elsewhen(dec.io.isInput || dec.io.isWeight) {
-          state := sExe
-        }
+      when(io.start && io.vme_cmd.fire()) {
+        state := sGepAddr
       }
     }
-    is(sSync) {
-      state := sIdle
+    is(sGepAddr) {
+      when(StoreType.io.GepAddr.ready && StoreType.io.inData.ready && vme_data_queue.valid) {
+        StoreType.io.inData.enq(vme_data_queue.deq())
+        StoreType.io.GepAddr.enq(io.base_addr + inDataCounter.value)
+        state := sReadData
+      }
     }
-    is(sExe) {
-      when(done) {
+    is(sReadData) {
+      when(StoreType.io.Out(0).fire) {
+        inDataCounter.inc()
+        state := sGepAddr
+      }.elsewhen(inDataCounter.value === io.vme_cmd.bits.len) {
         state := sIdle
+        io.done := true.B
       }
     }
   }
-
-  // instructions
-  inst_q.io.enq <> io.inst
-  inst_q.io.deq.ready := (state === sExe & done) | (state === sSync)
-
-  // load tensor
-  // [0] input (inp)
-  // [1] weight (wgt)
-  val ptr = Seq(io.inp_baddr, io.wgt_baddr)
-  val tsor = Seq(io.inp, io.wgt)
-  for (i <- 0 until 2) {
-    tensorLoad(i).io.start := state === sIdle & start & tensorDec(i)
-    tensorLoad(i).io.inst := inst_q.io.deq.bits
-    tensorLoad(i).io.baddr := ptr(i)
-    tensorLoad(i).io.tensor <> tsor(i)
-    io.vme_rd(i) <> tensorLoad(i).io.vme_rd
-  }
-
-  // semaphore
-  s.io.spost := io.i_post
-  s.io.swait := dec.io.pop_next & (state === sIdle & start)
-  io.o_post := dec.io.push_next & ((state === sExe & done) | (state === sSync))
 
   // debug
   if (debug) {
     // start
-    when(state === sIdle && start) {
-      when(dec.io.isSync) {
-        printf("[Load] start sync\n")
-      }.elsewhen(dec.io.isInput) {
-        printf("[Load] start input\n")
-      }
-        .elsewhen(dec.io.isWeight) {
-          printf("[Load] start weight\n")
-        }
+    when(state === sIdle && io.start) {
+      printf("[VME_Load] start\n")
     }
     // done
-    when(state === sSync) {
-      printf("[Load] done sync\n")
-    }
-    when(state === sExe) {
-      when(done) {
-        when(dec.io.isInput) {
-          printf("[Load] done input\n")
-        }.elsewhen(dec.io.isWeight) {
-          printf("[Load] done weight\n")
-        }
+    when(state === sReadData) {
+      when(io.done) {
+        printf("[Load] Reading data\n")
+      }.otherwise {
+        printf("[VME_Load] Read is done\n")
       }
     }
   }
