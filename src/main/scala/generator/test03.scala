@@ -43,9 +43,7 @@ class test03DF(implicit p: Parameters) extends test03DFIO()(p) {
    *                   PRINTING MEMORY MODULES                          *
    * ================================================================== */
 
-  //Remember if there is no mem operation io memreq/memresp should be grounded
-  //io.MemReq <> DontCare
-  // io.MemResp <> DontCare
+
 
   //-----------------------------------------------------------------------p
   val MemCtrl = Module(new UnifiedController(ID = 0, Size = 32, NReads = 0, NWrites = 1)
@@ -68,10 +66,7 @@ class test03DF(implicit p: Parameters) extends test03DFIO()(p) {
   /* ================================================================== *
    *                   PRINTING BASICBLOCK NODES                        *
    * ================================================================== */
-  //---------------------p
-  //  val bb_0 = Module(new BasicBlockNoMaskFastNode(NumInputs = 1, NumOuts = 9, BID = 0))
   val bb_0 = Module(new BasicBlockNoMaskFastNode(NumInputs = 1, NumOuts = 9, BID = 0))
-  //-----------------------------v
 
   /* ================================================================== *
    *                   PRINTING INSTRUCTION NODES                       *
@@ -100,10 +95,14 @@ class test03DF(implicit p: Parameters) extends test03DFIO()(p) {
   val ret_6 = Module(new RetNode2(retTypes = List(32), ID = 6))
 
   //-----------------------------------------------------------------------------------p
-  val st_0 = Module(new UnTypStore(NumPredOps = 0, NumSuccOps = 0, ID = 7, RouteID = 0))
+
+  /*val st_0 = Module(new UnTypStore(NumPredOps = 0, NumSuccOps = 0, ID = 7, RouteID = 0))*/
+  //new
+  val buf_0 = Module(new DebugBufferNode(NumPredOps = 0, NumSuccOps = 0, ID = 7, RouteID = 0))
+
+  //new
   //------------------------------------------------------------------------------------v
-  //val sink = Module(new SinkNode(Enable = true))
-  //val source = Module(new SourceNode(Enable = true))
+
   /* ================================================================== *
    *                   PRINTING CONSTANTS NODES                         *
    * ================================================================== */
@@ -114,9 +113,6 @@ class test03DF(implicit p: Parameters) extends test03DFIO()(p) {
   //i32 0
   val const1 = Module(new ConstFastNode(value = 0, ID = 1))
 
-  //-------------------------------------p
-  //val const2 = Module(new ConstFastNode(value = 1, ID = 2))
-  //-----------------------------------------------v
 
   /* ================================================================== *
    *                   BASICBLOCK -> PREDICATE INSTRUCTION              *
@@ -197,14 +193,15 @@ class test03DF(implicit p: Parameters) extends test03DFIO()(p) {
 
   ret_6.io.In.enable <> bb_0.io.Out(8)
   //-----------------------------------------p
-  //st_0.io.enable <> bb_0.io.Out(10)
-  st_0.io.enable.bits := ControlBundle.active()
-  st_0.io.enable.valid := true.B
+  /*st_0.io.enable.bits := ControlBundle.active()
+  st_0.io.enable.valid := true.B*/
   binaryOp_4.io.DebugIO.get <> bb_0.io.DebugEnable
-//  const2.io.enable.bits := ControlBundle.active()
-//  const2.io.enable.valid := true.B
-  //const2.io.enable <> bb_0.io.Out(9)
+
+  buf_0.io.enable.bits := ControlBundle.active()
+  buf_0.io.enable.valid := true.B
+
   //-----------------------------------------------v
+
   /* ================================================================== *
    *                   CONNECTING PHI NODES                             *
    * ================================================================== */

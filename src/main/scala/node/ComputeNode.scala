@@ -44,14 +44,7 @@ class ComputeNode(NumOuts: Int, ID: Int, opCode: String)
   // Printf debugging
   val node_name = name.value
   val module_name = file.value.split("/").tail.last.split("\\.").head.capitalize
-  //---------------------------------
 
-  if (ID == 4) {
-    val Uniq_name =  "me"
-    val sourceVal = WireInit(5.U(6.W))
-    BoringUtils.addSource(sourceVal, Uniq_name)
-  }
-  //-----------------------------------------
   override val printfSigil = "[" + module_name + "] " + node_name + ": " + ID + " "
   val (cycleCount, _) = Counter(true.B, 32 * 1024)
   
@@ -119,12 +112,45 @@ class ComputeNode(NumOuts: Int, ID: Int, opCode: String)
     right_R <> io.RightIO.bits
     right_valid_R := true.B
   }
+  //Capture.log.valid := false.B
   //-------------------p
   if (Debug){
     when(io.DebugIO.get){
       dbg_counter.inc()
+    //  Capture.log.valid := true.B
       //CaptureLog(Cat(state, cycleCount), (dbg_counter.value << 2.U).asUInt())
       CaptureLog( cycleCount, (dbg_counter.value << 2.U).asUInt())
+    }
+  }
+
+
+  if (Debug) {
+    val sourceVal = Decoupled(UInt(4.W))
+    val adrVal = Decoupled(UInt(4.W))
+
+    val debug_src_valid = RegInit(false.B)
+
+    sourceVal := 5.U
+    adrVal := 4.U
+    sourceVal.valid := debug_src_valid
+
+    adrVal.valid := false.B
+    when(io.DebugIO.get.start) {
+      dbg_counter.inc()
+      debug_src_valid := true.B
+      adrVal.valid := true.B
+    }
+
+    when(io.DebugIO.get.finish){
+      debug_src_valid := false.B
+
+    }
+
+    if (ID == 4) {
+      val Uniq_name_Data = "meData"
+      val Uniq_name_Adr = "meAdr"
+      BoringUtils.addSource(sourceVal, Uniq_name_Data)
+      BoringUtils.addSource(adrVal, Uniq_name_Adr)
     }
   }
   //------------------v
@@ -174,7 +200,7 @@ class ComputeNode(NumOuts: Int, ID: Int, opCode: String)
       //io.LogIO.bits := DataBundle(state)
       //io.LogIO.valid := true.B
       //v
-      when(IsOutReady()) {
+      when(IsOutReady() && io.LogCheck.get.ready) {
         // Reset data
         left_valid_R := false.B
         right_valid_R := false.B
