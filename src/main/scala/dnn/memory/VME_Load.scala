@@ -76,8 +76,8 @@ class VME_Load(debug: Boolean = false)(implicit p: Parameters) extends Module {
     }
     is(sGepAddr) {
       when(StoreType.io.GepAddr.ready && StoreType.io.inData.ready && vme_data_queue.valid) {
-        StoreType.io.inData.enq(vme_data_queue.deq())
-        StoreType.io.GepAddr.enq(io.base_addr + inDataCounter.value)
+        //StoreType.io.inData.enq(vme_data_queue.deq())
+        //StoreType.io.GepAddr.enq(io.base_addr + inDataCounter.value)
         state := sReadData
       }
     }

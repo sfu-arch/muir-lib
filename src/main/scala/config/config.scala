@@ -174,20 +174,20 @@ class Mat_VecConfig extends Config((site, here, up) => {
 
 
 /** PynqConfig. Shell configuration for Pynq */
-class PynqConfig extends Config((site, here, up) => {
-  case ShellKey => ShellParams(
-    hostParams = AXIParams(
-      coherent = false,
-      addrBits = 16,
-      dataBits = 32,
-      lenBits = 8,
-      userBits = 1),
-    memParams = AXIParams(
-      coherent = true,
-      addrBits = 32,
-      dataBits = 64,
-      lenBits = 8,
-      userBits = 1),
-    vcrParams = VCRParams( ),
-    vmeParams = VMEParams( ))
-})
+//class PynqConfig extends Config((site, here, up) => {
+//  case ShellKey => ShellParams(
+//    hostParams = AXIParams(
+//      coherent = false,
+//      addrBits = 16,
+//      dataBits = 32,
+//      lenBits = 8,
+//      userBits = 1),
+//    memParams = AXIParams(
+//      coherent = true,
+//      addrBits = 32,
+//      dataBits = 64,
+//      lenBits = 8,
+//      userBits = 1),
+//    vcrParams = VCRParams( ),
+//    vmeParams = VMEParams( ))
+//})

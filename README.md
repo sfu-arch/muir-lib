@@ -95,3 +95,14 @@ And then for adding dandelion-lib as a dependency to other projects you can add 
 ```scala
 libraryDependencies += "edu.sfu.arch" %% "dandelion-lib" % "0.1-SNAPSHOT"
 ```
+
+
+
+# How to run
+
+
+```
+sbt 'test:runMain accel.VTAShell2Main --target-dir /localhome/rshojabro/git/dandelion-lib/build/chisel --top-name VTAShell2'
+
+
+```

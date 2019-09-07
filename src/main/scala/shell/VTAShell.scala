@@ -45,6 +45,14 @@ class VTAShell(implicit p: Parameters) extends Module {
 
   val vcr = Module(new VCR)
   val vme = Module(new VME)
+
+  vcr.io.vcr.ecnt(0) <> DontCare
+  vcr.io.vcr.finish := false.B
+
+  vme.io.vme.rd(0) <> DontCare
+  vme.io.vme.wr(0) <> DontCare
+//  vme.io.vme.wr(0) <> DontCare
+//
   /* Insert Core Here */
  // val core = Module(new Core)
 //
@@ -53,7 +61,7 @@ class VTAShell(implicit p: Parameters) extends Module {
 //  vme.io.vme <> core.io.vme
 //
   /* Connect AXI */
-//  vcr.io.host <> io.host
-//  io.mem <> vme.io.mem
+  io.host <> vcr.io.host
+ io.mem <> vme.io.mem
 
 }

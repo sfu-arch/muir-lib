@@ -20,10 +20,12 @@
 package shell
 
 
-import accel.DNNCore
+//import accel.DNNCore
+//import accel.TestAccel2
 import chisel3._
 import chisel3.experimental.{RawModule, withClockAndReset}
 import config._
+import vta.shell.De10Config
 
 
 class IntelShell(implicit p: Parameters) extends Module {
@@ -33,14 +35,16 @@ class IntelShell(implicit p: Parameters) extends Module {
   })
 
   val vcr = Module(new VCR)
-  val vme = Module(new VME)
+//  val vme = Module(new VME)
   // Connect the DNN core and its VME modules.
-   val core = Module(new DNNCore())
+//   val core = Module(new DNNCore())
 
-   core.io.vcr <> vcr.io.vcr
-   vme.io.vme <> core.io.vme
+//   core.io.vcr <> vcr.io.vcr
+//   vme.io.vme <> core.io.vme
 
-   vcr.io.host <> io.host
+   io.host <> vcr.io.host
+
+  vcr.io.vcr <> DontCare
 
 
   // For whatever reason; this is hoisted here wheras the xilinx shell includes a VTA shell separately. For the timebeing we retain it here.
@@ -69,5 +73,7 @@ class IntelShell(implicit p: Parameters) extends Module {
   io.host.r.bits.user <> DontCare
   io.host.r.bits.last := 1.U
 
-  io.mem <> vme.io.mem
+//  io.mem <> vme.io.mem
+  io.mem <> DontCare
 }
+
