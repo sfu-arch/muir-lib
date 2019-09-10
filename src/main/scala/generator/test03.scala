@@ -96,9 +96,9 @@ class test03DF(implicit p: Parameters) extends test03DFIO()(p) {
 
   //-----------------------------------------------------------------------------------p
 
-  /*val st_0 = Module(new UnTypStore(NumPredOps = 0, NumSuccOps = 0, ID = 7, RouteID = 0))*/
+  val st_0 = Module(new UnTypStore(NumPredOps = 0, NumSuccOps = 0, ID = 7, RouteID = 0))
   //new
-  val buf_0 = Module(new DebugBufferNode(NumPredOps = 0, NumSuccOps = 0, ID = 7, RouteID = 0))
+  //val buf_0 = Module(new DebugBufferNode(NumPredOps = 0, NumSuccOps = 0, ID = 7, RouteID = 0))
 
   //new
   //------------------------------------------------------------------------------------v
@@ -193,12 +193,12 @@ class test03DF(implicit p: Parameters) extends test03DFIO()(p) {
 
   ret_6.io.In.enable <> bb_0.io.Out(8)
   //-----------------------------------------p
-  /*st_0.io.enable.bits := ControlBundle.active()
-  st_0.io.enable.valid := true.B*/
-  binaryOp_4.io.DebugIO.get <> bb_0.io.DebugEnable
+  st_0.io.enable.bits := ControlBundle.active()
+  st_0.io.enable.valid := true.B
+  binaryOp_4.io.DebugEnable.get <> bb_0.io.DebugEnable
 
-  buf_0.io.enable.bits := ControlBundle.active()
-  buf_0.io.enable.valid := true.B
+  //buf_0.io.enable.bits := ControlBundle.active()
+  //buf_0.io.enable.valid := true.B
 
   //-----------------------------------------------v
 
@@ -281,7 +281,7 @@ class test03DF(implicit p: Parameters) extends test03DFIO()(p) {
     st_0.io.GepAddr.noenq()
   }
   //  st_0.io.inData.valid := true.B
-  //  st_0.io.GepAddr <> const2.io.Out
+
   st_0.io.Out(0).ready := true.B
 
   //------------------------------------------------------------v

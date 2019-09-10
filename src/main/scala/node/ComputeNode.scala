@@ -25,7 +25,7 @@ class ComputeNodeIO(NumOuts: Int, Debug: Boolean)
   //p
   //val LogIO = Decoupled(new DataBundle())
 
-  val DebugIO = if (Debug) Some(Flipped(new Bool)) else None
+  val DebugEnable = if (Debug) Some(Flipped(new Bool)) else None
 
   //v
   override def cloneType = new ComputeNodeIO(NumOuts, Debug).asInstanceOf[this.type]
@@ -34,7 +34,6 @@ class ComputeNodeIO(NumOuts: Int, Debug: Boolean)
 
 class ComputeNode(NumOuts: Int, ID: Int, opCode: String)
                  (sign: Boolean, Debug: Boolean = false)
-                 (uniq_name: String = "me")
                  (implicit p: Parameters,
                   name: sourcecode.Name,
                   file: sourcecode.File)
@@ -82,17 +81,7 @@ class ComputeNode(NumOuts: Int, ID: Int, opCode: String)
   val predicate = Mux(enable_valid_R, enable_R.control ,io.enable.bits.control)
   val taskID = Mux(enable_valid_R, enable_R.taskID ,io.enable.bits.taskID)
 
-  //p
 
-  //if(Debug){
-  //  io.LogCheck.get.valid := false.B
-  //  io.LogCheck.get.bits := DataBundle.default
-  //}
-  //io.LogCheck.get.valid := false.B
-  //io.LogCheck.get.bits := DataBundle.default
-  //io.LogIO.valid := false.B
-  //io.LogIO.bits := DataBundle.default
-  //v
 
   /*===============================================*
    *            Latch inputs. Wire up output       *
@@ -112,38 +101,35 @@ class ComputeNode(NumOuts: Int, ID: Int, opCode: String)
     right_R <> io.RightIO.bits
     right_valid_R := true.B
   }
-  //Capture.log.valid := false.B
+
   //-------------------p
   if (Debug){
-    when(io.DebugIO.get){
-      dbg_counter.inc()
-    //  Capture.log.valid := true.B
-      //CaptureLog(Cat(state, cycleCount), (dbg_counter.value << 2.U).asUInt())
-      CaptureLog( cycleCount, (dbg_counter.value << 2.U).asUInt())
-    }
+   when(io.DebugEnable.get){
+     dbg_counter.inc()
+     CaptureLog( cycleCount, (dbg_counter.value << 2.U).asUInt())
+   }
   }
 
-
+/*
   if (Debug) {
+
     val sourceVal = Decoupled(UInt(4.W))
-    val adrVal = Decoupled(UInt(4.W))
+    val adrVal = Decoupled(UInt(10.W))
 
     val debug_src_valid = RegInit(false.B)
-
     sourceVal := 5.U
-    adrVal := 4.U
+    adrVal := dbg_counter.value << 2.U
     sourceVal.valid := debug_src_valid
-
+    adrVal.valid := debug_src_valid
     adrVal.valid := false.B
-    when(io.DebugIO.get.start) {
+    sourceVal.valid := false.B
+
+    when(io.DebugEnable.get) {
       dbg_counter.inc()
       debug_src_valid := true.B
-      adrVal.valid := true.B
     }
-
-    when(io.DebugIO.get.finish){
+    when(!io.DebugEnable.get){
       debug_src_valid := false.B
-
     }
 
     if (ID == 4) {
@@ -153,6 +139,8 @@ class ComputeNode(NumOuts: Int, ID: Int, opCode: String)
       BoringUtils.addSource(adrVal, Uniq_name_Adr)
     }
   }
+*/
+
   //------------------v
   // Wire up Outputs
   // The taskID's should be identical except in the case
@@ -171,15 +159,8 @@ class ComputeNode(NumOuts: Int, ID: Int, opCode: String)
         io.Out.foreach(_.bits := DataBundle(FU.io.out, taskID, predicate))
         io.Out.foreach(_.valid := true.B)
         ValidOut()
-//        if (Debug){
-//          dbg_counter.inc()
-//          CaptureLog(state, (dbg_counter.value << 2.U).asUInt())
-//        }
         state := s_COMPUTE
-        //if(Debug){
-        //  io.LogCheck.get.bits := DataBundle(state)
-        //  io.LogCheck.get.valid := true.B
-        //}
+
         if (log) {
           printf("[LOG] " + "[" + module_name + "] " + "[TID->%d] [COMPUTE] " +
             node_name + ": Output fired @ %d, Value: %d (%d + %d)\n", taskID, cycleCount, FU.io.out, left_R.data, right_R.data)
@@ -187,19 +168,7 @@ class ComputeNode(NumOuts: Int, ID: Int, opCode: String)
       }
     }
     is(s_COMPUTE) {
-      //p
-      //if (Debug) {
-      //  io.LogCheck.get.bits := DataBundle(state)
-      //  io.LogCheck.get.valid := true.B
 
-      //}
-//      if (Debug){
-//        dbg_counter.inc()
-//        CaptureLog(state, (dbg_counter.value << 2.U).asUInt())
-//      }
-      //io.LogIO.bits := DataBundle(state)
-      //io.LogIO.valid := true.B
-      //v
       when(IsOutReady() && io.LogCheck.get.ready) {
         // Reset data
         left_valid_R := false.B

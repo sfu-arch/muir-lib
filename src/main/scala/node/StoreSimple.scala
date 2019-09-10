@@ -210,10 +210,6 @@ class DebugBufferIO(NumPredOps: Int = 0,
               NumSuccOps: Int = 0,
               NumOuts: Int = 1)(implicit p: Parameters)
   extends HandShakingIOPS(NumPredOps, NumSuccOps, NumOuts)(new DataBundle) {
-  // Node specific IO
-  // GepAddr: The calculated address comming from GEP node
-
-  // Store data.
 
   // Memory request
   val memReq = Decoupled(new WriteReq())
@@ -258,7 +254,7 @@ class DebugBufferNode(NumPredOps: Int = 0, NumSuccOps: Int = 0, NumOuts: Int = 1
   // -------
 
   val LogData = Queue(Decoupled(UInt(4.W)),20)
-  val LogAddress = Queue(Decoupled(UInt(4.W)),20)
+  val LogAddress = Queue(Decoupled(UInt(10.W)),20)
   val st_node = Module(new UnTypStore(NumPredOps, NumSuccOps, ID = 0, RouteID = 0))
 
   //?
@@ -283,6 +279,7 @@ class DebugBufferNode(NumPredOps: Int = 0, NumSuccOps: Int = 0, NumOuts: Int = 1
   //addr_queue.nodeq()
 
   when(st_node.io.inData.ready && LogData.valid && LogAddress.valid){
+    //here just ++ the address
     st_node.io.inData.enq(DataBundle(LogData.deq()))
     st_node.io.GepAddr.enq(DataBundle(LogAddress.deq()))
   }.otherwise{
@@ -291,3 +288,5 @@ class DebugBufferNode(NumPredOps: Int = 0, NumSuccOps: Int = 0, NumOuts: Int = 1
   }
 
 }
+
+
