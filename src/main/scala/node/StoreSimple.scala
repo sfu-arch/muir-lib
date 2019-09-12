@@ -224,7 +224,7 @@ class DebugBufferIO(NumPredOps: Int = 0,
   * @details [long description]
   * @param NumPredOps [Number of predicate memory operations]
   */
-class DebugBufferNode(NumPredOps: Int = 0, NumSuccOps: Int = 0, NumOuts: Int = 1,
+/*class DebugBufferNode(NumPredOps: Int = 0, NumSuccOps: Int = 0, NumOuts: Int = 1,
                  Typ: UInt = MT_W, ID: Int, RouteID: Int)
                 (implicit p: Parameters,
                  name: sourcecode.Name,  file: sourcecode.File)
@@ -241,15 +241,8 @@ class DebugBufferNode(NumPredOps: Int = 0, NumSuccOps: Int = 0, NumOuts: Int = 1
   val GepAddr = new DataBundle
   //------------------------------
 
-
-
-  //val SinkVal = Wire (UInt(6.W))
-  //val SinkVal = Wire
   val Uniq_name_Data = "meData"
   val Uniq_name_Adr = "meAdr"
-  //BoringUtils.addSink(LogData, Uniq_name)
-  //printf("[***************************sinksource*******************" + SinkVal)
-
   //---------------------------
   // -------
 
@@ -261,27 +254,60 @@ class DebugBufferNode(NumPredOps: Int = 0, NumSuccOps: Int = 0, NumOuts: Int = 1
   st_node.io.enable.bits := ControlBundle.active()
   st_node.io.enable.valid := true.B
 
-  //val data_queue = Queue(LogData.io.enq, 20)
-  //val addr_queue = Queue(LogData.io.enq, 20)
-
-  //LogData.bits := 5.U
-  //LogData.valid := true.B
-
-  //LogData.ready := true.B
-
-  //LogData.enq(5.U)
 
   BoringUtils.addSink(LogData, Uniq_name_Data)
   BoringUtils.addSink(LogAddress, Uniq_name_Adr)
-
-  //st_node.io.inData <> LogData.io.deq
-  //data_queue.nodeq()
-  //addr_queue.nodeq()
 
   when(st_node.io.inData.ready && LogData.valid && LogAddress.valid){
     //here just ++ the address
     st_node.io.inData.enq(DataBundle(LogData.deq()))
     st_node.io.GepAddr.enq(DataBundle(LogAddress.deq()))
+  }.otherwise{
+    st_node.io.inData.noenq()
+    st_node.io.GepAddr.noenq()
+  }
+
+}*/
+
+class DebugBufferNode(NumPredOps: Int = 0, NumSuccOps: Int = 0, NumOuts: Int = 1,
+                      Typ: UInt = MT_W, ID: Int, RouteID: Int)
+                     (implicit p: Parameters,
+                      name: sourcecode.Name,  file: sourcecode.File)
+  extends HandShaking(NumPredOps, NumSuccOps, NumOuts, ID)(new DataBundle)(p) {
+
+  // Set up StoreIO
+  override lazy val io = IO(new DebugBufferIO(NumPredOps, NumSuccOps, NumOuts))
+  // Printf debugging
+  val node_name = name.value
+  val module_name = file.value.split("/").tail.last.split("\\.").head.capitalize
+  override val printfSigil = "[" + module_name + "] " + node_name + ": " + ID + " "
+  val (cycleCount, _) = Counter(true.B, 32 * 1024)
+  val inData = new DataBundle
+  //val GepAddr = new DataBundle
+  val dbg_counter = Counter(1024)
+
+  val Uniq_name_Data = "meData"
+  //val Uniq_name_Adr = "meAdr"
+
+
+  val LogData = Queue(Decoupled(UInt(4.W)),20)
+  //val LogAddress = Queue(Decoupled(UInt(10.W)),20)
+  val st_node = Module(new UnTypStore(NumPredOps, NumSuccOps, ID = 0, RouteID = 0))
+
+  //?
+  st_node.io.enable.bits := ControlBundle.active()
+  st_node.io.enable.valid := true.B
+
+
+  BoringUtils.addSink(LogData, Uniq_name_Data)
+  //BoringUtils.addSink(LogAddress, Uniq_name_Adr)
+
+  val address = (dbg_counter.value << 2.U).asUInt()
+  when(st_node.io.inData.ready && LogData.valid){
+    //here just ++ the address
+    dbg_counter.inc()
+    st_node.io.inData.enq(DataBundle(LogData.deq()))
+    st_node.io.GepAddr := address
   }.otherwise{
     st_node.io.inData.noenq()
     st_node.io.GepAddr.noenq()
