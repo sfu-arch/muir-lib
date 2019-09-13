@@ -224,7 +224,7 @@ class DebugBufferIO(NumPredOps: Int = 0,
   * @details [long description]
   * @param NumPredOps [Number of predicate memory operations]
   */
-/*class DebugBufferNode(NumPredOps: Int = 0, NumSuccOps: Int = 0, NumOuts: Int = 1,
+class DebugBufferNode(NumPredOps: Int = 0, NumSuccOps: Int = 0, NumOuts: Int = 1,
                  Typ: UInt = MT_W, ID: Int, RouteID: Int)
                 (implicit p: Parameters,
                  name: sourcecode.Name,  file: sourcecode.File)
@@ -240,35 +240,66 @@ class DebugBufferIO(NumPredOps: Int = 0,
   val inData = new DataBundle
   val GepAddr = new DataBundle
   //------------------------------
+  val dbg_counter = Counter(1024)
 
   val Uniq_name_Data = "meData"
-  val Uniq_name_Adr = "meAdr"
+  //val Uniq_name_Adr = "meAdr"
   //---------------------------
   // -------
 
-  val LogData = Queue(Decoupled(UInt(4.W)),20)
-  val LogAddress = Queue(Decoupled(UInt(10.W)),20)
+  for (i <- 0 until NumOuts) {
+    io.Out(i).bits := DataBundle.default
+    io.Out(i).valid := false.B
+  }
+
+  val LogData = Module(new Queue(UInt(4.W), 4))
+  val LogAddress = dbg_counter.value << 2.U
+
+//  val LogAddress = Queue(Decoupled(UInt(10.W)),20)
   val st_node = Module(new UnTypStore(NumPredOps, NumSuccOps, ID = 0, RouteID = 0))
 
   //?
   st_node.io.enable.bits := ControlBundle.active()
   st_node.io.enable.valid := true.B
 
+  //  val log_data_ready_wire = WireInit(LogData.ready)
+//  val log_data_ready_wire = WireInit(LogData.ready)
+//  val log_data_valid_wire = WireInit(LogData.valid)
 
-  BoringUtils.addSink(LogData, Uniq_name_Data)
-  BoringUtils.addSink(LogAddress, Uniq_name_Adr)
+//
+//  val log_address_ready_wire = WireInit(LogAddress.ready)
+//  val log_address_valid_wire = WireInit(LogAddress.valid)
+//  val log_address_bits_wire = WireInit(LogAddress.bits)
 
-  when(st_node.io.inData.ready && LogData.valid && LogAddress.valid){
-    //here just ++ the address
-    st_node.io.inData.enq(DataBundle(LogData.deq()))
-    st_node.io.GepAddr.enq(DataBundle(LogAddress.deq()))
+
+  LogData.io.enq.bits := 0.U
+  LogData.io.enq.valid := false.B
+  LogData.io.deq.ready := true.B
+
+  BoringUtils.addSink(LogData.io.deq.bits, "Test_data")
+  BoringUtils.addSink(LogData.io.deq.valid, "Test_valid")
+  BoringUtils.addSource(LogData.io.enq.ready, "Test_ready")
+
+  io.memReq <> st_node.io.memReq
+  st_node.io.memResp <> io.memResp
+  //st_node.io.enable := io.enable
+  st_node.io.enable.bits := ControlBundle.active()
+  st_node.io.enable.valid := true.B
+  st_node.io.Out(0).ready := false.B
+  when(st_node.io.inData.ready && st_node.io.GepAddr.ready && LogData.io.deq.valid ){
+    dbg_counter.inc()
+    st_node.io.inData.enq(DataBundle(LogData.io.deq.bits))
+    st_node.io.GepAddr.enq(DataBundle(LogAddress.asUInt()))
+    st_node.io.Out(0).ready := true.B
   }.otherwise{
     st_node.io.inData.noenq()
     st_node.io.GepAddr.noenq()
   }
 
-}*/
 
+
+}
+/*
 class DebugBufferNode(NumPredOps: Int = 0, NumSuccOps: Int = 0, NumOuts: Int = 1,
                       Typ: UInt = MT_W, ID: Int, RouteID: Int)
                      (implicit p: Parameters,
@@ -315,4 +346,4 @@ class DebugBufferNode(NumPredOps: Int = 0, NumSuccOps: Int = 0, NumOuts: Int = 1
 
 }
 
-
+*/

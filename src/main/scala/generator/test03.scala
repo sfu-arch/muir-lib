@@ -46,8 +46,9 @@ class test03DF(implicit p: Parameters) extends test03DFIO()(p) {
 
 
   //-----------------------------------------------------------------------p
-  val MemCtrl = Module(new UnifiedController(ID = 0, Size = 32, NReads = 0, NWrites = 1)
-  (WControl = new WriteMemoryController(NumOps = 1, BaseSize = 2, NumEntries = 2))
+  val MemCtrl = Module(new UnifiedController(ID = 0, Size = 32, NReads = 0, NWrites = 2)
+  //NumOps = 1 to NumOps = 2
+  (WControl = new WriteMemoryController(NumOps = 2, BaseSize = 2, NumEntries = 2))
   (RControl = new ReadMemoryController(NumOps = 0, BaseSize = 2, NumEntries = 2))
   (RWArbiter = new ReadWriteArbiter()))
   io.MemReq <> MemCtrl.io.MemReq
@@ -98,7 +99,7 @@ class test03DF(implicit p: Parameters) extends test03DFIO()(p) {
 
   val st_0 = Module(new UnTypStore(NumPredOps = 0, NumSuccOps = 0, ID = 7, RouteID = 0))
   //new
-  //val buf_0 = Module(new DebugBufferNode(NumPredOps = 0, NumSuccOps = 0, ID = 7, RouteID = 0))
+  val buf_0 = Module(new DebugBufferNode(NumPredOps = 0, NumSuccOps = 0, ID = 8, RouteID = 0))
 
   //new
   //------------------------------------------------------------------------------------v
@@ -192,6 +193,13 @@ class test03DF(implicit p: Parameters) extends test03DFIO()(p) {
   binaryOp_5.io.enable <> bb_0.io.Out(7)
 
   ret_6.io.In.enable <> bb_0.io.Out(8)
+
+  //new
+  buf_0.io.enable.bits := ControlBundle.active()
+  buf_0.io.enable.valid := true.B
+  buf_0.io.Out(0).ready := true.B
+
+  //new
   //-----------------------------------------p
   st_0.io.enable.bits := ControlBundle.active()
   st_0.io.enable.valid := true.B
@@ -219,7 +227,8 @@ class test03DF(implicit p: Parameters) extends test03DFIO()(p) {
 
   MemCtrl.io.WriteIn(0) <> st_0.io.memReq
   st_0.io.memResp <> MemCtrl.io.WriteOut(0)
-
+  MemCtrl.io.WriteIn(1) <> buf_0.io.memReq
+  buf_0.io.memResp <> MemCtrl.io.WriteOut(1)
   //----------------------------------------------v
 
   /* ================================================================== *

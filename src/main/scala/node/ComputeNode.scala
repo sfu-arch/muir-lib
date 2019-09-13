@@ -110,36 +110,54 @@ class ComputeNode(NumOuts: Int, ID: Int, opCode: String)
    }
   }
 
-/*
-  if (Debug) {
+  if(ID == 4){
+    val test_value = Wire(UInt(4.W))
+    val test_value_valid = Wire(Bool())
+    val test_value_ready = Wire(Bool())
+    test_value := 5.U
+    test_value_valid := false.B
+    test_value_ready := false.B
+    BoringUtils.addSource(test_value, "Test_data")
+    BoringUtils.addSource(test_value_valid, "Test_valid")
+    BoringUtils.addSink(test_value_ready, "Test_ready")
 
-    val sourceVal = Decoupled(UInt(4.W))
-    val adrVal = Decoupled(UInt(10.W))
-
-    val debug_src_valid = RegInit(false.B)
-    sourceVal := 5.U
-    adrVal := dbg_counter.value << 2.U
-    sourceVal.valid := debug_src_valid
-    adrVal.valid := debug_src_valid
-    adrVal.valid := false.B
-    sourceVal.valid := false.B
-
-    when(io.DebugEnable.get) {
-      dbg_counter.inc()
-      debug_src_valid := true.B
-    }
-    when(!io.DebugEnable.get){
-      debug_src_valid := false.B
-    }
-
-    if (ID == 4) {
-      val Uniq_name_Data = "meData"
-      val Uniq_name_Adr = "meAdr"
-      BoringUtils.addSource(sourceVal, Uniq_name_Data)
-      BoringUtils.addSource(adrVal, Uniq_name_Adr)
+    when(io.DebugEnable.get){
+       test_value_valid := true.B
+    }.otherwise{
+      test_value_valid := false.B
     }
   }
-*/
+
+  if (Debug) {
+
+
+//    val sourceVal = Decoupled(UInt(4.W))
+//    val adrVal    = Decoupled(UInt(10.W))
+//    sourceVal.bits := 5.U
+//    val debug_src_valid = RegInit(false.B)
+//
+//    adrVal := dbg_counter.value << 2.U
+//    sourceVal.valid := debug_src_valid
+//    adrVal.valid := debug_src_valid
+//    adrVal.valid := false.B
+//    sourceVal.valid := false.B
+//
+//    when(io.DebugEnable.get) {
+//      dbg_counter.inc()
+//      debug_src_valid := true.B
+//    }
+//    when(!io.DebugEnable.get){
+//      debug_src_valid := false.B
+//    }
+//
+//    if (ID == 4) {
+//      val Uniq_name_Data = "meData"
+//      val Uniq_name_Adr = "meAdr"
+//      BoringUtils.addSource(sourceVal, Uniq_name_Data)
+//      BoringUtils.addSource(adrVal, Uniq_name_Adr)
+//    }
+  }
+
 
   //------------------v
   // Wire up Outputs
@@ -169,7 +187,7 @@ class ComputeNode(NumOuts: Int, ID: Int, opCode: String)
     }
     is(s_COMPUTE) {
 
-      when(IsOutReady() && io.LogCheck.get.ready) {
+      when(IsOutReady()) {
         // Reset data
         left_valid_R := false.B
         right_valid_R := false.B

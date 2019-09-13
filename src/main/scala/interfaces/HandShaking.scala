@@ -260,6 +260,14 @@ class HandShakingNPS[T <: Data](val NumOuts: Int,
     }
   }
 
+  def IsDebugReady(): Bool = {
+    if(Debug){
+      io.LogCheck.get.ready
+    } else {
+      return true.B
+    }
+  }
+
   def IsOutValid(): Bool = {
     //    out_valid_R.asUInt.andR
     if (NumOuts == 0) {
