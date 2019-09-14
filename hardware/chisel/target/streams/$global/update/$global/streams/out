@@ -43,13 +43,20 @@
 [0m[[0m[0mdebug[0m] [0m[0m		tried https://oss.sonatype.org/content/repositories/snapshots/edu/berkeley/cs/chisel3_2.11/3.2-SNAPSHOT/chisel3_2.11-3.2-SNAPSHOT.pom[0m
 [0m[[0m[0mdebug[0m] [0m[0m	sonatype-snapshots: found md file for edu.berkeley.cs#chisel3_2.11;3.2-SNAPSHOT[0m
 [0m[[0m[0mdebug[0m] [0m[0m		=> https://oss.sonatype.org/content/repositories/snapshots/edu/berkeley/cs/chisel3_2.11/3.2-SNAPSHOT/chisel3_2.11-3.2-SNAPSHOT.pom (3.2-SNAPSHOT)[0m
-[0m[[0m[0mdebug[0m] [0m[0m	default-cache: revision in cache is not up to date: edu.berkeley.cs#chisel3_2.11;3.2-SNAPSHOT[0m
 [0m[[0m[0mdebug[0m] [0m[0mdownloading https://oss.sonatype.org/content/repositories/snapshots/edu/berkeley/cs/chisel3_2.11/3.2-SNAPSHOT/chisel3_2.11-3.2-SNAPSHOT.pom ...[0m
 [0m[[0m[0mdebug[0m] [0m[0m	sonatype-snapshots: downloading https://oss.sonatype.org/content/repositories/snapshots/edu/berkeley/cs/chisel3_2.11/3.2-SNAPSHOT/chisel3_2.11-3.2-SNAPSHOT.pom[0m
 [0m[[0m[0mdebug[0m] [0m[0m	sonatype-snapshots: downloading https://oss.sonatype.org/content/repositories/snapshots/edu/berkeley/cs/chisel3_2.11/3.2-SNAPSHOT/chisel3_2.11-3.2-SNAPSHOT.pom.sha1[0m
 [0m[[0m[0mdebug[0m] [0m[0msha1 OK for https://oss.sonatype.org/content/repositories/snapshots/edu/berkeley/cs/chisel3_2.11/3.2-SNAPSHOT/chisel3_2.11-3.2-SNAPSHOT.pom[0m
-[0m[[0m[0mdebug[0m] [0m[0m	[SUCCESSFUL ] edu.berkeley.cs#chisel3_2.11;3.2-SNAPSHOT!chisel3_2.11.pom(pom.original) (718ms)[0m
-[0m[[0m[0mdebug[0m] [0m[0medu.berkeley.cs#chisel3_2.11;3.2-SNAPSHOT has changed: deleting old artifacts[0m
+[0m[[0m[0mdebug[0m] [0m[0m	[SUCCESSFUL ] edu.berkeley.cs#chisel3_2.11;3.2-SNAPSHOT!chisel3_2.11.pom(pom.original) (462ms)[0m
+[0m[[0m[0mdebug[0m] [0m[0m		tried /localhome/rshojabro/.ivy2/local/edu.berkeley.cs/chisel3_2.11/3.2-SNAPSHOT/jars/chisel3_2.11.jar[0m
+[0m[[0m[0mdebug[0m] [0m[0m	maven-metadata not available: https://repo1.maven.org/maven2/edu/berkeley/cs/chisel3_2.11/3.2-SNAPSHOT/maven-metadata.xml[0m
+[0m[[0m[0mdebug[0m] [0m[0m		tried https://repo1.maven.org/maven2/edu/berkeley/cs/chisel3_2.11/3.2-SNAPSHOT/chisel3_2.11-3.2-SNAPSHOT.jar[0m
+[0m[[0m[0mdebug[0m] [0m[0mCLIENT ERROR: Not Found url=https://repo1.maven.org/maven2/edu/berkeley/cs/chisel3_2.11/3.2-SNAPSHOT/chisel3_2.11-3.2-SNAPSHOT.jar[0m
+[0m[[0m[0mdebug[0m] [0m[0m		tried /localhome/rshojabro/.sbt/preloaded/edu.berkeley.cs/chisel3_2.11/3.2-SNAPSHOT/jars/chisel3_2.11.jar[0m
+[0m[[0m[0mdebug[0m] [0m[0m	maven-metadata and maven-metadata-local not available: /localhome/rshojabro/.sbt/preloaded/edu/berkeley/cs/chisel3_2.11/3.2-SNAPSHOT/maven-metadata.xml[0m
+[0m[[0m[0mdebug[0m] [0m[0m		tried file:////localhome/rshojabro/.sbt/preloaded/edu/berkeley/cs/chisel3_2.11/3.2-SNAPSHOT/chisel3_2.11-3.2-SNAPSHOT.jar[0m
+[0m[[0m[0mdebug[0m] [0m[0m		tried https://oss.sonatype.org/content/repositories/snapshots/edu/berkeley/cs/chisel3_2.11/3.2-SNAPSHOT/chisel3_2.11-3.2-SNAPSHOT.jar[0m
+[0m[[0m[0mdebug[0m] [0m[0medu.berkeley.cs#chisel3_2.11;3.2-SNAPSHOT is changing, but has not changed: will trust cached artifacts if any[0m
 [0m[[0m[0mdebug[0m] [0m[0m		tried https://oss.sonatype.org/content/repositories/snapshots/edu/berkeley/cs/chisel3_2.11/3.2-SNAPSHOT/chisel3_2.11-3.2-SNAPSHOT.pom[0m
 [0m[[0m[0mdebug[0m] [0m[0mdon't use cache for edu.berkeley.cs#chisel3_2.11;3.2-SNAPSHOT: changing=true[0m
 [0m[[0m[0mdebug[0m] [0m[0mCLIENT ERROR: Not Found url=https://oss.sonatype.org/content/repositories/releases/edu/berkeley/cs/chisel3_2.11/3.2-SNAPSHOT/maven-metadata.xml[0m
@@ -180,13 +187,20 @@
 [0m[[0m[0mdebug[0m] [0m[0m		tried https://oss.sonatype.org/content/repositories/snapshots/edu/berkeley/cs/firrtl_2.11/1.2-SNAPSHOT/firrtl_2.11-1.2-SNAPSHOT.pom[0m
 [0m[[0m[0mdebug[0m] [0m[0m	sonatype-snapshots: found md file for edu.berkeley.cs#firrtl_2.11;1.2-SNAPSHOT[0m
 [0m[[0m[0mdebug[0m] [0m[0m		=> https://oss.sonatype.org/content/repositories/snapshots/edu/berkeley/cs/firrtl_2.11/1.2-SNAPSHOT/firrtl_2.11-1.2-SNAPSHOT.pom (1.2-SNAPSHOT)[0m
-[0m[[0m[0mdebug[0m] [0m[0m	default-cache: revision in cache is not up to date: edu.berkeley.cs#firrtl_2.11;1.2-SNAPSHOT[0m
 [0m[[0m[0mdebug[0m] [0m[0mdownloading https://oss.sonatype.org/content/repositories/snapshots/edu/berkeley/cs/firrtl_2.11/1.2-SNAPSHOT/firrtl_2.11-1.2-SNAPSHOT.pom ...[0m
 [0m[[0m[0mdebug[0m] [0m[0m	sonatype-snapshots: downloading https://oss.sonatype.org/content/repositories/snapshots/edu/berkeley/cs/firrtl_2.11/1.2-SNAPSHOT/firrtl_2.11-1.2-SNAPSHOT.pom[0m
 [0m[[0m[0mdebug[0m] [0m[0m	sonatype-snapshots: downloading https://oss.sonatype.org/content/repositories/snapshots/edu/berkeley/cs/firrtl_2.11/1.2-SNAPSHOT/firrtl_2.11-1.2-SNAPSHOT.pom.sha1[0m
 [0m[[0m[0mdebug[0m] [0m[0msha1 OK for https://oss.sonatype.org/content/repositories/snapshots/edu/berkeley/cs/firrtl_2.11/1.2-SNAPSHOT/firrtl_2.11-1.2-SNAPSHOT.pom[0m
-[0m[[0m[0mdebug[0m] [0m[0m	[SUCCESSFUL ] edu.berkeley.cs#firrtl_2.11;1.2-SNAPSHOT!firrtl_2.11.pom(pom.original) (601ms)[0m
-[0m[[0m[0mdebug[0m] [0m[0medu.berkeley.cs#firrtl_2.11;1.2-SNAPSHOT has changed: deleting old artifacts[0m
+[0m[[0m[0mdebug[0m] [0m[0m	[SUCCESSFUL ] edu.berkeley.cs#firrtl_2.11;1.2-SNAPSHOT!firrtl_2.11.pom(pom.original) (432ms)[0m
+[0m[[0m[0mdebug[0m] [0m[0m		tried /localhome/rshojabro/.ivy2/local/edu.berkeley.cs/firrtl_2.11/1.2-SNAPSHOT/jars/firrtl_2.11.jar[0m
+[0m[[0m[0mdebug[0m] [0m[0m	maven-metadata not available: https://repo1.maven.org/maven2/edu/berkeley/cs/firrtl_2.11/1.2-SNAPSHOT/maven-metadata.xml[0m
+[0m[[0m[0mdebug[0m] [0m[0m		tried https://repo1.maven.org/maven2/edu/berkeley/cs/firrtl_2.11/1.2-SNAPSHOT/firrtl_2.11-1.2-SNAPSHOT.jar[0m
+[0m[[0m[0mdebug[0m] [0m[0mCLIENT ERROR: Not Found url=https://repo1.maven.org/maven2/edu/berkeley/cs/firrtl_2.11/1.2-SNAPSHOT/firrtl_2.11-1.2-SNAPSHOT.jar[0m
+[0m[[0m[0mdebug[0m] [0m[0m		tried /localhome/rshojabro/.sbt/preloaded/edu.berkeley.cs/firrtl_2.11/1.2-SNAPSHOT/jars/firrtl_2.11.jar[0m
+[0m[[0m[0mdebug[0m] [0m[0m	maven-metadata and maven-metadata-local not available: /localhome/rshojabro/.sbt/preloaded/edu/berkeley/cs/firrtl_2.11/1.2-SNAPSHOT/maven-metadata.xml[0m
+[0m[[0m[0mdebug[0m] [0m[0m		tried file:////localhome/rshojabro/.sbt/preloaded/edu/berkeley/cs/firrtl_2.11/1.2-SNAPSHOT/firrtl_2.11-1.2-SNAPSHOT.jar[0m
+[0m[[0m[0mdebug[0m] [0m[0m		tried https://oss.sonatype.org/content/repositories/snapshots/edu/berkeley/cs/firrtl_2.11/1.2-SNAPSHOT/firrtl_2.11-1.2-SNAPSHOT.jar[0m
+[0m[[0m[0mdebug[0m] [0m[0medu.berkeley.cs#firrtl_2.11;1.2-SNAPSHOT is changing, but has not changed: will trust cached artifacts if any[0m
 [0m[[0m[0mdebug[0m] [0m[0m		tried https://oss.sonatype.org/content/repositories/snapshots/edu/berkeley/cs/firrtl_2.11/1.2-SNAPSHOT/firrtl_2.11-1.2-SNAPSHOT.pom[0m
 [0m[[0m[0mdebug[0m] [0m[0mdon't use cache for edu.berkeley.cs#firrtl_2.11;1.2-SNAPSHOT: changing=true[0m
 [0m[[0m[0mdebug[0m] [0m[0mCLIENT ERROR: Not Found url=https://oss.sonatype.org/content/repositories/releases/edu/berkeley/cs/firrtl_2.11/1.2-SNAPSHOT/maven-metadata.xml[0m
@@ -7085,26 +7099,25 @@
 [0m[[0m[0mdebug[0m] [0m[0m	resolved ivy file produced in cache[0m
 [0m[[0m[0mdebug[0m] [0m[0m:: downloading artifacts ::[0m
 [0m[[0m[0mdebug[0m] [0m[0m	[NOT REQUIRED] org.scala-lang#scala-library;2.11.12!scala-library.jar[0m
+[0m[[0m[0mdebug[0m] [0m[0mno default ivy user dir defined: set to /localhome/rshojabro/.ivy2[0m
 [0m[[0m[0mdebug[0m] [0m[0m	[NOT REQUIRED] org.scala-lang#scala-reflect;2.11.12!scala-reflect.jar[0m
-[0m[[0m[0mdebug[0m] [0m[0mno default ivy user dir defined: set to /localhome/rshojabro/.ivy2[0m
-[0m[[0m[0mdebug[0m] [0m[0mno default ivy user dir defined: set to /localhome/rshojabro/.ivy2[0m
 [0m[[0m[0mdebug[0m] [0m[0m	[NOT REQUIRED] com.github.scopt#scopt_2.11;3.7.0!scopt_2.11.jar[0m
+[0m[[0m[0mdebug[0m] [0m[0mno default ivy user dir defined: set to /localhome/rshojabro/.ivy2[0m
+[0m[[0m[0mdebug[0m] [0m[0mno default ivy user dir defined: set to /localhome/rshojabro/.ivy2[0m
 [0m[[0m[0mdebug[0m] [0m[0m	[NOT REQUIRED] org.antlr#antlr4;4.7.1!antlr4.jar[0m
 [0m[[0m[0mdebug[0m] [0m[0mno default ivy user dir defined: set to /localhome/rshojabro/.ivy2[0m
-[0m[[0m[0mdebug[0m] [0m[0mno default ivy user dir defined: set to /localhome/rshojabro/.ivy2[0m
 [0m[[0m[0mdebug[0m] [0m[0mincluding url: jar:file:/localhome/rshojabro/.sbt/boot/scala-2.12.7/org.scala-sbt/sbt/1.2.8/ivy-2.3.0-sbt-cb9cc189e9f3af519f9f102e6c5d446488ff6832.jar!/org/apache/ivy/core/settings/ivysettings-public.xml[0m
 [0m[[0m[0mdebug[0m] [0m[0mincluding url: jar:file:/localhome/rshojabro/.sbt/boot/scala-2.12.7/org.scala-sbt/sbt/1.2.8/ivy-2.3.0-sbt-cb9cc189e9f3af519f9f102e6c5d446488ff6832.jar!/org/apache/ivy/core/settings/ivysettings-public.xml[0m
 [0m[[0m[0mdebug[0m] [0m[0mincluding url: jar:file:/localhome/rshojabro/.sbt/boot/scala-2.12.7/org.scala-sbt/sbt/1.2.8/ivy-2.3.0-sbt-cb9cc189e9f3af519f9f102e6c5d446488ff6832.jar!/org/apache/ivy/core/settings/ivysettings-public.xml[0m
 [0m[[0m[0mdebug[0m] [0m[0mincluding url: jar:file:/localhome/rshojabro/.sbt/boot/scala-2.12.7/org.scala-sbt/sbt/1.2.8/ivy-2.3.0-sbt-cb9cc189e9f3af519f9f102e6c5d446488ff6832.jar!/org/apache/ivy/core/settings/ivysettings-public.xml[0m
 [0m[[0m[0mdebug[0m] [0m[0mno default cache defined: set to /localhome/rshojabro/.ivy2/cache[0m
-[0m[[0m[0mdebug[0m] [0m[0mno default cache defined: set to /localhome/rshojabro/.ivy2/cache[0m
-[0m[[0m[0mdebug[0m] [0m[0mincluding url: jar:file:/localhome/rshojabro/.sbt/boot/scala-2.12.7/org.scala-sbt/sbt/1.2.8/ivy-2.3.0-sbt-cb9cc189e9f3af519f9f102e6c5d446488ff6832.jar!/org/apache/ivy/core/settings/ivysettings-shared.xml[0m
 [0m[[0m[0mdebug[0m] [0m[0mincluding url: jar:file:/localhome/rshojabro/.sbt/boot/scala-2.12.7/org.scala-sbt/sbt/1.2.8/ivy-2.3.0-sbt-cb9cc189e9f3af519f9f102e6c5d446488ff6832.jar!/org/apache/ivy/core/settings/ivysettings-shared.xml[0m
 [0m[[0m[0mdebug[0m] [0m[0mno default cache defined: set to /localhome/rshojabro/.ivy2/cache[0m
 [0m[[0m[0mdebug[0m] [0m[0mincluding url: jar:file:/localhome/rshojabro/.sbt/boot/scala-2.12.7/org.scala-sbt/sbt/1.2.8/ivy-2.3.0-sbt-cb9cc189e9f3af519f9f102e6c5d446488ff6832.jar!/org/apache/ivy/core/settings/ivysettings-shared.xml[0m
 [0m[[0m[0mdebug[0m] [0m[0mno default cache defined: set to /localhome/rshojabro/.ivy2/cache[0m
 [0m[[0m[0mdebug[0m] [0m[0mincluding url: jar:file:/localhome/rshojabro/.sbt/boot/scala-2.12.7/org.scala-sbt/sbt/1.2.8/ivy-2.3.0-sbt-cb9cc189e9f3af519f9f102e6c5d446488ff6832.jar!/org/apache/ivy/core/settings/ivysettings-shared.xml[0m
-[0m[[0m[0mdebug[0m] [0m[0mincluding url: jar:file:/localhome/rshojabro/.sbt/boot/scala-2.12.7/org.scala-sbt/sbt/1.2.8/ivy-2.3.0-sbt-cb9cc189e9f3af519f9f102e6c5d446488ff6832.jar!/org/apache/ivy/core/settings/ivysettings-local.xml[0m
+[0m[[0m[0mdebug[0m] [0m[0mno default cache defined: set to /localhome/rshojabro/.ivy2/cache[0m
+[0m[[0m[0mdebug[0m] [0m[0mincluding url: jar:file:/localhome/rshojabro/.sbt/boot/scala-2.12.7/org.scala-sbt/sbt/1.2.8/ivy-2.3.0-sbt-cb9cc189e9f3af519f9f102e6c5d446488ff6832.jar!/org/apache/ivy/core/settings/ivysettings-shared.xml[0m
 [0m[[0m[0mdebug[0m] [0m[0mincluding url: jar:file:/localhome/rshojabro/.sbt/boot/scala-2.12.7/org.scala-sbt/sbt/1.2.8/ivy-2.3.0-sbt-cb9cc189e9f3af519f9f102e6c5d446488ff6832.jar!/org/apache/ivy/core/settings/ivysettings-local.xml[0m
 [0m[[0m[0mdebug[0m] [0m[0mincluding url: jar:file:/localhome/rshojabro/.sbt/boot/scala-2.12.7/org.scala-sbt/sbt/1.2.8/ivy-2.3.0-sbt-cb9cc189e9f3af519f9f102e6c5d446488ff6832.jar!/org/apache/ivy/core/settings/ivysettings-local.xml[0m
 [0m[[0m[0mdebug[0m] [0m[0mincluding url: jar:file:/localhome/rshojabro/.sbt/boot/scala-2.12.7/org.scala-sbt/sbt/1.2.8/ivy-2.3.0-sbt-cb9cc189e9f3af519f9f102e6c5d446488ff6832.jar!/org/apache/ivy/core/settings/ivysettings-local.xml[0m
@@ -7112,9 +7125,9 @@
 [0m[[0m[0mdebug[0m] [0m[0mincluding url: jar:file:/localhome/rshojabro/.sbt/boot/scala-2.12.7/org.scala-sbt/sbt/1.2.8/ivy-2.3.0-sbt-cb9cc189e9f3af519f9f102e6c5d446488ff6832.jar!/org/apache/ivy/core/settings/ivysettings-main-chain.xml[0m
 [0m[[0m[0mdebug[0m] [0m[0mincluding url: jar:file:/localhome/rshojabro/.sbt/boot/scala-2.12.7/org.scala-sbt/sbt/1.2.8/ivy-2.3.0-sbt-cb9cc189e9f3af519f9f102e6c5d446488ff6832.jar!/org/apache/ivy/core/settings/ivysettings-main-chain.xml[0m
 [0m[[0m[0mdebug[0m] [0m[0mincluding url: jar:file:/localhome/rshojabro/.sbt/boot/scala-2.12.7/org.scala-sbt/sbt/1.2.8/ivy-2.3.0-sbt-cb9cc189e9f3af519f9f102e6c5d446488ff6832.jar!/org/apache/ivy/core/settings/ivysettings-default-chain.xml[0m
-[0m[[0m[0mdebug[0m] [0m[0mincluding url: jar:file:/localhome/rshojabro/.sbt/boot/scala-2.12.7/org.scala-sbt/sbt/1.2.8/ivy-2.3.0-sbt-cb9cc189e9f3af519f9f102e6c5d446488ff6832.jar!/org/apache/ivy/core/settings/ivysettings-main-chain.xml[0m
+[0m[[0m[0mdebug[0m] [0m[0mincluding url: jar:file:/localhome/rshojabro/.sbt/boot/scala-2.12.7/org.scala-sbt/sbt/1.2.8/ivy-2.3.0-sbt-cb9cc189e9f3af519f9f102e6c5d446488ff6832.jar!/org/apache/ivy/core/settings/ivysettings-local.xml[0m
 [0m[[0m[0mdebug[0m] [0m[0mincluding url: jar:file:/localhome/rshojabro/.sbt/boot/scala-2.12.7/org.scala-sbt/sbt/1.2.8/ivy-2.3.0-sbt-cb9cc189e9f3af519f9f102e6c5d446488ff6832.jar!/org/apache/ivy/core/settings/ivysettings-default-chain.xml[0m
-[0m[[0m[0mdebug[0m] [0m[0msettings loaded (53ms)[0m
+[0m[[0m[0mdebug[0m] [0m[0msettings loaded (96ms)[0m
 [0m[[0m[0mdebug[0m] [0m[0m	default cache: /localhome/rshojabro/.ivy2/cache[0m
 [0m[[0m[0mdebug[0m] [0m[0m	default resolver: default[0m
 [0m[[0m[0mdebug[0m] [0m[0m	-- 5 resolvers:[0m
@@ -7124,61 +7137,62 @@
 [0m[[0m[0mdebug[0m] [0m[0m	main [chain] [shared, public][0m
 [0m[[0m[0mdebug[0m] [0m[0m	local [file][0m
 [0m[[0m[0mdebug[0m] [0m[0mincluding url: jar:file:/localhome/rshojabro/.sbt/boot/scala-2.12.7/org.scala-sbt/sbt/1.2.8/ivy-2.3.0-sbt-cb9cc189e9f3af519f9f102e6c5d446488ff6832.jar!/org/apache/ivy/core/settings/ivysettings-default-chain.xml[0m
-[0m[[0m[0mdebug[0m] [0m[0mincluding url: jar:file:/localhome/rshojabro/.sbt/boot/scala-2.12.7/org.scala-sbt/sbt/1.2.8/ivy-2.3.0-sbt-cb9cc189e9f3af519f9f102e6c5d446488ff6832.jar!/org/apache/ivy/core/settings/ivysettings-default-chain.xml[0m
-[0m[[0m[0mdebug[0m] [0m[0msettings loaded (66ms)[0m
-[0m[[0m[0mdebug[0m] [0m[0m	default cache: /localhome/rshojabro/.ivy2/cache[0m
-[0m[[0m[0mdebug[0m] [0m[0m	default resolver: default[0m
-[0m[[0m[0mdebug[0m] [0m[0m	-- 5 resolvers:[0m
-[0m[[0m[0mdebug[0m] [0m[0m	shared [file][0m
-[0m[[0m[0mdebug[0m] [0m[0m	default [chain] [local, main][0m
-[0m[[0m[0mdebug[0m] [0m[0m	public [ibiblio][0m
-[0m[[0m[0mdebug[0m] [0m[0m	main [chain] [shared, public][0m
-[0m[[0m[0mdebug[0m] [0m[0m	local [file][0m
-[0m[[0m[0mdebug[0m] [0m[0msettings loaded (66ms)[0m
-[0m[[0m[0mdebug[0m] [0m[0m	default cache: /localhome/rshojabro/.ivy2/cache[0m
-[0m[[0m[0mdebug[0m] [0m[0m	default resolver: default[0m
-[0m[[0m[0mdebug[0m] [0m[0m	-- 5 resolvers:[0m
-[0m[[0m[0mdebug[0m] [0m[0m	shared [file][0m
-[0m[[0m[0mdebug[0m] [0m[0m	default [chain] [local, main][0m
-[0m[[0m[0mdebug[0m] [0m[0m	public [ibiblio][0m
-[0m[[0m[0mdebug[0m] [0m[0m	main [chain] [shared, public][0m
-[0m[[0m[0mdebug[0m] [0m[0m	local [file][0m
-[0m[[0m[0mdebug[0m] [0m[0msettings loaded (62ms)[0m
-[0m[[0m[0mdebug[0m] [0m[0m	default cache: /localhome/rshojabro/.ivy2/cache[0m
-[0m[[0m[0mdebug[0m] [0m[0m	default resolver: default[0m
-[0m[[0m[0mdebug[0m] [0m[0m	-- 5 resolvers:[0m
-[0m[[0m[0mdebug[0m] [0m[0m	shared [file][0m
-[0m[[0m[0mdebug[0m] [0m[0m	default [chain] [local, main][0m
-[0m[[0m[0mdebug[0m] [0m[0m	public [ibiblio][0m
-[0m[[0m[0mdebug[0m] [0m[0m	main [chain] [shared, public][0m
-[0m[[0m[0mdebug[0m] [0m[0m	local [file][0m
 [0m[[0m[0mdebug[0m] [0m[0m	[NOT REQUIRED] org.antlr#antlr4-runtime;4.7.1!antlr4-runtime.jar[0m
 [0m[[0m[0mdebug[0m] [0m[0m	[NOT REQUIRED] com.google.protobuf#protobuf-java;3.4.0!protobuf-java.jar(bundle)[0m
+[0m[[0m[0mdebug[0m] [0m[0msettings loaded (78ms)[0m
+[0m[[0m[0mdebug[0m] [0m[0m	default cache: /localhome/rshojabro/.ivy2/cache[0m
+[0m[[0m[0mdebug[0m] [0m[0m	default resolver: default[0m
+[0m[[0m[0mdebug[0m] [0m[0m	-- 5 resolvers:[0m
+[0m[[0m[0mdebug[0m] [0m[0m	shared [file][0m
+[0m[[0m[0mdebug[0m] [0m[0m	default [chain] [local, main][0m
+[0m[[0m[0mdebug[0m] [0m[0m	public [ibiblio][0m
+[0m[[0m[0mdebug[0m] [0m[0mincluding url: jar:file:/localhome/rshojabro/.sbt/boot/scala-2.12.7/org.scala-sbt/sbt/1.2.8/ivy-2.3.0-sbt-cb9cc189e9f3af519f9f102e6c5d446488ff6832.jar!/org/apache/ivy/core/settings/ivysettings-main-chain.xml[0m
+[0m[[0m[0mdebug[0m] [0m[0m	main [chain] [shared, public][0m
+[0m[[0m[0mdebug[0m] [0m[0m	local [file][0m
 [0m[[0m[0mdebug[0m] [0m[0m	[NOT REQUIRED] com.typesafe.scala-logging#scala-logging_2.11;3.9.0!scala-logging_2.11.jar(bundle)[0m
 [0m[[0m[0mdebug[0m] [0m[0m	[NOT REQUIRED] ch.qos.logback#logback-classic;1.2.3!logback-classic.jar[0m
 [0m[[0m[0mdebug[0m] [0m[0m	[NOT REQUIRED] net.jcazevedo#moultingyaml_2.11;0.4.0!moultingyaml_2.11.jar[0m
+[0m[[0m[0mdebug[0m] [0m[0m	[NOT REQUIRED] org.json4s#json4s-native_2.11;3.6.1!json4s-native_2.11.jar[0m
 [0m[[0m[0mdebug[0m] [0m[0m	[NOT REQUIRED] org.apache.commons#commons-text;1.6!commons-text.jar[0m
-[0m[[0m[0mdebug[0m] [0m[0m	[NOT REQUIRED] org.antlr#ST4;4.0.8!ST4.jar[0m
 [0m[[0m[0mdebug[0m] [0m[0m	[NOT REQUIRED] org.antlr#antlr-runtime;3.5.2!antlr-runtime.jar[0m
+[0m[[0m[0mdebug[0m] [0m[0m	[NOT REQUIRED] org.antlr#ST4;4.0.8!ST4.jar[0m
+[0m[[0m[0mdebug[0m] [0m[0msettings loaded (100ms)[0m
+[0m[[0m[0mdebug[0m] [0m[0m	default cache: /localhome/rshojabro/.ivy2/cache[0m
+[0m[[0m[0mdebug[0m] [0m[0m	default resolver: default[0m
+[0m[[0m[0mdebug[0m] [0m[0m	-- 5 resolvers:[0m
+[0m[[0m[0mdebug[0m] [0m[0m	shared [file][0m
+[0m[[0m[0mdebug[0m] [0m[0m	default [chain] [local, main][0m
+[0m[[0m[0mdebug[0m] [0m[0m	public [ibiblio][0m
+[0m[[0m[0mdebug[0m] [0m[0m	main [chain] [shared, public][0m
+[0m[[0m[0mdebug[0m] [0m[0m	local [file][0m
 [0m[[0m[0mdebug[0m] [0m[0m	[NOT REQUIRED] org.abego.treelayout#org.abego.treelayout.core;1.0.3!org.abego.treelayout.core.jar(bundle)[0m
 [0m[[0m[0mdebug[0m] [0m[0m	[NOT REQUIRED] org.glassfish#javax.json;1.0.4!javax.json.jar(bundle)[0m
 [0m[[0m[0mdebug[0m] [0m[0m	[NOT REQUIRED] com.ibm.icu#icu4j;58.2!icu4j.jar[0m
-[0m[[0m[0mdebug[0m] [0m[0m	[NOT REQUIRED] org.json4s#json4s-native_2.11;3.6.1!json4s-native_2.11.jar[0m
 [0m[[0m[0mdebug[0m] [0m[0m	[NOT REQUIRED] org.slf4j#slf4j-api;1.7.25!slf4j-api.jar[0m
-[0m[[0m[0mdebug[0m] [0m[0m	[NOT REQUIRED] org.yaml#snakeyaml;1.17!snakeyaml.jar(bundle)[0m
 [0m[[0m[0mdebug[0m] [0m[0m	[NOT REQUIRED] ch.qos.logback#logback-core;1.2.3!logback-core.jar[0m
+[0m[[0m[0mdebug[0m] [0m[0m	[NOT REQUIRED] org.yaml#snakeyaml;1.17!snakeyaml.jar(bundle)[0m
 [0m[[0m[0mdebug[0m] [0m[0m	[NOT REQUIRED] joda-time#joda-time;2.9.4!joda-time.jar[0m
 [0m[[0m[0mdebug[0m] [0m[0m	[NOT REQUIRED] org.joda#joda-convert;1.2!joda-convert.jar[0m
-[0m[[0m[0mdebug[0m] [0m[0m	[NOT REQUIRED] com.github.nscala-time#nscala-time_2.11;2.14.0!nscala-time_2.11.jar[0m
+[0m[[0m[0mdebug[0m] [0m[0mincluding url: jar:file:/localhome/rshojabro/.sbt/boot/scala-2.12.7/org.scala-sbt/sbt/1.2.8/ivy-2.3.0-sbt-cb9cc189e9f3af519f9f102e6c5d446488ff6832.jar!/org/apache/ivy/core/settings/ivysettings-default-chain.xml[0m
+[0m[[0m[0mdebug[0m] [0m[0m	[NOT REQUIRED] org.json4s#json4s-core_2.11;3.6.1!json4s-core_2.11.jar[0m
 [0m[[0m[0mdebug[0m] [0m[0m	[NOT REQUIRED] org.json4s#json4s-ast_2.11;3.6.1!json4s-ast_2.11.jar[0m
 [0m[[0m[0mdebug[0m] [0m[0m	[NOT REQUIRED] org.json4s#json4s-scalap_2.11;3.6.1!json4s-scalap_2.11.jar[0m
+[0m[[0m[0mdebug[0m] [0m[0m	[NOT REQUIRED] com.thoughtworks.paranamer#paranamer;2.8!paranamer.jar(bundle)[0m
+[0m[[0m[0mdebug[0m] [0m[0m	[NOT REQUIRED] com.github.nscala-time#nscala-time_2.11;2.14.0!nscala-time_2.11.jar[0m
 [0m[[0m[0mdebug[0m] [0m[0m	[NOT REQUIRED] org.scala-lang#scala-compiler;2.11.12!scala-compiler.jar[0m
 [0m[[0m[0mdebug[0m] [0m[0m	[NOT REQUIRED] org.apache.commons#commons-lang3;3.8.1!commons-lang3.jar[0m
-[0m[[0m[0mdebug[0m] [0m[0m	[NOT REQUIRED] com.thoughtworks.paranamer#paranamer;2.8!paranamer.jar(bundle)[0m
-[0m[[0m[0mdebug[0m] [0m[0m	[NOT REQUIRED] org.scala-lang.modules#scala-xml_2.11;1.0.5!scala-xml_2.11.jar(bundle)[0m
-[0m[[0m[0mdebug[0m] [0m[0m	[NOT REQUIRED] org.json4s#json4s-core_2.11;3.6.1!json4s-core_2.11.jar[0m
-[0m[[0m[0mdebug[0m] [0m[0m	[NOT REQUIRED] org.scala-lang.modules#scala-parser-combinators_2.11;1.0.4!scala-parser-combinators_2.11.jar(bundle)[0m
+[0m[[0m[0mdebug[0m] [0m[0msettings loaded (107ms)[0m
+[0m[[0m[0mdebug[0m] [0m[0m	default cache: /localhome/rshojabro/.ivy2/cache[0m
+[0m[[0m[0mdebug[0m] [0m[0m	default resolver: default[0m
+[0m[[0m[0mdebug[0m] [0m[0m	-- 5 resolvers:[0m
+[0m[[0m[0mdebug[0m] [0m[0m	shared [file][0m
+[0m[[0m[0mdebug[0m] [0m[0m	default [chain] [local, main][0m
+[0m[[0m[0mdebug[0m] [0m[0m	public [ibiblio][0m
+[0m[[0m[0mdebug[0m] [0m[0m	main [chain] [shared, public][0m
+[0m[[0m[0mdebug[0m] [0m[0m	local [file][0m
 [0m[[0m[0mdebug[0m] [0m[0m	[NOT REQUIRED] jline#jline;2.14.3!jline.jar[0m
+[0m[[0m[0mdebug[0m] [0m[0m	[NOT REQUIRED] org.scala-lang.modules#scala-parser-combinators_2.11;1.0.4!scala-parser-combinators_2.11.jar(bundle)[0m
+[0m[[0m[0mdebug[0m] [0m[0m	[NOT REQUIRED] org.scala-lang.modules#scala-xml_2.11;1.0.5!scala-xml_2.11.jar(bundle)[0m
 [0m[[0m[0mdebug[0m] [0m[0m		tried https://oss.sonatype.org/content/repositories/snapshots/edu/berkeley/cs/chisel3_2.11/3.2-SNAPSHOT/chisel3_2.11-3.2-SNAPSHOT.jar[0m
 [0m[[0m[0minfo[0m] [0m[0mdownloading https://oss.sonatype.org/content/repositories/snapshots/edu/berkeley/cs/chisel3_2.11/3.2-SNAPSHOT/chisel3_2.11-3.2-SNAPSHOT.jar ...[0m
 [0m[[0m[0mdebug[0m] [0m[0m	sonatype-snapshots: downloading https://oss.sonatype.org/content/repositories/snapshots/edu/berkeley/cs/chisel3_2.11/3.2-SNAPSHOT/chisel3_2.11-3.2-SNAPSHOT.jar[0m
@@ -7189,7 +7203,7 @@
 [0m[[0m[0mdebug[0m] [0m[0mincluding url: jar:file:/localhome/rshojabro/.sbt/boot/scala-2.12.7/org.scala-sbt/sbt/1.2.8/ivy-2.3.0-sbt-cb9cc189e9f3af519f9f102e6c5d446488ff6832.jar!/org/apache/ivy/core/settings/ivysettings-local.xml[0m
 [0m[[0m[0mdebug[0m] [0m[0mincluding url: jar:file:/localhome/rshojabro/.sbt/boot/scala-2.12.7/org.scala-sbt/sbt/1.2.8/ivy-2.3.0-sbt-cb9cc189e9f3af519f9f102e6c5d446488ff6832.jar!/org/apache/ivy/core/settings/ivysettings-main-chain.xml[0m
 [0m[[0m[0mdebug[0m] [0m[0mincluding url: jar:file:/localhome/rshojabro/.sbt/boot/scala-2.12.7/org.scala-sbt/sbt/1.2.8/ivy-2.3.0-sbt-cb9cc189e9f3af519f9f102e6c5d446488ff6832.jar!/org/apache/ivy/core/settings/ivysettings-default-chain.xml[0m
-[0m[[0m[0mdebug[0m] [0m[0msettings loaded (14ms)[0m
+[0m[[0m[0mdebug[0m] [0m[0msettings loaded (12ms)[0m
 [0m[[0m[0mdebug[0m] [0m[0m	default cache: /localhome/rshojabro/.ivy2/cache[0m
 [0m[[0m[0mdebug[0m] [0m[0m	default resolver: default[0m
 [0m[[0m[0mdebug[0m] [0m[0m	-- 5 resolvers:[0m
@@ -7219,21 +7233,21 @@
 [0m[[0m[0mdebug[0m] [0m[0m	local [file][0m
 [0m[[0m[0mdebug[0m] [0m[0m	sonatype-snapshots: downloading https://oss.sonatype.org/content/repositories/snapshots/edu/berkeley/cs/chisel3_2.11/3.2-SNAPSHOT/chisel3_2.11-3.2-SNAPSHOT.jar.sha1[0m
 [0m[[0m[0mdebug[0m] [0m[0msha1 OK for https://oss.sonatype.org/content/repositories/snapshots/edu/berkeley/cs/chisel3_2.11/3.2-SNAPSHOT/chisel3_2.11-3.2-SNAPSHOT.jar[0m
-[0m[[0m[0minfo[0m] [0m[0m	[SUCCESSFUL ] edu.berkeley.cs#chisel3_2.11;3.2-SNAPSHOT!chisel3_2.11.jar (2341ms)[0m
+[0m[[0m[0minfo[0m] [0m[0m	[SUCCESSFUL ] edu.berkeley.cs#chisel3_2.11;3.2-SNAPSHOT!chisel3_2.11.jar (1940ms)[0m
 [0m[[0m[0mdebug[0m] [0m[0m	sonatype-snapshots: downloading https://oss.sonatype.org/content/repositories/snapshots/edu/berkeley/cs/firrtl_2.11/1.2-SNAPSHOT/firrtl_2.11-1.2-SNAPSHOT.jar.sha1[0m
 [0m[[0m[0mdebug[0m] [0m[0msha1 OK for https://oss.sonatype.org/content/repositories/snapshots/edu/berkeley/cs/firrtl_2.11/1.2-SNAPSHOT/firrtl_2.11-1.2-SNAPSHOT.jar[0m
-[0m[[0m[0minfo[0m] [0m[0m	[SUCCESSFUL ] edu.berkeley.cs#firrtl_2.11;1.2-SNAPSHOT!firrtl_2.11.jar (32329ms)[0m
-[0m[[0m[0mdebug[0m] [0m[0m:: resolution report :: resolve 13465ms :: artifacts dl 32348ms[0m
-[0m[[0m[0mdebug[0m] [0m[0m	report for edu.washington.cs#accel_2.11;0.1.0-SNAPSHOT compile produced in /localhome/rshojabro/git/dpi-playground/hardware/chisel/target/scala-2.11/resolution-cache/reports/edu.washington.cs-accel_2.11-compile.xml[0m
-[0m[[0m[0mdebug[0m] [0m[0m	report for edu.washington.cs#accel_2.11;0.1.0-SNAPSHOT runtime produced in /localhome/rshojabro/git/dpi-playground/hardware/chisel/target/scala-2.11/resolution-cache/reports/edu.washington.cs-accel_2.11-runtime.xml[0m
-[0m[[0m[0mdebug[0m] [0m[0m	report for edu.washington.cs#accel_2.11;0.1.0-SNAPSHOT test produced in /localhome/rshojabro/git/dpi-playground/hardware/chisel/target/scala-2.11/resolution-cache/reports/edu.washington.cs-accel_2.11-test.xml[0m
-[0m[[0m[0mdebug[0m] [0m[0m	report for edu.washington.cs#accel_2.11;0.1.0-SNAPSHOT provided produced in /localhome/rshojabro/git/dpi-playground/hardware/chisel/target/scala-2.11/resolution-cache/reports/edu.washington.cs-accel_2.11-provided.xml[0m
-[0m[[0m[0mdebug[0m] [0m[0m	report for edu.washington.cs#accel_2.11;0.1.0-SNAPSHOT optional produced in /localhome/rshojabro/git/dpi-playground/hardware/chisel/target/scala-2.11/resolution-cache/reports/edu.washington.cs-accel_2.11-optional.xml[0m
-[0m[[0m[0mdebug[0m] [0m[0m	report for edu.washington.cs#accel_2.11;0.1.0-SNAPSHOT compile-internal produced in /localhome/rshojabro/git/dpi-playground/hardware/chisel/target/scala-2.11/resolution-cache/reports/edu.washington.cs-accel_2.11-compile-internal.xml[0m
-[0m[[0m[0mdebug[0m] [0m[0m	report for edu.washington.cs#accel_2.11;0.1.0-SNAPSHOT runtime-internal produced in /localhome/rshojabro/git/dpi-playground/hardware/chisel/target/scala-2.11/resolution-cache/reports/edu.washington.cs-accel_2.11-runtime-internal.xml[0m
-[0m[[0m[0mdebug[0m] [0m[0m	report for edu.washington.cs#accel_2.11;0.1.0-SNAPSHOT test-internal produced in /localhome/rshojabro/git/dpi-playground/hardware/chisel/target/scala-2.11/resolution-cache/reports/edu.washington.cs-accel_2.11-test-internal.xml[0m
-[0m[[0m[0mdebug[0m] [0m[0m	report for edu.washington.cs#accel_2.11;0.1.0-SNAPSHOT plugin produced in /localhome/rshojabro/git/dpi-playground/hardware/chisel/target/scala-2.11/resolution-cache/reports/edu.washington.cs-accel_2.11-plugin.xml[0m
-[0m[[0m[0mdebug[0m] [0m[0m	report for edu.washington.cs#accel_2.11;0.1.0-SNAPSHOT pom produced in /localhome/rshojabro/git/dpi-playground/hardware/chisel/target/scala-2.11/resolution-cache/reports/edu.washington.cs-accel_2.11-pom.xml[0m
-[0m[[0m[0mdebug[0m] [0m[0m	report for edu.washington.cs#accel_2.11;0.1.0-SNAPSHOT scala-tool produced in /localhome/rshojabro/git/dpi-playground/hardware/chisel/target/scala-2.11/resolution-cache/reports/edu.washington.cs-accel_2.11-scala-tool.xml[0m
-[0m[[0m[0mdebug[0m] [0m[0m	resolve done (13465ms resolve - 32348ms download)[0m
+[0m[[0m[0minfo[0m] [0m[0m	[SUCCESSFUL ] edu.berkeley.cs#firrtl_2.11;1.2-SNAPSHOT!firrtl_2.11.jar (4699ms)[0m
+[0m[[0m[0mdebug[0m] [0m[0m:: resolution report :: resolve 5363ms :: artifacts dl 4731ms[0m
+[0m[[0m[0mdebug[0m] [0m[0m	report for edu.washington.cs#accel_2.11;0.1.0-SNAPSHOT compile produced in /localhome/rshojabro/git/dandelion-lib/hardware/chisel/target/scala-2.11/resolution-cache/reports/edu.washington.cs-accel_2.11-compile.xml[0m
+[0m[[0m[0mdebug[0m] [0m[0m	report for edu.washington.cs#accel_2.11;0.1.0-SNAPSHOT runtime produced in /localhome/rshojabro/git/dandelion-lib/hardware/chisel/target/scala-2.11/resolution-cache/reports/edu.washington.cs-accel_2.11-runtime.xml[0m
+[0m[[0m[0mdebug[0m] [0m[0m	report for edu.washington.cs#accel_2.11;0.1.0-SNAPSHOT test produced in /localhome/rshojabro/git/dandelion-lib/hardware/chisel/target/scala-2.11/resolution-cache/reports/edu.washington.cs-accel_2.11-test.xml[0m
+[0m[[0m[0mdebug[0m] [0m[0m	report for edu.washington.cs#accel_2.11;0.1.0-SNAPSHOT provided produced in /localhome/rshojabro/git/dandelion-lib/hardware/chisel/target/scala-2.11/resolution-cache/reports/edu.washington.cs-accel_2.11-provided.xml[0m
+[0m[[0m[0mdebug[0m] [0m[0m	report for edu.washington.cs#accel_2.11;0.1.0-SNAPSHOT optional produced in /localhome/rshojabro/git/dandelion-lib/hardware/chisel/target/scala-2.11/resolution-cache/reports/edu.washington.cs-accel_2.11-optional.xml[0m
+[0m[[0m[0mdebug[0m] [0m[0m	report for edu.washington.cs#accel_2.11;0.1.0-SNAPSHOT compile-internal produced in /localhome/rshojabro/git/dandelion-lib/hardware/chisel/target/scala-2.11/resolution-cache/reports/edu.washington.cs-accel_2.11-compile-internal.xml[0m
+[0m[[0m[0mdebug[0m] [0m[0m	report for edu.washington.cs#accel_2.11;0.1.0-SNAPSHOT runtime-internal produced in /localhome/rshojabro/git/dandelion-lib/hardware/chisel/target/scala-2.11/resolution-cache/reports/edu.washington.cs-accel_2.11-runtime-internal.xml[0m
+[0m[[0m[0mdebug[0m] [0m[0m	report for edu.washington.cs#accel_2.11;0.1.0-SNAPSHOT test-internal produced in /localhome/rshojabro/git/dandelion-lib/hardware/chisel/target/scala-2.11/resolution-cache/reports/edu.washington.cs-accel_2.11-test-internal.xml[0m
+[0m[[0m[0mdebug[0m] [0m[0m	report for edu.washington.cs#accel_2.11;0.1.0-SNAPSHOT plugin produced in /localhome/rshojabro/git/dandelion-lib/hardware/chisel/target/scala-2.11/resolution-cache/reports/edu.washington.cs-accel_2.11-plugin.xml[0m
+[0m[[0m[0mdebug[0m] [0m[0m	report for edu.washington.cs#accel_2.11;0.1.0-SNAPSHOT pom produced in /localhome/rshojabro/git/dandelion-lib/hardware/chisel/target/scala-2.11/resolution-cache/reports/edu.washington.cs-accel_2.11-pom.xml[0m
+[0m[[0m[0mdebug[0m] [0m[0m	report for edu.washington.cs#accel_2.11;0.1.0-SNAPSHOT scala-tool produced in /localhome/rshojabro/git/dandelion-lib/hardware/chisel/target/scala-2.11/resolution-cache/reports/edu.washington.cs-accel_2.11-scala-tool.xml[0m
+[0m[[0m[0mdebug[0m] [0m[0m	resolve done (5363ms resolve - 4731ms download)[0m
 [0m[[0m[0minfo[0m] [0m[0mDone updating.[0m

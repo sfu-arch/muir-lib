@@ -32,7 +32,7 @@ ifeq (, $(VERILATOR_INC_DIR))
   endif
 endif
 
-TOP = TestAccel
+TOP = TestAccel2
 BUILD_NAME = build
 USE_TRACE = 0
 LIBNAME = libhw

@@ -7,15 +7,15 @@
 		revision="0.1.0-SNAPSHOT"
 		conf="compile"
 		confs="compile, runtime, test, provided, optional, compile-internal, runtime-internal, test-internal, plugin, pom, scala-tool"
-		date="20190906160231"/>
+		date="20190907193503"/>
 	<dependencies>
 		<module organisation="edu.berkeley.cs" name="chisel3_2.11">
 			<revision name="3.2-SNAPSHOT" status="integration" pubdate="20190813120623" resolver="sonatype-snapshots" artresolver="sonatype-snapshots" homepage="http://chisel.eecs.berkeley.edu/" downloaded="true" searched="true" default="false" conf="default, compile, runtime, default(compile), master" position="1">
 				<license name="BSD-style" url="http://www.opensource.org/licenses/bsd-license.php"/>
-				<metadata-artifact status="successful" details="" size="2600" time="718" location="/localhome/rshojabro/.ivy2/cache/edu.berkeley.cs/chisel3_2.11/ivy-3.2-SNAPSHOT.xml" searched="true" original-local-location="/localhome/rshojabro/.ivy2/cache/edu.berkeley.cs/chisel3_2.11/ivy-3.2-SNAPSHOT.xml.original" origin-is-local="false" origin-location="https://oss.sonatype.org/content/repositories/snapshots/edu/berkeley/cs/chisel3_2.11/3.2-SNAPSHOT/chisel3_2.11-3.2-SNAPSHOT.pom"/>
+				<metadata-artifact status="successful" details="" size="2600" time="462" location="/localhome/rshojabro/.ivy2/cache/edu.berkeley.cs/chisel3_2.11/ivy-3.2-SNAPSHOT.xml" searched="true" original-local-location="/localhome/rshojabro/.ivy2/cache/edu.berkeley.cs/chisel3_2.11/ivy-3.2-SNAPSHOT.xml.original" origin-is-local="false" origin-location="https://oss.sonatype.org/content/repositories/snapshots/edu/berkeley/cs/chisel3_2.11/3.2-SNAPSHOT/chisel3_2.11-3.2-SNAPSHOT.pom"/>
 				<caller organisation="edu.washington.cs" name="accel_2.11" conf="compile" rev="3.2-SNAPSHOT" rev-constraint-default="3.2-SNAPSHOT" rev-constraint-dynamic="3.2-SNAPSHOT" callerrev="0.1.0-SNAPSHOT"/>
 				<artifacts>
-					<artifact name="chisel3_2.11" type="jar" ext="jar" status="successful" details="" size="2041345" time="2341" location="/localhome/rshojabro/.ivy2/cache/edu.berkeley.cs/chisel3_2.11/jars/chisel3_2.11-3.2-SNAPSHOT.jar">
+					<artifact name="chisel3_2.11" type="jar" ext="jar" status="successful" details="" size="2041345" time="1940" location="/localhome/rshojabro/.ivy2/cache/edu.berkeley.cs/chisel3_2.11/jars/chisel3_2.11-3.2-SNAPSHOT.jar">
 						<origin-location is-local="false" location="https://oss.sonatype.org/content/repositories/snapshots/edu/berkeley/cs/chisel3_2.11/3.2-SNAPSHOT/chisel3_2.11-3.2-SNAPSHOT.jar"/>
 					</artifact>
 				</artifacts>
@@ -24,10 +24,10 @@
 		<module organisation="edu.berkeley.cs" name="firrtl_2.11">
 			<revision name="1.2-SNAPSHOT" status="integration" pubdate="20190813120242" resolver="sonatype-snapshots" artresolver="sonatype-snapshots" homepage="http://chisel.eecs.berkeley.edu/" downloaded="true" searched="true" default="false" conf="compile, runtime(*), master(compile), runtime, compile(*), master" position="4">
 				<license name="BSD-style" url="http://www.opensource.org/licenses/bsd-license.php"/>
-				<metadata-artifact status="successful" details="" size="3841" time="601" location="/localhome/rshojabro/.ivy2/cache/edu.berkeley.cs/firrtl_2.11/ivy-1.2-SNAPSHOT.xml" searched="true" original-local-location="/localhome/rshojabro/.ivy2/cache/edu.berkeley.cs/firrtl_2.11/ivy-1.2-SNAPSHOT.xml.original" origin-is-local="false" origin-location="https://oss.sonatype.org/content/repositories/snapshots/edu/berkeley/cs/firrtl_2.11/1.2-SNAPSHOT/firrtl_2.11-1.2-SNAPSHOT.pom"/>
+				<metadata-artifact status="successful" details="" size="3841" time="432" location="/localhome/rshojabro/.ivy2/cache/edu.berkeley.cs/firrtl_2.11/ivy-1.2-SNAPSHOT.xml" searched="true" original-local-location="/localhome/rshojabro/.ivy2/cache/edu.berkeley.cs/firrtl_2.11/ivy-1.2-SNAPSHOT.xml.original" origin-is-local="false" origin-location="https://oss.sonatype.org/content/repositories/snapshots/edu/berkeley/cs/firrtl_2.11/1.2-SNAPSHOT/firrtl_2.11-1.2-SNAPSHOT.pom"/>
 				<caller organisation="edu.berkeley.cs" name="chisel3_2.11" conf="default, compile, runtime, master" rev="1.2-SNAPSHOT" rev-constraint-default="1.2-SNAPSHOT" rev-constraint-dynamic="1.2-SNAPSHOT" callerrev="3.2-SNAPSHOT"/>
 				<artifacts>
-					<artifact name="firrtl_2.11" type="jar" ext="jar" status="successful" details="" size="6732525" time="32329" location="/localhome/rshojabro/.ivy2/cache/edu.berkeley.cs/firrtl_2.11/jars/firrtl_2.11-1.2-SNAPSHOT.jar">
+					<artifact name="firrtl_2.11" type="jar" ext="jar" status="successful" details="" size="6732525" time="4699" location="/localhome/rshojabro/.ivy2/cache/edu.berkeley.cs/firrtl_2.11/jars/firrtl_2.11-1.2-SNAPSHOT.jar">
 						<origin-location is-local="false" location="https://oss.sonatype.org/content/repositories/snapshots/edu/berkeley/cs/firrtl_2.11/1.2-SNAPSHOT/firrtl_2.11-1.2-SNAPSHOT.jar"/>
 					</artifact>
 				</artifacts>

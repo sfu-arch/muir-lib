@@ -42,9 +42,7 @@ class IntelShell(implicit p: Parameters) extends Module {
 //   core.io.vcr <> vcr.io.vcr
 //   vme.io.vme <> core.io.vme
 
-   io.host <> vcr.io.host
 
-  vcr.io.vcr <> DontCare
 
 
   // For whatever reason; this is hoisted here wheras the xilinx shell includes a VTA shell separately. For the timebeing we retain it here.

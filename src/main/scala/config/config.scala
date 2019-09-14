@@ -100,9 +100,9 @@ class MiniConfig extends Config((site, here, up) => {
   case CacheBlockBytes => 4 * (here(XLEN) >> 3) // 4 x 32 bits = 16B
   // NastiIO
   case NastiKey => new NastiParameters(
-    idBits = 12,
+    idBits = 13,
     dataBits = 32,
-    addrBits = 32)
+    addrBits = 16)
 
   case FTYP => site(XLEN) match {
     case 32 => S

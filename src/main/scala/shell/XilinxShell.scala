@@ -23,6 +23,7 @@ package shell
 import chisel3._
 import chisel3.experimental.{RawModule, withClockAndReset}
 import config._
+import accel._
 
 
 /** XilinxShell.
@@ -40,7 +41,7 @@ class XilinxShell(implicit p: Parameters) extends RawModule {
   val m_axi_gmem = IO(new XilinxAXIMaster(mp))
   val s_axi_control = IO(new XilinxAXILiteClient(hp))
 
-  val shell = withClockAndReset (clock = ap_clk, reset = ~ap_rst_n) { Module(new VTAShell) }
+  val shell = withClockAndReset (clock = ap_clk, reset = ~ap_rst_n) { Module(new VTAShell2) }
 
   // memory
   m_axi_gmem.AWVALID := shell.io.mem.aw.valid
@@ -56,13 +57,14 @@ class XilinxShell(implicit p: Parameters) extends RawModule {
   m_axi_gmem.AWPROT := shell.io.mem.aw.bits.prot
   m_axi_gmem.AWQOS := shell.io.mem.aw.bits.qos
   m_axi_gmem.AWREGION := shell.io.mem.aw.bits.region
+  m_axi_gmem.WID <> DontCare
 
   m_axi_gmem.WVALID := shell.io.mem.w.valid
   shell.io.mem.w.ready := m_axi_gmem.WREADY
   m_axi_gmem.WDATA := shell.io.mem.w.bits.data
   m_axi_gmem.WSTRB := shell.io.mem.w.bits.strb
   m_axi_gmem.WLAST := shell.io.mem.w.bits.last
-  m_axi_gmem.WID := shell.io.mem.w.bits.id
+  //m_axi_gmem.WID := shell.io.mem.w.bits.id
   m_axi_gmem.WUSER := shell.io.mem.w.bits.user
 
   shell.io.mem.b.valid := m_axi_gmem.BVALID

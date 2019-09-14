@@ -63,6 +63,7 @@ abstract class AXIBase(params: AXIParams)
 
 class AXILiteAddress(params: AXIParams) extends AXIBase(params) {
   val addr = UInt(params.addrBits.W)
+  //val prot = UInt(params.protBits.W)
 }
 
 class AXILiteWriteData(params: AXIParams) extends AXIBase(params) {
@@ -96,6 +97,8 @@ class AXILiteMaster(params: AXIParams) extends AXIBase(params) {
     ar.valid := false.B
     ar.bits.addr := 0.U
     r.ready := false.B
+    //aw.bits.prot := 0.U
+    //ar.bits.prot := 0.U
   }
 }
 
@@ -115,6 +118,8 @@ class AXILiteClient(params: AXIParams) extends AXIBase(params) {
     r.valid := false.B
     r.bits.resp := 0.U
     r.bits.data := 0.U
+    //aw.bits.prot := 0.U
+    //ar.bits.prot := 0.U
   }
 }
 
