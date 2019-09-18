@@ -91,105 +91,6 @@ driver_main.cc| +-------------+Master Client    |                 |
 
 
 
-/* Receives a counter value as input. Waits for N cycles and then returns N + const as output */
-class VTAShell2(implicit p: Parameters) extends Module {
-  val io = IO(new Bundle {
-    val host = new AXILiteClient(p(ShellKey).hostParams)
-    val mem = new AXIMaster(p(ShellKey).memParams)
-    val debugVal1 = Output(UInt(p(ShellKey).vcrParams.regBits.W))
-    val debugVal2 = Output(UInt(p(ShellKey).vcrParams.regBits.W))
-  })
-
-  val vcr = Module(new VCR)
-  val vmem = Module(new VME)
-  val buffer = Module(new Queue(vmem.io.vme.rd(0).data.bits.cloneType,40))
-
-  val sIdle :: sReq :: sBusy :: Nil = Enum(3)
-  val Rstate = RegInit(sIdle)
-  val Wstate = RegInit(sIdle)
-
-  val cycle_count = new Counter(200)
-
-  when (Rstate =/= sIdle) {
-    cycle_count.inc( )
-  }
-
-  // initialization -----------------------------
-  io.debugVal2 := 0.U
-  io.debugVal2(1) := true.B
-  //vcr.io.host. := 0.U
-  //io.host.aw.bits.prot := 0.U
-  vcr.io.vcr.ecnt(0.U).bits := 0x0eadbeef.U
-
-  vcr.io.vcr.ecnt(0.U).valid :=false.B
-  // Read state machine
-  switch (Rstate) {
-    is (sIdle) {
-      when (vcr.io.vcr.launch) {
-        io.debugVal2(0) := true.B
-        cycle_count.value := 0.U
-        Rstate := sReq
-        vcr.io.vcr.ecnt(0.U).valid :=true.B
-      }
-    }
-    is (sReq) {
-      when (vmem.io.vme.rd(0).cmd.fire()) {
-        Rstate := sBusy
-      }
-    }
-  }
-  // Write state machine
-  switch (Wstate) {
-    is (sIdle) {
-      when (vcr.io.vcr.launch) {
-        Wstate := sReq
-      }
-    }
-    is (sReq) {
-      when (vmem.io.vme.wr(0).cmd.fire()) {
-        Wstate := sBusy
-      }
-    }
-  }
-
-  vmem.io.vme.rd(0).cmd.bits.addr := vcr.io.vcr.ptrs(0)
-  vmem.io.vme.rd(0).cmd.bits.len := vcr.io.vcr.vals(1)
-  vmem.io.vme.rd(0).cmd.valid := false.B
-
-  vmem.io.vme.wr(0).cmd.bits.addr := vcr.io.vcr.ptrs(2)
-  vmem.io.vme.wr(0).cmd.bits.len := vcr.io.vcr.vals(1)
-  vmem.io.vme.wr(0).cmd.valid := false.B
-
-  when(Rstate === sReq) {
-    vmem.io.vme.rd(0).cmd.valid := true.B
-  }
-
-  when(Wstate === sReq) {
-    vmem.io.vme.wr(0).cmd.valid := true.B
-  }
-
-  // Final
-  val last = Wstate === sBusy && vmem.io.vme.wr(0).ack
-  vcr.io.vcr.finish := last
- // vcr.io.vcr.ecnt(0).valid := last
-
-  when(vmem.io.vme.wr(0).ack) {
-    Rstate := sIdle
-    Wstate := sIdle
-  }
-
-  io.debugVal1 <> vcr.io.vcr.vals(0)
-  //io.debugVal2 <> vcr.io.vcr.vals(1)
-  buffer.io.enq <> vmem.io.vme.rd(0).data
-  buffer.io.enq.bits := vmem.io.vme.rd(0).data.bits + vcr.io.vcr.vals(0)
-  vmem.io.vme.wr(0).data <> buffer.io.deq
-
-  //io.mem.w.bits.id := 1.U(p(ShellKey).memParams.idBits.W)
-  io.mem <> vmem.io.mem
-  io.host <> vcr.io.host
-}
-
-
 
 /* Receives a counter value as input. Waits for N cycles and then returns N + const as output */
 class NoneAccel(implicit p: Parameters) extends Module {
@@ -312,14 +213,6 @@ class NoneAccel(implicit p: Parameters) extends Module {
   io.host.r.bits.last := 1.U
 
 
-  //vcr.io.vcr.ecnt(0).valid := true.B
-  //vcr.io.vcr.ecnt(0.U).bits := vcr.io.vcr.vals(0) + vcr.io.vcr.vals(1)
-  //vcr.io.vcr.finish := true.B
-
-  //vcr.io.vcr <> DontCare
-
-
-  //io.host.r.bits.data := io.host.ar.bits.addr
   when(io.host.ar.fire) {
     //debug(0) := true.B
     debug((io.host.ar.bits.addr >> 2).asUInt()) := true.B

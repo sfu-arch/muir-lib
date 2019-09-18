@@ -41,7 +41,7 @@ class XilinxShell(implicit p: Parameters) extends RawModule {
   val m_axi_gmem = IO(new XilinxAXIMaster(mp))
   val s_axi_control = IO(new XilinxAXILiteClient(hp))
 
-  val shell = withClockAndReset (clock = ap_clk, reset = ~ap_rst_n) { Module(new VTAShell2) }
+  val shell = withClockAndReset (clock = ap_clk, reset = ~ap_rst_n) { Module(new NoneAccel()) }
 
   // memory
   m_axi_gmem.AWVALID := shell.io.mem.aw.valid

@@ -37,7 +37,7 @@ class TestAccel2(implicit p: Parameters) extends MultiIOModule {
   val sim_clock = IO(Input(Clock()))
   val sim_wait = IO(Output(Bool()))
   val sim_shell = Module(new AXISimShell)
-  val vta_shell = Module(new VTAShell2)
+  val vta_shell = Module(new NoneAccel())
   sim_shell.sim_clock := sim_clock
   sim_wait := sim_shell.sim_wait
 
@@ -75,5 +75,10 @@ object TestVTAShell2Main extends App {
 object TestAccel2Main extends App {
   implicit val p: Parameters = new DefaultDe10Config
   chisel3.Driver.execute(args, () => new TestAccel2)
+}
+
+object TestDNNAccelMain extends App {
+  implicit val p: Parameters = new DefaultDe10Config
+  chisel3.Driver.execute(args, () => new DNNAccel())
 }
 

@@ -35,7 +35,7 @@ class IntelShell(implicit p: Parameters) extends Module {
   })
 
   val vcr = Module(new VCR)
-//  val vme = Module(new VME)
+  val vme = Module(new VME)
   // Connect the DNN core and its VME modules.
 //   val core = Module(new DNNCore())
 
