@@ -60,7 +60,7 @@ class VME_Load(debug: Boolean = false)(implicit p: Parameters) extends Module {
   io.memReq <> StoreType.io.memReq
   StoreType.io.memResp <> io.memResp
 
-  val vme_data_queue = Queue(io.vme_read.data, 50)
+  val vme_data_queue = Module(new Queue(io.vme_read.data.bits.cloneType, 50))
 
   io.vme_read.cmd <> io.vme_cmd
 
