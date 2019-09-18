@@ -32,46 +32,6 @@ import memory.{ReadTypMemoryController, WriteTypMemoryController}
 import node.{FXmatNxN, TypLoad, TypStore}
 import shell._
 
-///** Core parameters */
-//case class DNNCoreParams(
-//                          batch: Int = 1,
-//                          blockOut: Int = 16,
-//                          blockIn: Int = 16,
-//                          inpBits: Int = 8,
-//                          wgtBits: Int = 8,
-//                          uopBits: Int = 32,
-//                          accBits: Int = 32,
-//                          outBits: Int = 8,
-//                          uopMemDepth: Int = 512,
-//                          inpMemDepth: Int = 512,
-//                          wgtMemDepth: Int = 512,
-//                          accMemDepth: Int = 512,
-//                          outMemDepth: Int = 512,
-//                          instQueueEntries: Int = 32
-//                        ) {
-//  require(uopBits % 8 == 0, s"\n\n[VTA] [CoreParams] uopBits must be byte aligned\n\n")
-//}
-//
-//case object CoreKey extends Field[DNNCoreParams]
-//
-//
-//class CoreConfig extends Config((site, here, up) => {
-//  case CoreKey => DNNCoreParams(
-//    batch = 1,
-//    blockOut = 16,
-//    blockIn = 16,
-//    inpBits = 8,
-//    wgtBits = 8,
-//    uopBits = 32,
-//    accBits = 32,
-//    outBits = 8,
-//    uopMemDepth = 2048,
-//    inpMemDepth = 2048,
-//    wgtMemDepth = 1024,
-//    accMemDepth = 2048,
-//    outMemDepth = 2048,
-//    instQueueEntries = 512)
-//})
 
 /** Core.
   *
@@ -91,81 +51,8 @@ class DNNCore(implicit p: Parameters) extends Module {
     val vme = new VMEMaster
   })
 
-  val buffer = Module(new Queue(io.vme.rd(0).data.bits.cloneType,40))
 
-  val sIdle :: sReq :: sBusy :: Nil = Enum(3)
-  val Rstate = RegInit(sIdle)
-  val Wstate = RegInit(sIdle)
-
-  val cycle_count = new Counter(200)
-
-  when (Rstate =/= sIdle) {
-    cycle_count.inc( )
-  }
-
-
-  io.vcr.ecnt(0.U).bits := cycle_count.value
-
-  // Read state machine
-  switch (Rstate) {
-    is (sIdle) {
-      when (io.vcr.launch) {
-        cycle_count.value := 0.U
-        Rstate := sReq
-      }
-    }
-    is (sReq) {
-      when (io.vme.rd(0).cmd.fire()) {
-        Rstate := sBusy
-      }
-    }
-  }
-  // Write state machine
-  switch (Wstate) {
-    is (sIdle) {
-      when (io.vcr.launch) {
-        Wstate := sReq
-      }
-    }
-    is (sReq) {
-      when (io.vme.wr(0).cmd.fire()) {
-        Wstate := sBusy
-      }
-    }
-  }
-
-  io.vme.rd(0).cmd.bits.addr := io.vcr.ptrs(0)
-  io.vme.rd(0).cmd.bits.len := io.vcr.vals(1)
-  io.vme.rd(0).cmd.valid := false.B
-
-  io.vme.wr(0).cmd.bits.addr := io.vcr.ptrs(2)
-  io.vme.wr(0).cmd.bits.len := io.vcr.vals(1)
-  io.vme.wr(0).cmd.valid := false.B
-
-  when(Rstate === sReq) {
-    io.vme.rd(0).cmd.valid := true.B
-  }
-
-  when(Wstate === sReq) {
-    io.vme.wr(0).cmd.valid := true.B
-  }
-
-  // Final
-  val last = Wstate === sBusy && io.vme.wr(0).ack
-  io.vcr.finish := last
-  io.vcr.ecnt(0).valid := last
-
-  when(io.vme.wr(0).ack) {
-    Rstate := sIdle
-    Wstate := sIdle
-  }
-
-
-  buffer.io.enq <> io.vme.rd(0).data
-  buffer.io.enq.bits := io.vme.rd(0).data.bits + io.vcr.vals(0)
-  io.vme.wr(0).data <> buffer.io.deq
-
-  /*val shape = new FXmatNxN(2, 4)
+  val shape = new FXmatNxN(2, 4)
 
   val StackFile = Module(new TypeStackFile(ID = 0, Size = 32, NReads = 4, NWrites = 4)
   (WControl = new WriteTypMemoryController(NumOps = 4, BaseSize = 2, NumEntries = 2))
@@ -248,7 +135,7 @@ class DNNCore(implicit p: Parameters) extends Module {
   dotNode.io.LeftIO <> LoadA.io.Out(0)
   dotNode.io.RightIO <> LoadB.io.Out(0)
 
-  reduceNode.io.LeftIO <> dotNode.io.Out(0)*/
+  reduceNode.io.LeftIO <> dotNode.io.Out(0)
 }
 //
 //  /* ================================================================== *
