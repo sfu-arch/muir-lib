@@ -26,19 +26,13 @@ import dnn._
 import interfaces.{ControlBundle, DataBundle, TypBundle, WriteReq, WriteResp}
 import node.TypStore
 import shell._
-
-/** Load.
-  *
-  * Load inputs and weights from memory (DRAM) into scratchpads (SRAMs).
-  * This module instantiate the TensorLoad unit which is in charge of
-  * loading 1D and 2D tensors to scratchpads, so it can be used by
-  * other modules such as Compute.
-  */
+/**
+  * Load inputs or weights from memory (DRAM) into scratchpads (SRAMs).
+  * VMELoad Architecture:
+  * * * * * IO(memReq/memResp) <--> StoreType <--> Buffer <--> VMEReadMaster * * * * *
+*/
 class VME_Load(debug: Boolean = false)(implicit p: Parameters) extends Module {
-  val mp = p(ShellKey).memParams
   val io = IO(new Bundle {
-    val nRd = p(ShellKey).vmeParams.nReadClients
-    val nWr = p(ShellKey).vmeParams.nWriteClients
     val start = Input(Bool())
     val done = Output(Bool())
     val vme_cmd = Flipped(Decoupled(new VMECmd()))
@@ -46,7 +40,6 @@ class VME_Load(debug: Boolean = false)(implicit p: Parameters) extends Module {
     val base_addr = Input(new DataBundle())
     val memReq = Decoupled(new WriteReq())
     val memResp = Input(Flipped(new WriteResp()))
-
   })
 
   val ReadDataCounter = Counter(math.pow(2, io.vme_cmd.bits.lenBits).toInt)
@@ -62,7 +55,6 @@ class VME_Load(debug: Boolean = false)(implicit p: Parameters) extends Module {
 
   io.memReq <> StoreType.io.memReq
   StoreType.io.memResp <> io.memResp
-
 
   io.vme_read.cmd <> io.vme_cmd
 
