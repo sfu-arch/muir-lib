@@ -6,7 +6,7 @@ import chisel3.util._
 import chisel3.{Module, RegInit, when, _}
 import config._
 import control.BasicBlockNoMaskNode
-import dnn.memory.VME_Load
+import dnn.memory.VMELoad
 import dnn.wrappers.SystolicSquareWrapper
 import dnn.{DotNode, ReduceNode}
 import interfaces.{ControlBundle, DataBundle}

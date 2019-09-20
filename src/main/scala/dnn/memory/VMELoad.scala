@@ -12,7 +12,7 @@ import shell._
   * VMELoad Architecture:
   * * * * * IO(memReq/memResp) <--> StoreType <--> Buffer <--> VMEReadMaster * * * * *
 */
-class VME_Load(debug: Boolean = false)(implicit p: Parameters) extends Module {
+class VMELoad(debug: Boolean = false)(implicit p: Parameters) extends Module {
   val io = IO(new Bundle {
     val start = Input(Bool())
     val done = Output(Bool())

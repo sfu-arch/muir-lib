@@ -24,7 +24,7 @@ import chisel3._
 import chisel3.util._
 import config._
 import control.BasicBlockNoMaskNode
-import dnn.memory.VME_Load
+import dnn.memory.{VMELoad, VMEStore}
 import dnn.{DotNode, ReduceNode}
 import interfaces.{ControlBundle, DataBundle}
 import junctions.SplitCallNew
@@ -46,13 +46,42 @@ import shell._
   * directory.
   */
 class DNNCore(implicit p: Parameters) extends Module {
+  val mp = p(ShellKey).memParams
   val io = IO(new Bundle {
     val vcr = new VCRClient
     val vme = new VMEMaster
   })
 
 
-  val shape = new FXmatNxN(2, 4)
+  val VMELoad = Module(new VMELoad(false))
+  val VMEStore = Module(new VMEStore(false))
+
+  io.vme.rd(0) <> VMELoad.io.vme_read
+  io.vme.wr(0) <> VMEStore.io.vme_write
+
+  // launch and finish <---> start and done
+  io.vcr.finish := VMELoad.io.done && VMEStore.io.done
+  VMELoad.io.start := io.vcr.launch
+  VMEStore.io.start := io.vcr.launch
+
+  VMELoad.io.vme_cmd.bits.addr := io.vcr.ptrs(0)
+  VMELoad.io.vme_cmd.bits.len := io.vcr.vals(0)
+
+  VMEStore.io.vme_cmd.bits.addr := io.vcr.ptrs(1)
+  VMELoad.io.vme_cmd
+
+  val StackFile = Module(new TypeStackFile(ID = 0, Size = 32, NReads = 1, NWrites = 1)
+  (WControl = new WriteTypMemoryController(NumOps = 1, BaseSize = 2, NumEntries = 2))
+  (RControl = new ReadTypMemoryController(NumOps = 1, BaseSize = 2, NumEntries = 2)))
+
+
+  StackFile.io.WriteIn(0) <> VMELoad.io.memReq
+  VMELoad.io.memResp <> StackFile.io.WriteOut(0)
+
+  StackFile.io.ReadIn(0) <> VMEStore.io.memReq
+  VMEStore.io.memResp <> StackFile.io.ReadOut(0)
+
+  /*val shape = new FXmatNxN(2, 4)
 
   val StackFile = Module(new TypeStackFile(ID = 0, Size = 32, NReads = 4, NWrites = 4)
   (WControl = new WriteTypMemoryController(NumOps = 4, BaseSize = 2, NumEntries = 2))
@@ -70,8 +99,8 @@ class DNNCore(implicit p: Parameters) extends Module {
 
   val conv_bb = Module(new BasicBlockNoMaskNode(NumInputs = 1, NumOuts = 5, BID = 0))
 
-  val VME_LoadA = Module(new VME_Load(debug = false))
-  val VME_LoadB = Module(new VME_Load(debug = false))
+  val VME_LoadA = Module(new VMELoad(debug = false))
+  val VME_LoadB = Module(new VMELoad(debug = false))
 
   io.vme.rd(0) <> VME_LoadA.io.vme_read
   io.vme.rd(1) <> VME_LoadB.io.vme_read
@@ -135,7 +164,7 @@ class DNNCore(implicit p: Parameters) extends Module {
   dotNode.io.LeftIO <> LoadA.io.Out(0)
   dotNode.io.RightIO <> LoadB.io.Out(0)
 
-  reduceNode.io.LeftIO <> dotNode.io.Out(0)
+  reduceNode.io.LeftIO <> dotNode.io.Out(0)*/
 }
 //
 //  /* ================================================================== *
