@@ -68,7 +68,7 @@ class DNNCore(implicit p: Parameters) extends Module {
   VMELoad.io.vme_cmd.bits.len := io.vcr.vals(0)
 
   VMEStore.io.vme_cmd.bits.addr := io.vcr.ptrs(1)
-  VMELoad.io.vme_cmd
+  VMELoad.io.vme_cmd.bits.len := io.vcr.vals(1)
 
   val StackFile = Module(new TypeStackFile(ID = 0, Size = 32, NReads = 1, NWrites = 1)
   (WControl = new WriteTypMemoryController(NumOps = 1, BaseSize = 2, NumEntries = 2))
