@@ -253,7 +253,7 @@ class DebugBufferNode(NumPredOps: Int = 0, NumSuccOps: Int = 0, NumOuts: Int = 1
   }
 
   val LogData = Module(new Queue(UInt(4.W), 4))
-  val LogAddress = dbg_counter.value << 2.U
+  val LogAddress = Cat(0.U((xlen - dbg_counter.value.getWidth - 2).W), dbg_counter.value << 2.U)
 
 //  val LogAddress = Queue(Decoupled(UInt(10.W)),20)
   val st_node = Module(new UnTypStore(NumPredOps, NumSuccOps, ID = 0, RouteID = 0))
@@ -262,19 +262,10 @@ class DebugBufferNode(NumPredOps: Int = 0, NumSuccOps: Int = 0, NumOuts: Int = 1
   st_node.io.enable.bits := ControlBundle.active()
   st_node.io.enable.valid := true.B
 
-  //  val log_data_ready_wire = WireInit(LogData.ready)
-//  val log_data_ready_wire = WireInit(LogData.ready)
-//  val log_data_valid_wire = WireInit(LogData.valid)
-
-//
-//  val log_address_ready_wire = WireInit(LogAddress.ready)
-//  val log_address_valid_wire = WireInit(LogAddress.valid)
-//  val log_address_bits_wire = WireInit(LogAddress.bits)
-
 
   LogData.io.enq.bits := 0.U
   LogData.io.enq.valid := false.B
-  LogData.io.deq.ready := true.B
+  LogData.io.deq.ready := false.B
 
   BoringUtils.addSink(LogData.io.deq.bits, "Test_data")
   BoringUtils.addSink(LogData.io.deq.valid, "Test_valid")
@@ -282,15 +273,90 @@ class DebugBufferNode(NumPredOps: Int = 0, NumSuccOps: Int = 0, NumOuts: Int = 1
 
   io.memReq <> st_node.io.memReq
   st_node.io.memResp <> io.memResp
-  //st_node.io.enable := io.enable
+
   st_node.io.enable.bits := ControlBundle.active()
   st_node.io.enable.valid := true.B
-  st_node.io.Out(0).ready := false.B
-  when(st_node.io.inData.ready && st_node.io.GepAddr.ready && LogData.io.deq.valid ){
+
+  st_node.io.Out(0).ready := true.B
+
+  val addr_gen = RegInit(0.U(32.W))
+
+  when(st_node.io.inData.ready && LogData.io.deq.valid ){
     dbg_counter.inc()
     st_node.io.inData.enq(DataBundle(LogData.io.deq.bits))
-    st_node.io.GepAddr.enq(DataBundle(LogAddress.asUInt()))
-    st_node.io.Out(0).ready := true.B
+    st_node.io.GepAddr.enq(DataBundle(addr_gen + 1.U))
+  }.otherwise{
+    st_node.io.inData.noenq()
+    st_node.io.GepAddr.noenq()
+  }
+
+
+
+}
+
+
+
+class NewDebugBufferNode(NumPredOps: Int = 0, NumSuccOps: Int = 0, NumOuts: Int = 1,
+                      Typ: UInt = MT_W, ID: Int, RouteID: Int)
+                     (implicit p: Parameters,
+                      name: sourcecode.Name,  file: sourcecode.File)
+  extends HandShaking(NumPredOps, NumSuccOps, NumOuts, ID)(new DataBundle)(p) {
+
+  // Set up StoreIO
+  override lazy val io = IO(new DebugBufferIO(NumPredOps, NumSuccOps, NumOuts))
+  // Printf debugging
+  val node_name = name.value
+  val module_name = file.value.split("/").tail.last.split("\\.").head.capitalize
+  override val printfSigil = "[" + module_name + "] " + node_name + ": " + ID + " "
+  val (cycleCount, _) = Counter(true.B, 32 * 1024)
+  val inData = new DataBundle
+  val GepAddr = new DataBundle
+  //------------------------------
+  val dbg_counter = Counter(1024)
+
+  val Uniq_name_Data = "meData"
+  //val Uniq_name_Adr = "meAdr"
+  //---------------------------
+  // -------
+
+  for (i <- 0 until NumOuts) {
+    io.Out(i).bits := DataBundle.default
+    io.Out(i).valid := false.B
+  }
+
+  val LogData = Module(new Queue(UInt(4.W), 4))
+  val LogAddress = Cat(0.U((xlen - dbg_counter.value.getWidth - 2).W), dbg_counter.value << 2.U)
+
+  //  val LogAddress = Queue(Decoupled(UInt(10.W)),20)
+  val st_node = Module(new UnTypStore(NumPredOps, NumSuccOps, ID = 0, RouteID = 0))
+
+  //?
+  st_node.io.enable.bits := ControlBundle.active()
+  st_node.io.enable.valid := true.B
+
+
+  LogData.io.enq.bits := 0.U
+  LogData.io.enq.valid := false.B
+  LogData.io.deq.ready := false.B
+
+  BoringUtils.addSink(LogData.io.deq.bits, "Test_data")
+  BoringUtils.addSink(LogData.io.deq.valid, "Test_valid")
+  BoringUtils.addSource(LogData.io.enq.ready, "Test_ready")
+
+  io.memReq <> st_node.io.memReq
+  st_node.io.memResp <> io.memResp
+
+  st_node.io.enable.bits := ControlBundle.active()
+  st_node.io.enable.valid := true.B
+
+  st_node.io.Out(0).ready := true.B
+
+  val addr_gen = RegInit(0.U(32.W))
+
+  when(st_node.io.inData.ready && LogData.io.deq.valid ){
+    dbg_counter.inc()
+    st_node.io.inData.enq(DataBundle(LogData.io.deq.bits))
+    st_node.io.GepAddr.enq(DataBundle(addr_gen + 1.U))
   }.otherwise{
     st_node.io.inData.noenq()
     st_node.io.GepAddr.noenq()

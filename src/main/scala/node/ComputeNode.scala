@@ -114,7 +114,7 @@ class ComputeNode(NumOuts: Int, ID: Int, opCode: String)
     val test_value = Wire(UInt(4.W))
     val test_value_valid = Wire(Bool())
     val test_value_ready = Wire(Bool())
-    test_value := 5.U
+    test_value := cycleCount
     test_value_valid := false.B
     test_value_ready := false.B
     BoringUtils.addSource(test_value, "Test_data")
