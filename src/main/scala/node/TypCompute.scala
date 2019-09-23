@@ -21,6 +21,7 @@ import scala.reflect.runtime.universe._
 ////////////////////////////////////////////////////////////////////////////////////////
 
 abstract class Shapes(implicit p: Parameters) extends CoreBundle( )(p) {
+
   // Gather and Scatter from flat vectors
   def fromVecUInt(input: Vec[UInt])
 
@@ -29,6 +30,8 @@ abstract class Shapes(implicit p: Parameters) extends CoreBundle( )(p) {
   def getdouble(): UInt
 
   def gethalf(): UInt
+
+  def getWidthData(): Int
 
 }
 
@@ -69,6 +72,10 @@ class vecN(val N: Int, val isCol: Int = 0, val issign: Boolean = false)(implicit
       uintdata zip data map { case (a, b) => a := OperatorResize.halfwidth(b.asSInt).asUInt }
     }
     uintdata.asUInt
+  }
+
+  def getWidthData(): Int = {
+    return data.getWidth
   }
 
   override def cloneType = new vecN(N, isCol, issign).asInstanceOf[this.type]
@@ -112,6 +119,10 @@ class matNxN(val N: Int = 0, val issign: Boolean = false)(implicit p: Parameters
     uintdata.asUInt
   }
 
+  def getWidthData(): Int = {
+    return data.getWidth
+  }
+
   override def cloneType = new matNxN(N, issign).asInstanceOf[this.type]
 }
 
@@ -143,6 +154,10 @@ class FXmatNxN(val N: Int, val fraction: Int)(implicit p: Parameters) extends Sh
     val uintdata = Wire(Vec(N, Vec(N, FixedPoint((data(0)(0).getWidth / 2).W, (data(0)(0).binaryPoint.get / 2).BP))))
     uintdata.flatten zip data.flatten map { case (a, b) => a := OperatorResize.halfwidth(b) }
     uintdata.asUInt
+  }
+
+  def getWidthData(): Int = {
+    return data.getWidth
   }
 
   override def cloneType = new FXmatNxN(N, fraction).asInstanceOf[this.type]
@@ -177,6 +192,10 @@ class FXvecN(val N: Int, val fraction: Int, val isCol: Int = 0)(implicit p: Para
     uintdata.asUInt
   }
 
+  def getWidthData(): Int = {
+    return data.getWidth
+  }
+
   override def cloneType = new FXvecN(N, fraction).asInstanceOf[this.type]
 }
 
@@ -208,6 +227,10 @@ class FPmatNxN(val N: Int, val t: FType)(implicit p: Parameters) extends Shapes 
     0.U
   }
 
+  def getWidthData(): Int = {
+    return data.getWidth
+  }
+
   override def cloneType = new FPmatNxN(N, t).asInstanceOf[this.type]
 }
 
@@ -236,6 +259,10 @@ class FPvecN(val N: Int, val t: FType, val isCol: Int = 0)(implicit p: Parameter
   def gethalf(): UInt = {
     assert(false.B, "FPs do not have implicit resizing. Use ResizeFN function unit")
     0.U
+  }
+
+  def getWidthData(): Int = {
+    return data.getWidth
   }
 
   override def cloneType = new FPmatNxN(N, t).asInstanceOf[this.type]

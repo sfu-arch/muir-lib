@@ -65,31 +65,31 @@ class GEMMFU[T <: Shapes : OperatorGEMM](operand: => T)(implicit val p: Paramete
 }
 
 class GEMMIO[T <: Shapes](NumOuts: Int)(operand: => T)(implicit p: Parameters)
-  extends HandShakingIONPS(NumOuts)(new CustomDataBundle(UInt((operand.getWidth).W))) {
+  extends HandShakingIONPS(NumOuts)(new CustomDataBundle(UInt((operand.getWidthData).W))) {
   // LeftIO: Left input data for computation
-  val LeftIO = Flipped(Decoupled(new CustomDataBundle(UInt((operand.getWidth).W))))
+  val LeftIO = Flipped(Decoupled(new CustomDataBundle(UInt((operand.getWidthData).W))))
 
   // RightIO: Right input data for computation
-  val RightIO = Flipped(Decoupled(new CustomDataBundle(UInt((operand.getWidth).W))))
+  val RightIO = Flipped(Decoupled(new CustomDataBundle(UInt((operand.getWidthData).W))))
 
   override def cloneType = new GEMMIO(NumOuts)(operand).asInstanceOf[this.type]
 }
 
 class GEMMNode[T <: Shapes : OperatorGEMM](NumOuts: Int, ID: Int)(operand: => T)(implicit p: Parameters)
-  extends HandShakingNPS(NumOuts, ID)(new CustomDataBundle(UInt(operand.getWidth.W)))(p) {
+  extends HandShakingNPS(NumOuts, ID)(new CustomDataBundle(UInt(operand.getWidthData.W)))(p) {
   override lazy val io = IO(new GEMMIO(NumOuts)(operand))
 
   /*===========================================*
  *            Registers                      *
  *===========================================*/
   // OP Inputs
-  val left_R = RegInit(CustomDataBundle.default(0.U((operand.getWidth).W)))
+  val left_R = RegInit(CustomDataBundle.default(0.U((operand.getWidthData).W)))
 
   // Memory Response
-  val right_R = RegInit(CustomDataBundle.default(0.U((operand.getWidth).W)))
+  val right_R = RegInit(CustomDataBundle.default(0.U((operand.getWidthData).W)))
 
   // Output register
-  val data_R = RegInit(CustomDataBundle.default(0.U((operand.getWidth).W)))
+  val data_R = RegInit(CustomDataBundle.default(0.U((operand.getWidthData).W)))
 
   val s_idle :: s_LATCH :: s_ACTIVE :: s_COMPUTE :: Nil = Enum(4)
   val state                                             = RegInit(s_idle)
@@ -160,7 +160,7 @@ class GEMMNode[T <: Shapes : OperatorGEMM](NumOuts: Int, ID: Int)(operand: => T)
   when(state === s_ACTIVE) {
     when(FU.io.o.valid) {
       ValidOut( )
-      data_R.data := (FU.io.o.bits).asTypeOf(UInt(operand.getWidth.W))
+      data_R.data := (FU.io.o.bits).asTypeOf(UInt(operand.getWidthData.W))
       data_R.valid := FU.io.o.valid
       state := s_COMPUTE
     }.otherwise {
@@ -168,9 +168,9 @@ class GEMMNode[T <: Shapes : OperatorGEMM](NumOuts: Int, ID: Int)(operand: => T)
     }
   }
   when(IsOutReady( ) && state === s_COMPUTE) {
-    left_R := CustomDataBundle.default(0.U((operand.getWidth).W))
-    right_R := CustomDataBundle.default(0.U((operand.getWidth).W))
-    data_R := CustomDataBundle.default(0.U((operand.getWidth).W))
+    left_R := CustomDataBundle.default(0.U((operand.getWidthData).W))
+    right_R := CustomDataBundle.default(0.U((operand.getWidthData).W))
+    data_R := CustomDataBundle.default(0.U((operand.getWidthData).W))
     Reset( )
     state := s_idle
   }
