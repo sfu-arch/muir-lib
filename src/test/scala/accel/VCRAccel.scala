@@ -78,7 +78,8 @@ object TestAccel2Main extends App {
 }
 
 object TestDNNAccelMain extends App {
-  implicit val p: Parameters = new DefaultDe10Config
+//  implicit val p: Parameters = new DefaultDe10Config ++ new Con
+  implicit val p = new shell.DefaultDe10Config ++ Parameters.root((new MiniConfig).toInstance)
   chisel3.Driver.execute(args, () => new DNNAccel())
 }
 

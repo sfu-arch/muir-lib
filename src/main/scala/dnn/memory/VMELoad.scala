@@ -7,11 +7,12 @@ import dnn._
 import interfaces.{ControlBundle, DataBundle, TypBundle, WriteReq, WriteResp}
 import node.TypStore
 import shell._
+
 /**
   * Load inputs or weights from memory (DRAM) into scratchpads (SRAMs).
   * VMELoad Architecture:
   * * * * * IO(memReq/memResp) <--> StoreType <--> Buffer <--> VMEReadMaster * * * * *
-*/
+  */
 class VMELoad(debug: Boolean = false)(implicit val p: Parameters) extends Module with CoreParams {
   val io = IO(new Bundle {
     val start = Input(Bool())
@@ -29,10 +30,16 @@ class VMELoad(debug: Boolean = false)(implicit val p: Parameters) extends Module
 
   val StoreType = Module(new TypStore(NumPredOps = 0, NumSuccOps = 0, NumOuts = 1, ID = 0, RouteID = 0))
 
+  StoreType.io.inData.bits := TypBundle.default
+  StoreType.io.inData.valid := false.B
+
+  StoreType.io.GepAddr.bits := DataBundle.default
+  StoreType.io.GepAddr.valid := false.B
+
   StoreType.io.enable.bits := ControlBundle.active()
   StoreType.io.enable.valid := true.B
   StoreType.io.Out(0).ready := true.B
-//  StoreType.io.GepAddr := io.base_addr
+  //  StoreType.io.GepAddr := io.base_addr
 
   io.memReq <> StoreType.io.memReq
   StoreType.io.memResp <> io.memResp
@@ -44,22 +51,22 @@ class VMELoad(debug: Boolean = false)(implicit val p: Parameters) extends Module
   val Wstate = RegInit(sIdle)
 
   // Read from VMEReadMaster
-  switch (Rstate) {
-    is (sIdle) {
-      when (io.start) {
+  switch(Rstate) {
+    is(sIdle) {
+      when(io.start) {
         ReadDataCounter.value := 0.U
         Rstate := sReq
       }
     }
-    is (sReq) {
-      when (io.vme_read.cmd.fire()) {
+    is(sReq) {
+      when(io.vme_read.cmd.fire()) {
         Rstate := sBusy
       }
     }
   }
 
-  when (Rstate =/= sIdle) {
-    ReadDataCounter.inc( )
+  when(Rstate =/= sIdle) {
+    ReadDataCounter.inc()
   }
 
   when(Rstate === sReq) {
@@ -70,10 +77,15 @@ class VMELoad(debug: Boolean = false)(implicit val p: Parameters) extends Module
     Rstate := sIdle
   }
 
+
+  /**
+    * @todo this line is wrong!
+    */
   buffer.io.enq <> io.vme_read.data
-  buffer.io.enq.bits := io.vme_read.data.bits + 5.U
-//  StoreType.io.inData <> buffer.io.deq
-//  StoreType.io.GepAddr := io.base_addr.data + ReadDataCounter.value
+  buffer.io.deq.ready := false.B
+  //  buffer.io.enq.bits := io.vme_read.data.bits + 5.U
+  //  StoreType.io.inData <> buffer.io.deq
+  //  StoreType.io.GepAddr := io.base_addr.data + ReadDataCounter.value
 
 
   io.done := false.B
@@ -90,8 +102,20 @@ class VMELoad(debug: Boolean = false)(implicit val p: Parameters) extends Module
     }
     is(sGepAddr) {
       when(StoreType.io.GepAddr.ready && StoreType.io.inData.ready) {
-        StoreType.io.inData := buffer.io.deq
-        StoreType.io.GepAddr := io.base_addr.data + WriteDataCounter.value
+
+        /**
+          * @todo make return type of vme_load as typebundle instead of UInt
+          */
+        StoreType.io.inData.bits := TypBundle.active(buffer.io.deq.bits)
+        StoreType.io.inData.valid := buffer.io.deq.valid
+        buffer.io.deq.ready := StoreType.io.inData.ready
+
+        StoreType.io.GepAddr.bits.data := io.base_addr.data + WriteDataCounter.value
+        StoreType.io.GepAddr.valid := true.B
+
+        buffer.io.deq.ready := StoreType.io.inData.ready
+
+
         state := sWriteData
       }
     }

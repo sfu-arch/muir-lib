@@ -45,7 +45,7 @@ import shell._
   * More info about these interfaces and modules can be found in the shell
   * directory.
   */
-class DNNCore(implicit p: Parameters) extends Module {
+class DNNCore(implicit val p: Parameters) extends Module with CoreParams {
 //  val mp = p(ShellKey).memParams
   val io = IO(new Bundle {
     val vcr = new VCRClient
@@ -54,6 +54,15 @@ class DNNCore(implicit p: Parameters) extends Module {
 
 
   val VMELoad = Module(new VMELoad(false))
+
+//  VMELoad.io.memReq <> DontCare
+//  VMELoad.io.memResp <> DontCare
+
+//  VMELoad.io.base_addr <> DontCare
+  VMELoad.io <> DontCare
+
+  io.vcr <> DontCare
+  io.vme <> DontCare
 //  val VMEStore = Module(new VMEStore(false))
 //
 //  io.vme.rd(0) <> VMELoad.io.vme_read

@@ -51,7 +51,7 @@ private class TerminalView extends View {
   def find(pname: Any, site: View): Any =
     pname match {
       case x: Unusable => ()
-//      case _ => println("x case not matching" + pname )
+      case _ => println("x case not matching" + pname )
     }
 }
 
