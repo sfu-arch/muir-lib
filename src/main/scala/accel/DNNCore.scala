@@ -53,42 +53,52 @@ class DNNCore(implicit val p: Parameters) extends Module with CoreParams {
   })
 
 
-  val VMELoad = Module(new VMELoad(false))
+//  val VMELoad = Module(new VMELoad(false))
 
 //  VMELoad.io.memReq <> DontCare
 //  VMELoad.io.memResp <> DontCare
 
 //  VMELoad.io.base_addr <> DontCare
-  VMELoad.io <> DontCare
+//  VMELoad.io <> DontCare
 
-  io.vcr <> DontCare
-  io.vme <> DontCare
-//  val VMEStore = Module(new VMEStore(false))
+//  io.vcr <> DontCare
+//  io.vme <> DontCare
+  val VMEStore = Module(new VMEStore(false))
+  VMEStore.io.memResp <> DontCare
+  VMEStore.io.memReq <> DontCare
+  VMEStore.io.base_addr <> DontCare
 //
 //  io.vme.rd(0) <> VMELoad.io.vme_read
-//  io.vme.wr(0) <> VMEStore.io.vme_write
+  io.vme.rd(0) <> DontCare
+  io.vme.wr(0) <> VMEStore.io.vme_write
+  io.vcr.ecnt(0.U).bits := 342.U
 //
 //  // launch and finish <---> start and done
 //  io.vcr.finish := VMELoad.io.done && VMEStore.io.done
+  io.vcr.finish := VMEStore.io.done
+  io.vcr.ecnt(0.U).valid := VMEStore.io.done
+
 //  VMELoad.io.start := io.vcr.launch
-//  VMEStore.io.start := io.vcr.launch
-//
+  VMEStore.io.start := io.vcr.launch
+
 //  VMELoad.io.vme_cmd.bits.addr := io.vcr.ptrs(0)
 //  VMELoad.io.vme_cmd.bits.len := io.vcr.vals(0)
-//
-//  VMEStore.io.vme_cmd.bits.addr := io.vcr.ptrs(1)
-//  VMELoad.io.vme_cmd.bits.len := io.vcr.vals(1)
-//
-//  val StackFile = Module(new TypeStackFile(ID = 0, Size = 32, NReads = 1, NWrites = 1)
-//  (WControl = new WriteTypMemoryController(NumOps = 1, BaseSize = 2, NumEntries = 2))
-//  (RControl = new ReadTypMemoryController(NumOps = 1, BaseSize = 2, NumEntries = 2)))
-//
-//
-//  StackFile.io.WriteIn(0) <> VMELoad.io.memReq
-//  VMELoad.io.memResp <> StackFile.io.WriteOut(0)
-//
-//  StackFile.io.ReadIn(0) <> VMEStore.io.memReq
-//  VMEStore.io.memResp <> StackFile.io.ReadOut(0)
+
+  VMEStore.io.vme_cmd.bits.addr := io.vcr.ptrs(0)
+  VMEStore.io.vme_cmd.bits.len := io.vcr.vals(0)
+  VMEStore.io.vme_cmd.valid := io.vcr.launch
+
+  /*val StackFile = Module(new TypeStackFile(ID = 0, Size = 32, NReads = 1, NWrites = 1)
+  (WControl = new WriteTypMemoryController(NumOps = 1, BaseSize = 2, NumEntries = 2))
+  (RControl = new ReadTypMemoryController(NumOps = 1, BaseSize = 2, NumEntries = 2)))
+
+
+  StackFile.io.WriteIn(0) <> VMELoad.io.memReq
+  VMELoad.io.memResp <> StackFile.io.WriteOut(0)
+
+  StackFile.io.ReadIn(0) <> VMEStore.io.memReq
+  VMEStore.io.memResp <> StackFile.io.ReadOut(0)*/
+
 
   /*val shape = new FXmatNxN(2, 4)
 

@@ -36,7 +36,7 @@ class PEIO(implicit p: Parameters) extends CoreBundle( )(p) {
 
 
 class PE[T <: Data : MAC.OperatorMAC](gen: T, left_delay: Int, top_delay: Int, val row: Int, val col: Int)(implicit val p: Parameters)
-  extends Module with CoreParams with UniformPrintfs {
+  extends Module with memory.CoreParams with UniformPrintfs {
   val io = IO(new PEIO)
 
   val top_reg  = Pipe(io.Top.valid, io.Top.bits, latency = top_delay)
@@ -61,7 +61,7 @@ class PE[T <: Data : MAC.OperatorMAC](gen: T, left_delay: Int, top_delay: Int, v
 
 
 class SystolicSquare[T <: Data : MAC.OperatorMAC](gen: T, val N: Int)(implicit val p: Parameters)
-  extends Module with CoreParams with UniformPrintfs {
+  extends Module with memory.CoreParams with UniformPrintfs {
   val io = IO(new Bundle {
     val left        = Input(Vec(N * N, UInt(xlen.W)))
     val right       = Input(Vec(N * N, UInt(xlen.W)))
@@ -176,7 +176,7 @@ class SystolicSquare[T <: Data : MAC.OperatorMAC](gen: T, val N: Int)(implicit v
 }
 
 class SystolicSquareBuffered[T <: Data : MAC.OperatorMAC](gen: T, val N: Int)(implicit val p: Parameters)
-  extends Module with CoreParams with UniformPrintfs {
+  extends Module with memory.CoreParams with UniformPrintfs {
   val io = IO(new Bundle {
     val left        = Input(Vec(N * N, UInt(xlen.W)))
     val right       = Input(Vec(N * N, UInt(xlen.W)))

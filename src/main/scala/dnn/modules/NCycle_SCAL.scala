@@ -32,7 +32,7 @@ class TwoOperand_PE_IO(implicit p: Parameters) extends CoreBundle( )(p) {
 
 
 class TwoOperand_PE[T <: Data : TwoOperand.OperatorTwoOperand](gen: T, opcode: String)(implicit val p: Parameters)
-  extends Module with CoreParams with UniformPrintfs {
+  extends Module with memory.CoreParams with UniformPrintfs {
   val io = IO(new TwoOperand_PE_IO( ))
 
   io.out.valid := false.B
@@ -46,7 +46,7 @@ class TwoOperand_PE[T <: Data : TwoOperand.OperatorTwoOperand](gen: T, opcode: S
 
 
 class NCycle_SCAL[T <: Data : TwoOperand.OperatorTwoOperand](val gen: T, val N: Int, val lanes: Int, val opcode: String)(implicit val p: Parameters)
-  extends Module with CoreParams with UniformPrintfs {
+  extends Module with memory.CoreParams with UniformPrintfs {
   val io = IO(new Bundle {
     val input_vec = Input(Vec(N, UInt(xlen.W)))
     val scalar    = Input(UInt(xlen.W))
