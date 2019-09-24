@@ -20,7 +20,7 @@
 package accel
 
 import chisel3._
-import chisel3.experimental.MultiIOModule
+import chisel3.MultiIOModule
 import vta.dpi._
 import shell._
 import vta.shell._

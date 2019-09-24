@@ -3,7 +3,7 @@ package node
 
 import chisel3.iotesters._
 import org.scalatest.{Matchers, FlatSpec}
-import chisel3.experimental.MultiIOModule
+import chisel3.MultiIOModule
 import config._
 import chisel3._
 import chisel3.iotesters._
@@ -59,16 +59,16 @@ class LoadAliasTests(c: UnTypLoadAlias) extends PeekPokeTester(c) {
     // send address
     if (peek(c.io.GepAddr.ready) == 1) {
       sigs zip Control("Input") map { case (s, d) => poke(s, d) }
-      poke(c.io.GepAddr.bits.data, 12)
+      poke(c.io.GepAddr.bits.data, 12.U)
     }
 
     if ((peek(c.io.InA.In(0).ready) == 1) && (t > 8)) {
       str = "active"
       aliassigs zip AliasControl("Active") map { case (s, d) => poke(s, d) }
-      poke(c.io.InA.In(0).valid, 1)
-      poke(c.io.InA.In(1).valid, 1)
-      poke(c.io.InA.In(0).bits.data, 20)
-      poke(c.io.InA.In(1).bits.data, 0)
+      poke(c.io.InA.In(0).valid, 1.U)
+      poke(c.io.InA.In(1).valid, 1.U)
+      poke(c.io.InA.In(0).bits.data, 20.U)
+      poke(c.io.InA.In(1).bits.data, 0.U)
     }
 
     if (t > 8) {
