@@ -68,6 +68,8 @@ trait ISAConstants {
   val M_ID_A = 3.asUInt(M_ID_BITS.W)
 }
 
+package object TensorCoreParam extends ISAConstants
+
 /** ISA.
   *
   * This is the VTA ISA, here we specify the cares and dont-cares that makes

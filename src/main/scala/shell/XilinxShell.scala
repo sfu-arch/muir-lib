@@ -21,7 +21,8 @@ package shell
 
 
 import chisel3._
-import chisel3.experimental.{RawModule, withClockAndReset}
+import chisel3.{RawModule}
+import chisel3.experimental.{withClockAndReset}
 import config._
 import accel._
 

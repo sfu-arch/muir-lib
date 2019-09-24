@@ -20,7 +20,7 @@
 package vta.shell
 
 import chisel3._
-import chisel3.experimental.MultiIOModule
+import chisel3.MultiIOModule
 import config._
 import shell._
 import vta.shell._

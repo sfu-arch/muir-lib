@@ -19,7 +19,7 @@ import utility.UniformPrintfs
 
 class NCycle_Reduction[T <: Data : TwoOperand.OperatorTwoOperand](val gen: T, val N: Int, val pipelined: Boolean = false, val opcode: String)
                                                                  (implicit val p: Parameters)
-  extends Module with memory.CoreParams with UniformPrintfs {
+  extends Module with config.CoreParams with UniformPrintfs {
   val io = IO(new Bundle {
     val input_vec = Input(Vec(N, UInt(xlen.W)))
     val activate  = Input(Bool( ))

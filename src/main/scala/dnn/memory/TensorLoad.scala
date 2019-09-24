@@ -7,8 +7,12 @@ import chisel3.util._
 import shell._
 import config._
 import ISA._
+import TensorCoreParam._
 //import vta.util.config._
 import vta.shell._
+
+
+
 
 /** TensorLoad.
   *

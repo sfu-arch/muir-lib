@@ -23,7 +23,8 @@ package shell
 //import accel.DNNCore
 //import accel.TestAccel2
 import chisel3._
-import chisel3.experimental.{RawModule, withClockAndReset}
+import chisel3.RawModule
+import chisel3.withClockAndReset
 import config._
 import vta.shell.De10Config
 
