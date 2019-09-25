@@ -20,7 +20,7 @@
 package accel
 
 import chisel3._
-import chisel3.experimental.MultiIOModule
+import chisel3.MultiIOModule
 import vta.dpi._
 import shell._
 import vta.shell._
@@ -28,7 +28,7 @@ import vta.shell.De10Config
 import config._
 import accel._
 import chisel3.util._
-
+import dnn.memory._
 
 
 
@@ -58,9 +58,8 @@ class TestAccel2(implicit p: Parameters) extends MultiIOModule {
 // vta_shell.io.host <> sim_shell.host
 }
 
-class DefaultDe10Config extends Config(new De10Config)
-
-class  DefaultPynqConfig extends Config(new PynqConfig)
+class DefaultDe10Config extends Config(new De10Config ++ new CoreConfig)
+class  DefaultPynqConfig extends Config(new PynqConfig ++ new CoreConfig)
 
 object TestXilinxShellMain extends App {
   implicit val p: Parameters = new DefaultPynqConfig
