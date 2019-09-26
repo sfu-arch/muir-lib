@@ -24,7 +24,7 @@ import chisel3._
 import chisel3.util._
 import config._
 import control.BasicBlockNoMaskNode
-import dnn.memory.{VMELoad, VMEStore}
+import dnn.memory.{TensorLoad, TensorStore, TensorMaster, VMELoad, VMEStore}
 import dnn.{DotNode, ReduceNode}
 import interfaces.{ControlBundle, DataBundle}
 import junctions.SplitCallNew
@@ -53,6 +53,19 @@ class DNNCore(implicit val p: Parameters) extends Module with CoreParams {
   })
 
 
+  val TensorLoad = Module(new TensorLoad)
+  val TensorStore = Module(new TensorStore)
+
+  val out = new TensorMaster(tensorType = "inp")
+
+  io.vme.rd(0) <> TensorLoad.io.vme_rd
+  io.vme.wr(0) <> TensorStore.io.vme_wr
+
+  TensorLoad.io.start := io.vcr.launch
+  TensorLoad.io.baddr := io.vcr.ptrs(0)
+  TensorLoad.io.inst  := io.vcr.vals(0)
+//  out.rd.
+
 //  val VMELoad = Module(new VMELoad(false))
 
 //  VMELoad.io.memReq <> DontCare
@@ -63,7 +76,7 @@ class DNNCore(implicit val p: Parameters) extends Module with CoreParams {
 
 //  io.vcr <> DontCare
 //  io.vme <> DontCare
-  val VMEStore = Module(new VMEStore(false))
+ /* val VMEStore = Module(new VMEStore(false))
   VMEStore.io.memResp <> DontCare
   VMEStore.io.memReq <> DontCare
   VMEStore.io.base_addr <> DontCare
@@ -86,7 +99,7 @@ class DNNCore(implicit val p: Parameters) extends Module with CoreParams {
 
   VMEStore.io.vme_cmd.bits.addr := io.vcr.ptrs(0)
   VMEStore.io.vme_cmd.bits.len := io.vcr.vals(0)
-  VMEStore.io.vme_cmd.valid := io.vcr.launch
+  VMEStore.io.vme_cmd.valid := io.vcr.launch*/
 
   /*val StackFile = Module(new TypeStackFile(ID = 0, Size = 32, NReads = 1, NWrites = 1)
   (WControl = new WriteTypMemoryController(NumOps = 1, BaseSize = 2, NumEntries = 2))
