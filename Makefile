@@ -73,7 +73,7 @@ cxx_flags += -I$(tvm_dir)/3rdparty/dlpack/include
 cxx_files = $(VERILATOR_INC_DIR)/verilated.cpp
 cxx_files += $(VERILATOR_INC_DIR)/verilated_dpi.cpp
 cxx_files += $(wildcard $(verilator_build_dir)/*.cpp)
-cxx_files += $(vta_dir)/hardware/dpi/tsim_device.cc
+cxx_files += $(vta_dir)/dpi/tsim_device.cc
 
 ifneq ($(USE_TRACE), 0)
   verilator_opt += --trace

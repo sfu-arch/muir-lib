@@ -1,4 +1,0 @@
-[0m[[0m[31merror[0m] [0m[0m/localhome/rshojabro/git/dandelion-lib/hardware/chisel/src/main/scala/vta/shell/SimShell.scala:23:8: object MultiIOModule is not a member of package chisel3.experimental[0m
-[0m[[0m[31merror[0m] [0m[0mimport chisel3.experimental.MultiIOModule[0m
-[0m[[0m[31merror[0m] [0m[0m       ^[0m
-[0m[[0m[31merror[0m] [0m[0mone error found[0m
