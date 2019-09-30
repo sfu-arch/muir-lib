@@ -82,13 +82,22 @@ driver_main.cc| +-------------+Master Client    |                 |
 
  */
 
+/*
+  To use DNNAccel.v in CycloneV, change host interface from AXILiteClient to AXIClient and uncomment following lines:
 
+  io.host.b.bits.id := io.host.w.bits.id
+  io.host.r.bits.id := io.host.ar.bits.id
+
+  io.host.b.bits.user <> DontCare
+  io.host.r.bits.user <> DontCare
+  io.host.r.bits.last := 1.U
+ */
 
 
 /* Receives a counter value as input. Waits for N cycles and then returns N + const as output */
 class DNNAccel(implicit p: Parameters) extends Module {
   val io = IO(new Bundle {
-    val host = new AXIClient(p(ShellKey).hostParams)
+    val host = new AXILiteClient(p(ShellKey).hostParams)
     val mem = new AXIMaster(p(ShellKey).memParams)
     val debug = Output(Vec(9,Bool()))
   })
@@ -98,8 +107,8 @@ class DNNAccel(implicit p: Parameters) extends Module {
 
   val vcr = Module(new VCR)
   val vme = Module(new VME)
-//  val core = Module(new DNNCoreTest)
-  val core = Module(new DNNCore)
+  val core = Module(new DNNCoreTest)
+//  val core = Module(new DNNCore)
 
   /* ================================================================== *
    *                       Host to VCR Connection                       *
@@ -114,7 +123,7 @@ class DNNAccel(implicit p: Parameters) extends Module {
   vcr.io.host.b.ready := io.host.b.ready
   io.host.b.valid := vcr.io.host.b.valid
   io.host.b.bits.resp := vcr.io.host.b.bits.resp
-  io.host.b.bits.id := io.host.w.bits.id
+//  io.host.b.bits.id := io.host.w.bits.id
 
   io.host.ar.ready := vcr.io.host.ar.ready
   vcr.io.host.ar.valid := io.host.ar.valid
@@ -123,11 +132,11 @@ class DNNAccel(implicit p: Parameters) extends Module {
   io.host.r.valid := vcr.io.host.r.valid
   io.host.r.bits.data := vcr.io.host.r.bits.data
   io.host.r.bits.resp := vcr.io.host.r.bits.resp
-  io.host.r.bits.id := io.host.ar.bits.id
+//  io.host.r.bits.id := io.host.ar.bits.id
 
-  io.host.b.bits.user <> DontCare
-  io.host.r.bits.user <> DontCare
-  io.host.r.bits.last := 1.U
+//  io.host.b.bits.user <> DontCare
+//  io.host.r.bits.user <> DontCare
+//  io.host.r.bits.last := 1.U
   /* ================================================================== *
    *                       VCR to Core Connection                       *
    * ================================================================== */

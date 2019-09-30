@@ -7,76 +7,76 @@
 		revision="0.1.0-SNAPSHOT"
 		conf="runtime-internal"
 		confs="compile, runtime, test, provided, optional, compile-internal, runtime-internal, test-internal, plugin, pom, scala-tool"
-		date="20190907193503"/>
+		date="20190930112929"/>
 	<dependencies>
 		<module organisation="edu.berkeley.cs" name="chisel3_2.11">
-			<revision name="3.2-SNAPSHOT" status="integration" pubdate="20190813120623" resolver="sonatype-snapshots" artresolver="sonatype-snapshots" homepage="http://chisel.eecs.berkeley.edu/" downloaded="true" searched="true" default="false" conf="default, compile, runtime, default(compile), master" position="1">
+			<revision name="3.2-SNAPSHOT" status="integration" pubdate="20190918155421" resolver="sbt-chain" artresolver="sbt-chain" homepage="http://chisel.eecs.berkeley.edu/" downloaded="false" searched="true" default="false" conf="default, compile, runtime, default(compile), master" position="1">
 				<license name="BSD-style" url="http://www.opensource.org/licenses/bsd-license.php"/>
-				<metadata-artifact status="successful" details="" size="2600" time="462" location="/localhome/rshojabro/.ivy2/cache/edu.berkeley.cs/chisel3_2.11/ivy-3.2-SNAPSHOT.xml" searched="true" original-local-location="/localhome/rshojabro/.ivy2/cache/edu.berkeley.cs/chisel3_2.11/ivy-3.2-SNAPSHOT.xml.original" origin-is-local="false" origin-location="https://oss.sonatype.org/content/repositories/snapshots/edu/berkeley/cs/chisel3_2.11/3.2-SNAPSHOT/chisel3_2.11-3.2-SNAPSHOT.pom"/>
+				<metadata-artifact status="no" details="" size="3462" time="0" location="/localhome/rshojabro/.ivy2/cache/edu.berkeley.cs/chisel3_2.11/ivy-3.2-SNAPSHOT.xml" searched="true" origin-is-local="false" origin-location="https://oss.sonatype.org/content/repositories/snapshots/edu/berkeley/cs/chisel3_2.11/3.2-SNAPSHOT/chisel3_2.11-3.2-SNAPSHOT.pom"/>
 				<caller organisation="edu.washington.cs" name="accel_2.11" conf="compile, runtime-internal, runtime, optional" rev="3.2-SNAPSHOT" rev-constraint-default="3.2-SNAPSHOT" rev-constraint-dynamic="3.2-SNAPSHOT" callerrev="0.1.0-SNAPSHOT"/>
 				<artifacts>
-					<artifact name="chisel3_2.11" type="jar" ext="jar" status="successful" details="" size="2041345" time="1940" location="/localhome/rshojabro/.ivy2/cache/edu.berkeley.cs/chisel3_2.11/jars/chisel3_2.11-3.2-SNAPSHOT.jar">
+					<artifact name="chisel3_2.11" type="jar" ext="jar" status="no" details="" size="2058647" time="0" location="/localhome/rshojabro/.ivy2/cache/edu.berkeley.cs/chisel3_2.11/jars/chisel3_2.11-3.2-SNAPSHOT.jar">
 						<origin-location is-local="false" location="https://oss.sonatype.org/content/repositories/snapshots/edu/berkeley/cs/chisel3_2.11/3.2-SNAPSHOT/chisel3_2.11-3.2-SNAPSHOT.jar"/>
 					</artifact>
 				</artifacts>
 			</revision>
 		</module>
 		<module organisation="edu.berkeley.cs" name="firrtl_2.11">
-			<revision name="1.2-SNAPSHOT" status="integration" pubdate="20190813120242" resolver="sonatype-snapshots" artresolver="sonatype-snapshots" homepage="http://chisel.eecs.berkeley.edu/" downloaded="true" searched="true" default="false" conf="compile, runtime(*), master(compile), runtime, compile(*), master" position="4">
+			<revision name="1.2-SNAPSHOT" status="integration" pubdate="20190918143938" resolver="sbt-chain" artresolver="sbt-chain" homepage="http://chisel.eecs.berkeley.edu/" downloaded="false" searched="true" default="false" conf="compile, runtime(*), master(compile), runtime, compile(*), master" position="4">
 				<license name="BSD-style" url="http://www.opensource.org/licenses/bsd-license.php"/>
-				<metadata-artifact status="successful" details="" size="3841" time="432" location="/localhome/rshojabro/.ivy2/cache/edu.berkeley.cs/firrtl_2.11/ivy-1.2-SNAPSHOT.xml" searched="true" original-local-location="/localhome/rshojabro/.ivy2/cache/edu.berkeley.cs/firrtl_2.11/ivy-1.2-SNAPSHOT.xml.original" origin-is-local="false" origin-location="https://oss.sonatype.org/content/repositories/snapshots/edu/berkeley/cs/firrtl_2.11/1.2-SNAPSHOT/firrtl_2.11-1.2-SNAPSHOT.pom"/>
+				<metadata-artifact status="no" details="" size="4488" time="0" location="/localhome/rshojabro/.ivy2/cache/edu.berkeley.cs/firrtl_2.11/ivy-1.2-SNAPSHOT.xml" searched="true" origin-is-local="false" origin-location="https://oss.sonatype.org/content/repositories/snapshots/edu/berkeley/cs/firrtl_2.11/1.2-SNAPSHOT/firrtl_2.11-1.2-SNAPSHOT.pom"/>
 				<caller organisation="edu.berkeley.cs" name="chisel3_2.11" conf="default, compile, runtime, master" rev="1.2-SNAPSHOT" rev-constraint-default="1.2-SNAPSHOT" rev-constraint-dynamic="1.2-SNAPSHOT" callerrev="3.2-SNAPSHOT"/>
 				<artifacts>
-					<artifact name="firrtl_2.11" type="jar" ext="jar" status="successful" details="" size="6732525" time="4699" location="/localhome/rshojabro/.ivy2/cache/edu.berkeley.cs/firrtl_2.11/jars/firrtl_2.11-1.2-SNAPSHOT.jar">
+					<artifact name="firrtl_2.11" type="jar" ext="jar" status="no" details="" size="6754994" time="0" location="/localhome/rshojabro/.ivy2/cache/edu.berkeley.cs/firrtl_2.11/jars/firrtl_2.11-1.2-SNAPSHOT.jar">
 						<origin-location is-local="false" location="https://oss.sonatype.org/content/repositories/snapshots/edu/berkeley/cs/firrtl_2.11/1.2-SNAPSHOT/firrtl_2.11-1.2-SNAPSHOT.jar"/>
 					</artifact>
 				</artifacts>
 			</revision>
 		</module>
 		<module organisation="org.apache.commons" name="commons-text">
-			<revision name="1.6" status="release" pubdate="20181012184302" resolver="sbt-chain" artresolver="sbt-chain" homepage="http://commons.apache.org/proper/commons-text" downloaded="false" searched="false" default="false" conf="compile, runtime(*), master(compile), runtime, compile(*), master" position="27">
+			<revision name="1.7" status="release" pubdate="20190630071523" resolver="sbt-chain" artresolver="sbt-chain" homepage="http://commons.apache.org/proper/commons-text" downloaded="false" searched="false" default="false" conf="compile, runtime(*), master(compile), runtime, compile(*), master" position="27">
 				<license name="Apache License, Version 2.0" url="https://www.apache.org/licenses/LICENSE-2.0.txt"/>
-				<metadata-artifact status="no" details="" size="16702" time="0" location="/localhome/rshojabro/.ivy2/cache/org.apache.commons/commons-text/ivy-1.6.xml" searched="false" origin-is-local="false" origin-location="https://repo1.maven.org/maven2/org/apache/commons/commons-text/1.6/commons-text-1.6.pom"/>
-				<caller organisation="edu.berkeley.cs" name="firrtl_2.11" conf="compile, runtime" rev="1.6" rev-constraint-default="1.6" rev-constraint-dynamic="1.6" callerrev="1.2-SNAPSHOT"/>
+				<metadata-artifact status="no" details="" size="14404" time="0" location="/localhome/rshojabro/.ivy2/cache/org.apache.commons/commons-text/ivy-1.7.xml" searched="false" origin-is-local="false" origin-location="https://repo1.maven.org/maven2/org/apache/commons/commons-text/1.7/commons-text-1.7.pom"/>
+				<caller organisation="edu.berkeley.cs" name="firrtl_2.11" conf="compile, runtime" rev="1.7" rev-constraint-default="1.7" rev-constraint-dynamic="1.7" callerrev="1.2-SNAPSHOT"/>
 				<artifacts>
-					<artifact name="commons-text" type="jar" ext="jar" status="no" details="" size="197176" time="0" location="/localhome/rshojabro/.ivy2/cache/org.apache.commons/commons-text/jars/commons-text-1.6.jar">
-						<origin-location is-local="false" location="https://repo1.maven.org/maven2/org/apache/commons/commons-text/1.6/commons-text-1.6.jar"/>
+					<artifact name="commons-text" type="jar" ext="jar" status="no" details="" size="205182" time="0" location="/localhome/rshojabro/.ivy2/cache/org.apache.commons/commons-text/jars/commons-text-1.7.jar">
+						<origin-location is-local="false" location="https://repo1.maven.org/maven2/org/apache/commons/commons-text/1.7/commons-text-1.7.jar"/>
 					</artifact>
 				</artifacts>
 			</revision>
 		</module>
 		<module organisation="org.apache.commons" name="commons-lang3">
-			<revision name="3.8.1" status="release" pubdate="20180919082429" resolver="sbt-chain" artresolver="sbt-chain" homepage="http://commons.apache.org/proper/commons-lang/" downloaded="false" searched="false" default="false" conf="compile, runtime(*), master(compile), runtime, compile(*), master" position="28">
+			<revision name="3.9" status="release" pubdate="20190410183039" resolver="sbt-chain" artresolver="sbt-chain" homepage="http://commons.apache.org/proper/commons-lang/" downloaded="false" searched="false" default="false" conf="compile, runtime(*), master(compile), runtime, compile(*), master" position="28">
 				<license name="Apache License, Version 2.0" url="https://www.apache.org/licenses/LICENSE-2.0.txt"/>
-				<metadata-artifact status="no" details="" size="14915" time="0" location="/localhome/rshojabro/.ivy2/cache/org.apache.commons/commons-lang3/ivy-3.8.1.xml" searched="false" origin-is-local="false" origin-location="https://repo1.maven.org/maven2/org/apache/commons/commons-lang3/3.8.1/commons-lang3-3.8.1.pom"/>
-				<caller organisation="org.apache.commons" name="commons-text" conf="compile, runtime" rev="3.8.1" rev-constraint-default="3.8.1" rev-constraint-dynamic="3.8.1" callerrev="1.6"/>
+				<metadata-artifact status="no" details="" size="15230" time="0" location="/localhome/rshojabro/.ivy2/cache/org.apache.commons/commons-lang3/ivy-3.9.xml" searched="false" origin-is-local="false" origin-location="https://repo1.maven.org/maven2/org/apache/commons/commons-lang3/3.9/commons-lang3-3.9.pom"/>
+				<caller organisation="org.apache.commons" name="commons-text" conf="compile, runtime" rev="3.9" rev-constraint-default="3.9" rev-constraint-dynamic="3.9" callerrev="1.7"/>
 				<artifacts>
-					<artifact name="commons-lang3" type="jar" ext="jar" status="no" details="" size="501879" time="0" location="/localhome/rshojabro/.ivy2/cache/org.apache.commons/commons-lang3/jars/commons-lang3-3.8.1.jar">
-						<origin-location is-local="false" location="https://repo1.maven.org/maven2/org/apache/commons/commons-lang3/3.8.1/commons-lang3-3.8.1.jar"/>
+					<artifact name="commons-lang3" type="jar" ext="jar" status="no" details="" size="503880" time="0" location="/localhome/rshojabro/.ivy2/cache/org.apache.commons/commons-lang3/jars/commons-lang3-3.9.jar">
+						<origin-location is-local="false" location="https://repo1.maven.org/maven2/org/apache/commons/commons-lang3/3.9/commons-lang3-3.9.jar"/>
 					</artifact>
 				</artifacts>
 			</revision>
 		</module>
 		<module organisation="org.json4s" name="json4s-native_2.11">
-			<revision name="3.6.1" status="release" pubdate="20180904072243" resolver="sbt-chain" artresolver="sbt-chain" homepage="https://github.com/json4s/json4s" downloaded="false" searched="false" default="false" conf="compile, runtime(*), master(compile), runtime, compile(*), master" position="22">
+			<revision name="3.6.7" status="release" pubdate="20190626162122" resolver="sbt-chain" artresolver="sbt-chain" homepage="https://github.com/json4s/json4s" downloaded="false" searched="false" default="false" conf="compile, runtime(*), master(compile), runtime, compile(*), master" position="22">
 				<license name="Apache-2.0" url="http://www.apache.org/licenses/LICENSE-2.0"/>
-				<metadata-artifact status="no" details="" size="2803" time="0" location="/localhome/rshojabro/.ivy2/cache/org.json4s/json4s-native_2.11/ivy-3.6.1.xml" searched="false" origin-is-local="false" origin-location="https://repo1.maven.org/maven2/org/json4s/json4s-native_2.11/3.6.1/json4s-native_2.11-3.6.1.pom"/>
-				<caller organisation="edu.berkeley.cs" name="firrtl_2.11" conf="compile, runtime" rev="3.6.1" rev-constraint-default="3.6.1" rev-constraint-dynamic="3.6.1" callerrev="1.2-SNAPSHOT"/>
+				<metadata-artifact status="no" details="" size="2803" time="0" location="/localhome/rshojabro/.ivy2/cache/org.json4s/json4s-native_2.11/ivy-3.6.7.xml" searched="false" origin-is-local="false" origin-location="https://repo1.maven.org/maven2/org/json4s/json4s-native_2.11/3.6.7/json4s-native_2.11-3.6.7.pom"/>
+				<caller organisation="edu.berkeley.cs" name="firrtl_2.11" conf="compile, runtime" rev="3.6.7" rev-constraint-default="3.6.7" rev-constraint-dynamic="3.6.7" callerrev="1.2-SNAPSHOT"/>
 				<artifacts>
-					<artifact name="json4s-native_2.11" type="jar" ext="jar" status="no" details="" size="99794" time="0" location="/localhome/rshojabro/.ivy2/cache/org.json4s/json4s-native_2.11/jars/json4s-native_2.11-3.6.1.jar">
-						<origin-location is-local="false" location="https://repo1.maven.org/maven2/org/json4s/json4s-native_2.11/3.6.1/json4s-native_2.11-3.6.1.jar"/>
+					<artifact name="json4s-native_2.11" type="jar" ext="jar" status="no" details="" size="99790" time="0" location="/localhome/rshojabro/.ivy2/cache/org.json4s/json4s-native_2.11/jars/json4s-native_2.11-3.6.7.jar">
+						<origin-location is-local="false" location="https://repo1.maven.org/maven2/org/json4s/json4s-native_2.11/3.6.7/json4s-native_2.11-3.6.7.jar"/>
 					</artifact>
 				</artifacts>
 			</revision>
 		</module>
 		<module organisation="org.json4s" name="json4s-core_2.11">
-			<revision name="3.6.1" status="release" pubdate="20180904072221" resolver="sbt-chain" artresolver="sbt-chain" homepage="https://github.com/json4s/json4s" downloaded="false" searched="false" default="false" conf="compile, runtime(*), master(compile), runtime, compile(*), master" position="23">
+			<revision name="3.6.7" status="release" pubdate="20190626162053" resolver="sbt-chain" artresolver="sbt-chain" homepage="https://github.com/json4s/json4s" downloaded="false" searched="false" default="false" conf="compile, runtime(*), master(compile), runtime, compile(*), master" position="23">
 				<license name="Apache-2.0" url="http://www.apache.org/licenses/LICENSE-2.0"/>
-				<metadata-artifact status="no" details="" size="3095" time="0" location="/localhome/rshojabro/.ivy2/cache/org.json4s/json4s-core_2.11/ivy-3.6.1.xml" searched="false" origin-is-local="false" origin-location="https://repo1.maven.org/maven2/org/json4s/json4s-core_2.11/3.6.1/json4s-core_2.11-3.6.1.pom"/>
-				<caller organisation="org.json4s" name="json4s-native_2.11" conf="compile, runtime" rev="3.6.1" rev-constraint-default="3.6.1" rev-constraint-dynamic="3.6.1" callerrev="3.6.1"/>
+				<metadata-artifact status="no" details="" size="3095" time="0" location="/localhome/rshojabro/.ivy2/cache/org.json4s/json4s-core_2.11/ivy-3.6.7.xml" searched="false" origin-is-local="false" origin-location="https://repo1.maven.org/maven2/org/json4s/json4s-core_2.11/3.6.7/json4s-core_2.11-3.6.7.pom"/>
+				<caller organisation="org.json4s" name="json4s-native_2.11" conf="compile, runtime" rev="3.6.7" rev-constraint-default="3.6.7" rev-constraint-dynamic="3.6.7" callerrev="3.6.7"/>
 				<artifacts>
-					<artifact name="json4s-core_2.11" type="jar" ext="jar" status="no" details="" size="675927" time="0" location="/localhome/rshojabro/.ivy2/cache/org.json4s/json4s-core_2.11/jars/json4s-core_2.11-3.6.1.jar">
-						<origin-location is-local="false" location="https://repo1.maven.org/maven2/org/json4s/json4s-core_2.11/3.6.1/json4s-core_2.11-3.6.1.jar"/>
+					<artifact name="json4s-core_2.11" type="jar" ext="jar" status="no" details="" size="705514" time="0" location="/localhome/rshojabro/.ivy2/cache/org.json4s/json4s-core_2.11/jars/json4s-core_2.11-3.6.7.jar">
+						<origin-location is-local="false" location="https://repo1.maven.org/maven2/org/json4s/json4s-core_2.11/3.6.7/json4s-core_2.11-3.6.7.jar"/>
 					</artifact>
 				</artifacts>
 			</revision>
@@ -85,7 +85,7 @@
 			<revision name="2.8" status="release" pubdate="20150826042928" resolver="sbt-chain" artresolver="sbt-chain" homepage="" downloaded="false" searched="false" default="false" conf="compile, runtime(*), master(compile), runtime, compile(*), master" position="26">
 				<license name="BSD" url="LICENSE.txt"/>
 				<metadata-artifact status="no" details="" size="4254" time="0" location="/localhome/rshojabro/.ivy2/cache/com.thoughtworks.paranamer/paranamer/ivy-2.8.xml" searched="false" origin-is-local="false" origin-location="https://repo1.maven.org/maven2/com/thoughtworks/paranamer/paranamer/2.8/paranamer-2.8.pom"/>
-				<caller organisation="org.json4s" name="json4s-core_2.11" conf="compile, runtime" rev="2.8" rev-constraint-default="2.8" rev-constraint-dynamic="2.8" callerrev="3.6.1"/>
+				<caller organisation="org.json4s" name="json4s-core_2.11" conf="compile, runtime" rev="2.8" rev-constraint-default="2.8" rev-constraint-dynamic="2.8" callerrev="3.6.7"/>
 				<artifacts>
 					<artifact name="paranamer" type="bundle" ext="jar" status="no" details="" size="34654" time="0" location="/localhome/rshojabro/.ivy2/cache/com.thoughtworks.paranamer/paranamer/bundles/paranamer-2.8.jar">
 						<origin-location is-local="false" location="https://repo1.maven.org/maven2/com/thoughtworks/paranamer/paranamer/2.8/paranamer-2.8.jar"/>
@@ -94,85 +94,85 @@
 			</revision>
 		</module>
 		<module organisation="org.json4s" name="json4s-scalap_2.11">
-			<revision name="3.6.1" status="release" pubdate="20180904072045" resolver="sbt-chain" artresolver="sbt-chain" homepage="https://github.com/json4s/json4s" downloaded="false" searched="false" default="false" conf="compile, runtime(*), master(compile), runtime, compile(*), master" position="25">
+			<revision name="3.6.7" status="release" pubdate="20190626162407" resolver="sbt-chain" artresolver="sbt-chain" homepage="https://github.com/json4s/json4s" downloaded="false" searched="false" default="false" conf="compile, runtime(*), master(compile), runtime, compile(*), master" position="25">
 				<license name="Apache-2.0" url="http://www.apache.org/licenses/LICENSE-2.0"/>
-				<metadata-artifact status="no" details="" size="2658" time="0" location="/localhome/rshojabro/.ivy2/cache/org.json4s/json4s-scalap_2.11/ivy-3.6.1.xml" searched="false" origin-is-local="false" origin-location="https://repo1.maven.org/maven2/org/json4s/json4s-scalap_2.11/3.6.1/json4s-scalap_2.11-3.6.1.pom"/>
-				<caller organisation="org.json4s" name="json4s-core_2.11" conf="compile, runtime" rev="3.6.1" rev-constraint-default="3.6.1" rev-constraint-dynamic="3.6.1" callerrev="3.6.1"/>
+				<metadata-artifact status="no" details="" size="2658" time="0" location="/localhome/rshojabro/.ivy2/cache/org.json4s/json4s-scalap_2.11/ivy-3.6.7.xml" searched="false" origin-is-local="false" origin-location="https://repo1.maven.org/maven2/org/json4s/json4s-scalap_2.11/3.6.7/json4s-scalap_2.11-3.6.7.pom"/>
+				<caller organisation="org.json4s" name="json4s-core_2.11" conf="compile, runtime" rev="3.6.7" rev-constraint-default="3.6.7" rev-constraint-dynamic="3.6.7" callerrev="3.6.7"/>
 				<artifacts>
-					<artifact name="json4s-scalap_2.11" type="jar" ext="jar" status="no" details="" size="622948" time="0" location="/localhome/rshojabro/.ivy2/cache/org.json4s/json4s-scalap_2.11/jars/json4s-scalap_2.11-3.6.1.jar">
-						<origin-location is-local="false" location="https://repo1.maven.org/maven2/org/json4s/json4s-scalap_2.11/3.6.1/json4s-scalap_2.11-3.6.1.jar"/>
+					<artifact name="json4s-scalap_2.11" type="jar" ext="jar" status="no" details="" size="623167" time="0" location="/localhome/rshojabro/.ivy2/cache/org.json4s/json4s-scalap_2.11/jars/json4s-scalap_2.11-3.6.7.jar">
+						<origin-location is-local="false" location="https://repo1.maven.org/maven2/org/json4s/json4s-scalap_2.11/3.6.7/json4s-scalap_2.11-3.6.7.jar"/>
 					</artifact>
 				</artifacts>
 			</revision>
 		</module>
 		<module organisation="org.json4s" name="json4s-ast_2.11">
-			<revision name="3.6.1" status="release" pubdate="20180904072113" resolver="sbt-chain" artresolver="sbt-chain" homepage="https://github.com/json4s/json4s" downloaded="false" searched="false" default="false" conf="compile, runtime(*), master(compile), runtime, compile(*), master" position="24">
+			<revision name="3.6.7" status="release" pubdate="20190626161808" resolver="sbt-chain" artresolver="sbt-chain" homepage="https://github.com/json4s/json4s" downloaded="false" searched="false" default="false" conf="compile, runtime(*), master(compile), runtime, compile(*), master" position="24">
 				<license name="Apache-2.0" url="http://www.apache.org/licenses/LICENSE-2.0"/>
-				<metadata-artifact status="no" details="" size="2649" time="0" location="/localhome/rshojabro/.ivy2/cache/org.json4s/json4s-ast_2.11/ivy-3.6.1.xml" searched="false" origin-is-local="false" origin-location="https://repo1.maven.org/maven2/org/json4s/json4s-ast_2.11/3.6.1/json4s-ast_2.11-3.6.1.pom"/>
-				<caller organisation="org.json4s" name="json4s-core_2.11" conf="compile, runtime" rev="3.6.1" rev-constraint-default="3.6.1" rev-constraint-dynamic="3.6.1" callerrev="3.6.1"/>
+				<metadata-artifact status="no" details="" size="2649" time="0" location="/localhome/rshojabro/.ivy2/cache/org.json4s/json4s-ast_2.11/ivy-3.6.7.xml" searched="false" origin-is-local="false" origin-location="https://repo1.maven.org/maven2/org/json4s/json4s-ast_2.11/3.6.7/json4s-ast_2.11-3.6.7.pom"/>
+				<caller organisation="org.json4s" name="json4s-core_2.11" conf="compile, runtime" rev="3.6.7" rev-constraint-default="3.6.7" rev-constraint-dynamic="3.6.7" callerrev="3.6.7"/>
 				<artifacts>
-					<artifact name="json4s-ast_2.11" type="jar" ext="jar" status="no" details="" size="91088" time="0" location="/localhome/rshojabro/.ivy2/cache/org.json4s/json4s-ast_2.11/jars/json4s-ast_2.11-3.6.1.jar">
-						<origin-location is-local="false" location="https://repo1.maven.org/maven2/org/json4s/json4s-ast_2.11/3.6.1/json4s-ast_2.11-3.6.1.jar"/>
+					<artifact name="json4s-ast_2.11" type="jar" ext="jar" status="no" details="" size="91085" time="0" location="/localhome/rshojabro/.ivy2/cache/org.json4s/json4s-ast_2.11/jars/json4s-ast_2.11-3.6.7.jar">
+						<origin-location is-local="false" location="https://repo1.maven.org/maven2/org/json4s/json4s-ast_2.11/3.6.7/json4s-ast_2.11-3.6.7.jar"/>
 					</artifact>
 				</artifacts>
 			</revision>
 		</module>
 		<module organisation="net.jcazevedo" name="moultingyaml_2.11">
-			<revision name="0.4.0" status="release" pubdate="20161201181354" resolver="sbt-chain" artresolver="sbt-chain" homepage="https://github.com/jcazevedo/moultingyaml" downloaded="false" searched="false" default="false" conf="compile, runtime(*), master(compile), runtime, compile(*), master" position="17">
+			<revision name="0.4.1" status="release" pubdate="20190707160843" resolver="sbt-chain" artresolver="sbt-chain" homepage="https://github.com/jcazevedo/moultingyaml" downloaded="false" searched="false" default="false" conf="compile, runtime(*), master(compile), runtime, compile(*), master" position="17">
 				<license name="MIT License" url="http://www.opensource.org/licenses/mit-license.php"/>
-				<metadata-artifact status="no" details="" size="3237" time="0" location="/localhome/rshojabro/.ivy2/cache/net.jcazevedo/moultingyaml_2.11/ivy-0.4.0.xml" searched="false" origin-is-local="false" origin-location="https://repo1.maven.org/maven2/net/jcazevedo/moultingyaml_2.11/0.4.0/moultingyaml_2.11-0.4.0.pom"/>
-				<caller organisation="edu.berkeley.cs" name="firrtl_2.11" conf="compile, runtime" rev="0.4.0" rev-constraint-default="0.4.0" rev-constraint-dynamic="0.4.0" callerrev="1.2-SNAPSHOT"/>
+				<metadata-artifact status="no" details="" size="3240" time="0" location="/localhome/rshojabro/.ivy2/cache/net.jcazevedo/moultingyaml_2.11/ivy-0.4.1.xml" searched="false" origin-is-local="false" origin-location="https://repo1.maven.org/maven2/net/jcazevedo/moultingyaml_2.11/0.4.1/moultingyaml_2.11-0.4.1.pom"/>
+				<caller organisation="edu.berkeley.cs" name="firrtl_2.11" conf="compile, runtime" rev="0.4.1" rev-constraint-default="0.4.1" rev-constraint-dynamic="0.4.1" callerrev="1.2-SNAPSHOT"/>
 				<artifacts>
-					<artifact name="moultingyaml_2.11" type="jar" ext="jar" status="no" details="" size="340062" time="0" location="/localhome/rshojabro/.ivy2/cache/net.jcazevedo/moultingyaml_2.11/jars/moultingyaml_2.11-0.4.0.jar">
-						<origin-location is-local="false" location="https://repo1.maven.org/maven2/net/jcazevedo/moultingyaml_2.11/0.4.0/moultingyaml_2.11-0.4.0.jar"/>
+					<artifact name="moultingyaml_2.11" type="jar" ext="jar" status="no" details="" size="341538" time="0" location="/localhome/rshojabro/.ivy2/cache/net.jcazevedo/moultingyaml_2.11/jars/moultingyaml_2.11-0.4.1.jar">
+						<origin-location is-local="false" location="https://repo1.maven.org/maven2/net/jcazevedo/moultingyaml_2.11/0.4.1/moultingyaml_2.11-0.4.1.jar"/>
 					</artifact>
 				</artifacts>
 			</revision>
 		</module>
 		<module organisation="org.yaml" name="snakeyaml">
-			<revision name="1.17" status="release" pubdate="20160219051344" resolver="sbt-chain" artresolver="sbt-chain" homepage="http://www.snakeyaml.org" downloaded="false" searched="false" default="false" conf="compile, runtime(*), master(compile), runtime, compile(*), master" position="21">
+			<revision name="1.24" status="release" pubdate="20190228112331" resolver="sbt-chain" artresolver="sbt-chain" homepage="http://www.snakeyaml.org" downloaded="false" searched="false" default="false" conf="compile, runtime(*), master(compile), runtime, compile(*), master" position="21">
 				<license name="Apache License, Version 2.0" url="http://www.apache.org/licenses/LICENSE-2.0.txt"/>
-				<metadata-artifact status="no" details="" size="3956" time="0" location="/localhome/rshojabro/.ivy2/cache/org.yaml/snakeyaml/ivy-1.17.xml" searched="false" origin-is-local="false" origin-location="https://repo1.maven.org/maven2/org/yaml/snakeyaml/1.17/snakeyaml-1.17.pom"/>
-				<caller organisation="net.jcazevedo" name="moultingyaml_2.11" conf="compile, runtime" rev="1.17" rev-constraint-default="1.17" rev-constraint-dynamic="1.17" callerrev="0.4.0"/>
+				<metadata-artifact status="no" details="" size="5422" time="0" location="/localhome/rshojabro/.ivy2/cache/org.yaml/snakeyaml/ivy-1.24.xml" searched="false" origin-is-local="false" origin-location="https://repo1.maven.org/maven2/org/yaml/snakeyaml/1.24/snakeyaml-1.24.pom"/>
+				<caller organisation="net.jcazevedo" name="moultingyaml_2.11" conf="compile, runtime" rev="1.24" rev-constraint-default="1.24" rev-constraint-dynamic="1.24" callerrev="0.4.1"/>
 				<artifacts>
-					<artifact name="snakeyaml" type="bundle" ext="jar" status="no" details="" size="273599" time="0" location="/localhome/rshojabro/.ivy2/cache/org.yaml/snakeyaml/bundles/snakeyaml-1.17.jar">
-						<origin-location is-local="false" location="https://repo1.maven.org/maven2/org/yaml/snakeyaml/1.17/snakeyaml-1.17.jar"/>
+					<artifact name="snakeyaml" type="bundle" ext="jar" status="no" details="" size="302558" time="0" location="/localhome/rshojabro/.ivy2/cache/org.yaml/snakeyaml/bundles/snakeyaml-1.24.jar">
+						<origin-location is-local="false" location="https://repo1.maven.org/maven2/org/yaml/snakeyaml/1.24/snakeyaml-1.24.jar"/>
 					</artifact>
 				</artifacts>
 			</revision>
 		</module>
 		<module organisation="com.github.nscala-time" name="nscala-time_2.11">
-			<revision name="2.14.0" status="release" pubdate="20160908084737" resolver="sbt-chain" artresolver="sbt-chain" homepage="https://github.com/nscala-time/nscala-time" downloaded="false" searched="false" default="false" conf="compile, runtime(*), master(compile), runtime, compile(*), master" position="18">
+			<revision name="2.22.0" status="release" pubdate="20190203003601" resolver="sbt-chain" artresolver="sbt-chain" homepage="https://github.com/nscala-time/nscala-time" downloaded="false" searched="false" default="false" conf="compile, runtime(*), master(compile), runtime, compile(*), master" position="18">
 				<license name="Apache" url="http://www.opensource.org/licenses/Apache-2.0"/>
-				<metadata-artifact status="no" details="" size="2947" time="0" location="/localhome/rshojabro/.ivy2/cache/com.github.nscala-time/nscala-time_2.11/ivy-2.14.0.xml" searched="false" origin-is-local="false" origin-location="https://repo1.maven.org/maven2/com/github/nscala-time/nscala-time_2.11/2.14.0/nscala-time_2.11-2.14.0.pom"/>
-				<caller organisation="net.jcazevedo" name="moultingyaml_2.11" conf="compile, runtime" rev="2.14.0" rev-constraint-default="2.14.0" rev-constraint-dynamic="2.14.0" callerrev="0.4.0"/>
+				<metadata-artifact status="no" details="" size="2951" time="0" location="/localhome/rshojabro/.ivy2/cache/com.github.nscala-time/nscala-time_2.11/ivy-2.22.0.xml" searched="false" origin-is-local="false" origin-location="https://repo1.maven.org/maven2/com/github/nscala-time/nscala-time_2.11/2.22.0/nscala-time_2.11-2.22.0.pom"/>
+				<caller organisation="net.jcazevedo" name="moultingyaml_2.11" conf="compile, runtime" rev="2.22.0" rev-constraint-default="2.22.0" rev-constraint-dynamic="2.22.0" callerrev="0.4.1"/>
 				<artifacts>
-					<artifact name="nscala-time_2.11" type="jar" ext="jar" status="no" details="" size="205003" time="0" location="/localhome/rshojabro/.ivy2/cache/com.github.nscala-time/nscala-time_2.11/jars/nscala-time_2.11-2.14.0.jar">
-						<origin-location is-local="false" location="https://repo1.maven.org/maven2/com/github/nscala-time/nscala-time_2.11/2.14.0/nscala-time_2.11-2.14.0.jar"/>
-					</artifact>
-				</artifacts>
-			</revision>
-		</module>
-		<module organisation="joda-time" name="joda-time">
-			<revision name="2.9.4" status="release" pubdate="20160527022535" resolver="sbt-chain" artresolver="sbt-chain" homepage="http://www.joda.org/joda-time/" downloaded="false" searched="false" default="false" conf="compile, runtime(*), master(compile), runtime, compile(*), master" position="19">
-				<license name="Apache 2" url="http://www.apache.org/licenses/LICENSE-2.0.txt"/>
-				<metadata-artifact status="no" details="" size="6595" time="0" location="/localhome/rshojabro/.ivy2/cache/joda-time/joda-time/ivy-2.9.4.xml" searched="false" origin-is-local="false" origin-location="https://repo1.maven.org/maven2/joda-time/joda-time/2.9.4/joda-time-2.9.4.pom"/>
-				<caller organisation="com.github.nscala-time" name="nscala-time_2.11" conf="compile, runtime" rev="2.9.4" rev-constraint-default="2.9.4" rev-constraint-dynamic="2.9.4" callerrev="2.14.0"/>
-				<artifacts>
-					<artifact name="joda-time" type="jar" ext="jar" status="no" details="" size="629506" time="0" location="/localhome/rshojabro/.ivy2/cache/joda-time/joda-time/jars/joda-time-2.9.4.jar">
-						<origin-location is-local="false" location="https://repo1.maven.org/maven2/joda-time/joda-time/2.9.4/joda-time-2.9.4.jar"/>
+					<artifact name="nscala-time_2.11" type="jar" ext="jar" status="no" details="" size="204790" time="0" location="/localhome/rshojabro/.ivy2/cache/com.github.nscala-time/nscala-time_2.11/jars/nscala-time_2.11-2.22.0.jar">
+						<origin-location is-local="false" location="https://repo1.maven.org/maven2/com/github/nscala-time/nscala-time_2.11/2.22.0/nscala-time_2.11-2.22.0.jar"/>
 					</artifact>
 				</artifacts>
 			</revision>
 		</module>
 		<module organisation="org.joda" name="joda-convert">
-			<revision name="1.2" status="release" pubdate="20111027125117" resolver="sbt-chain" artresolver="sbt-chain" homepage="http://joda-convert.sourceforge.net" downloaded="false" searched="false" default="false" conf="compile, runtime(*), master(compile), runtime, compile(*), master" position="20">
-				<license name="Apache 2" url="http://www.apache.org/licenses/LICENSE-2.0.txt"/>
-				<metadata-artifact status="no" details="" size="3246" time="0" location="/localhome/rshojabro/.ivy2/cache/org.joda/joda-convert/ivy-1.2.xml" searched="false" origin-is-local="false" origin-location="https://repo1.maven.org/maven2/org/joda/joda-convert/1.2/joda-convert-1.2.pom"/>
-				<caller organisation="com.github.nscala-time" name="nscala-time_2.11" conf="compile, runtime" rev="1.2" rev-constraint-default="1.2" rev-constraint-dynamic="1.2" callerrev="2.14.0"/>
+			<revision name="2.2.0" status="release" pubdate="20190116090155" resolver="sbt-chain" artresolver="sbt-chain" homepage="https://www.joda.org/${joda.artifactId}/" downloaded="false" searched="false" default="false" conf="compile, runtime(*), master(compile), runtime, compile(*), master" position="20">
+				<license name="Apache 2" url="https://www.apache.org/licenses/LICENSE-2.0.txt"/>
+				<metadata-artifact status="no" details="" size="8009" time="0" location="/localhome/rshojabro/.ivy2/cache/org.joda/joda-convert/ivy-2.2.0.xml" searched="false" origin-is-local="false" origin-location="https://repo1.maven.org/maven2/org/joda/joda-convert/2.2.0/joda-convert-2.2.0.pom"/>
+				<caller organisation="com.github.nscala-time" name="nscala-time_2.11" conf="compile, runtime" rev="2.2.0" rev-constraint-default="2.2.0" rev-constraint-dynamic="2.2.0" callerrev="2.22.0"/>
 				<artifacts>
-					<artifact name="joda-convert" type="jar" ext="jar" status="no" details="" size="38460" time="0" location="/localhome/rshojabro/.ivy2/cache/org.joda/joda-convert/jars/joda-convert-1.2.jar">
-						<origin-location is-local="false" location="https://repo1.maven.org/maven2/org/joda/joda-convert/1.2/joda-convert-1.2.jar"/>
+					<artifact name="joda-convert" type="jar" ext="jar" status="no" details="" size="145596" time="0" location="/localhome/rshojabro/.ivy2/cache/org.joda/joda-convert/jars/joda-convert-2.2.0.jar">
+						<origin-location is-local="false" location="https://repo1.maven.org/maven2/org/joda/joda-convert/2.2.0/joda-convert-2.2.0.jar"/>
+					</artifact>
+				</artifacts>
+			</revision>
+		</module>
+		<module organisation="joda-time" name="joda-time">
+			<revision name="2.10.1" status="release" pubdate="20181027115121" resolver="sbt-chain" artresolver="sbt-chain" homepage="https://www.joda.org/joda-time/" downloaded="false" searched="false" default="false" conf="compile, runtime(*), master(compile), runtime, compile(*), master" position="19">
+				<license name="Apache 2" url="https://www.apache.org/licenses/LICENSE-2.0.txt"/>
+				<metadata-artifact status="no" details="" size="6880" time="0" location="/localhome/rshojabro/.ivy2/cache/joda-time/joda-time/ivy-2.10.1.xml" searched="false" origin-is-local="false" origin-location="https://repo1.maven.org/maven2/joda-time/joda-time/2.10.1/joda-time-2.10.1.pom"/>
+				<caller organisation="com.github.nscala-time" name="nscala-time_2.11" conf="compile, runtime" rev="2.10.1" rev-constraint-default="2.10.1" rev-constraint-dynamic="2.10.1" callerrev="2.22.0"/>
+				<artifacts>
+					<artifact name="joda-time" type="jar" ext="jar" status="no" details="" size="640724" time="0" location="/localhome/rshojabro/.ivy2/cache/joda-time/joda-time/jars/joda-time-2.10.1.jar">
+						<origin-location is-local="false" location="https://repo1.maven.org/maven2/joda-time/joda-time/2.10.1/joda-time-2.10.1.jar"/>
 					</artifact>
 				</artifacts>
 			</revision>
@@ -327,14 +327,14 @@
 			</revision>
 		</module>
 		<module organisation="com.github.scopt" name="scopt_2.11">
-			<revision name="3.7.0" status="release" pubdate="20170825023021" resolver="sbt-chain" artresolver="sbt-chain" homepage="https://github.com/scopt/scopt" downloaded="false" searched="false" default="false" conf="compile, runtime(*), master(compile), runtime, compile(*), master" position="3">
-				<license name="MIT License" url="http://www.opensource.org/licenses/mit-license.php"/>
-				<metadata-artifact status="no" details="" size="2680" time="0" location="/localhome/rshojabro/.ivy2/cache/com.github.scopt/scopt_2.11/ivy-3.7.0.xml" searched="false" origin-is-local="false" origin-location="https://repo1.maven.org/maven2/com/github/scopt/scopt_2.11/3.7.0/scopt_2.11-3.7.0.pom"/>
-				<caller organisation="edu.berkeley.cs" name="firrtl_2.11" conf="compile, runtime" rev="3.7.0" rev-constraint-default="3.7.0" rev-constraint-dynamic="3.7.0" callerrev="1.2-SNAPSHOT"/>
-				<caller organisation="edu.berkeley.cs" name="chisel3_2.11" conf="default, compile, runtime, master" rev="3.7.0" rev-constraint-default="3.7.0" rev-constraint-dynamic="3.7.0" callerrev="3.2-SNAPSHOT"/>
+			<revision name="3.7.1" status="release" pubdate="20181212221757" resolver="sbt-chain" artresolver="sbt-chain" homepage="https://github.com/scopt/scopt" downloaded="false" searched="false" default="false" conf="compile, runtime(*), master(compile), runtime, compile(*), master" position="3">
+				<license name="MIT" url="http://www.opensource.org/licenses/mit-license.php"/>
+				<metadata-artifact status="no" details="" size="3065" time="0" location="/localhome/rshojabro/.ivy2/cache/com.github.scopt/scopt_2.11/ivy-3.7.1.xml" searched="false" origin-is-local="false" origin-location="https://repo1.maven.org/maven2/com/github/scopt/scopt_2.11/3.7.1/scopt_2.11-3.7.1.pom"/>
+				<caller organisation="edu.berkeley.cs" name="firrtl_2.11" conf="compile, runtime" rev="3.7.1" rev-constraint-default="3.7.1" rev-constraint-dynamic="3.7.1" callerrev="1.2-SNAPSHOT"/>
+				<caller organisation="edu.berkeley.cs" name="chisel3_2.11" conf="default, compile, runtime, master" rev="3.7.1" rev-constraint-default="3.7.1" rev-constraint-dynamic="3.7.1" callerrev="3.2-SNAPSHOT"/>
 				<artifacts>
-					<artifact name="scopt_2.11" type="jar" ext="jar" status="no" details="" size="153982" time="0" location="/localhome/rshojabro/.ivy2/cache/com.github.scopt/scopt_2.11/jars/scopt_2.11-3.7.0.jar">
-						<origin-location is-local="false" location="https://repo1.maven.org/maven2/com/github/scopt/scopt_2.11/3.7.0/scopt_2.11-3.7.0.jar"/>
+					<artifact name="scopt_2.11" type="jar" ext="jar" status="no" details="" size="155195" time="0" location="/localhome/rshojabro/.ivy2/cache/com.github.scopt/scopt_2.11/jars/scopt_2.11-3.7.1.jar">
+						<origin-location is-local="false" location="https://repo1.maven.org/maven2/com/github/scopt/scopt_2.11/3.7.1/scopt_2.11-3.7.1.jar"/>
 					</artifact>
 				</artifacts>
 			</revision>
@@ -343,9 +343,9 @@
 			<revision name="2.11.12" status="release" pubdate="20171102183736" resolver="sbt-chain" artresolver="sbt-chain" homepage="http://www.scala-lang.org/" extra-info.apiURL="http://www.scala-lang.org/api/2.11.12/" downloaded="false" searched="false" default="false" conf="compile, runtime(*), master(compile), runtime, compile(*), master" position="2">
 				<license name="BSD 3-Clause" url="http://www.scala-lang.org/license.html"/>
 				<metadata-artifact status="no" details="" size="2829" time="0" location="/localhome/rshojabro/.ivy2/cache/org.scala-lang/scala-reflect/ivy-2.11.12.xml" searched="false" origin-is-local="false" origin-location="https://repo1.maven.org/maven2/org/scala-lang/scala-reflect/2.11.12/scala-reflect-2.11.12.pom"/>
-				<caller organisation="net.jcazevedo" name="moultingyaml_2.11" conf="compile, runtime" rev="2.11.12" rev-constraint-default="2.11.12" rev-constraint-dynamic="2.11.12" callerrev="0.4.0"/>
 				<caller organisation="com.typesafe.scala-logging" name="scala-logging_2.11" conf="compile, runtime" rev="2.11.12" rev-constraint-default="2.11.12" rev-constraint-dynamic="2.11.12" callerrev="3.9.0"/>
 				<caller organisation="edu.berkeley.cs" name="firrtl_2.11" conf="compile, runtime" rev="2.11.12" rev-constraint-default="2.11.12" rev-constraint-dynamic="2.11.12" callerrev="1.2-SNAPSHOT"/>
+				<caller organisation="net.jcazevedo" name="moultingyaml_2.11" conf="compile, runtime" rev="2.11.12" rev-constraint-default="2.11.12" rev-constraint-dynamic="2.11.12" callerrev="0.4.1"/>
 				<caller organisation="edu.berkeley.cs" name="chisel3_2.11" conf="default, compile, runtime, master" rev="2.11.12" rev-constraint-default="2.11.12" rev-constraint-dynamic="2.11.12" callerrev="3.2-SNAPSHOT"/>
 				<artifacts>
 					<artifact name="scala-reflect" type="jar" ext="jar" status="no" details="" size="4623075" time="0" location="/localhome/rshojabro/.ivy2/cache/org.scala-lang/scala-reflect/jars/scala-reflect-2.11.12.jar">
@@ -358,18 +358,18 @@
 			<revision name="2.11.12" status="release" pubdate="20171102183730" resolver="sbt-chain" artresolver="sbt-chain" homepage="http://www.scala-lang.org/" extra-info.apiURL="http://www.scala-lang.org/api/2.11.12/" downloaded="false" searched="false" default="false" conf="default, compile, runtime(*), master(compile), runtime, default(compile), compile(*), master" position="0">
 				<license name="BSD 3-Clause" url="http://www.scala-lang.org/license.html"/>
 				<metadata-artifact status="no" details="" size="2656" time="0" location="/localhome/rshojabro/.ivy2/cache/org.scala-lang/scala-library/ivy-2.11.12.xml" searched="false" origin-is-local="false" origin-location="https://repo1.maven.org/maven2/org/scala-lang/scala-library/2.11.12/scala-library-2.11.12.pom"/>
-				<caller organisation="net.jcazevedo" name="moultingyaml_2.11" conf="compile, runtime" rev="2.11.12" rev-constraint-default="2.11.12" rev-constraint-dynamic="2.11.12" callerrev="0.4.0"/>
-				<caller organisation="org.json4s" name="json4s-core_2.11" conf="compile, runtime" rev="2.11.12" rev-constraint-default="2.11.12" rev-constraint-dynamic="2.11.12" callerrev="3.6.1"/>
-				<caller organisation="org.json4s" name="json4s-ast_2.11" conf="compile, runtime" rev="2.11.12" rev-constraint-default="2.11.12" rev-constraint-dynamic="2.11.12" callerrev="3.6.1"/>
-				<caller organisation="com.github.nscala-time" name="nscala-time_2.11" conf="compile, runtime" rev="2.11.12" rev-constraint-default="2.11.12" rev-constraint-dynamic="2.11.12" callerrev="2.14.0"/>
+				<caller organisation="org.json4s" name="json4s-native_2.11" conf="compile, runtime" rev="2.11.12" rev-constraint-default="2.11.12" rev-constraint-dynamic="2.11.12" callerrev="3.6.7"/>
 				<caller organisation="com.typesafe.scala-logging" name="scala-logging_2.11" conf="compile, runtime" rev="2.11.12" rev-constraint-default="2.11.12" rev-constraint-dynamic="2.11.12" callerrev="3.9.0"/>
+				<caller organisation="com.github.scopt" name="scopt_2.11" conf="compile, runtime" rev="2.11.12" rev-constraint-default="2.11.12" rev-constraint-dynamic="2.11.12" callerrev="3.7.1"/>
+				<caller organisation="com.github.nscala-time" name="nscala-time_2.11" conf="compile, runtime" rev="2.11.12" rev-constraint-default="2.11.12" rev-constraint-dynamic="2.11.12" callerrev="2.22.0"/>
 				<caller organisation="edu.berkeley.cs" name="firrtl_2.11" conf="compile, runtime" rev="2.11.12" rev-constraint-default="2.11.12" rev-constraint-dynamic="2.11.12" callerrev="1.2-SNAPSHOT"/>
-				<caller organisation="org.json4s" name="json4s-native_2.11" conf="compile, runtime" rev="2.11.12" rev-constraint-default="2.11.12" rev-constraint-dynamic="2.11.12" callerrev="3.6.1"/>
+				<caller organisation="net.jcazevedo" name="moultingyaml_2.11" conf="compile, runtime" rev="2.11.12" rev-constraint-default="2.11.12" rev-constraint-dynamic="2.11.12" callerrev="0.4.1"/>
+				<caller organisation="org.json4s" name="json4s-core_2.11" conf="compile, runtime" rev="2.11.12" rev-constraint-default="2.11.12" rev-constraint-dynamic="2.11.12" callerrev="3.6.7"/>
+				<caller organisation="org.json4s" name="json4s-scalap_2.11" conf="compile, runtime" rev="2.11.12" rev-constraint-default="2.11.12" rev-constraint-dynamic="2.11.12" callerrev="3.6.7"/>
 				<caller organisation="edu.washington.cs" name="accel_2.11" conf="compile, runtime-internal, runtime, optional" rev="2.11.12" rev-constraint-default="2.11.12" rev-constraint-dynamic="2.11.12" callerrev="0.1.0-SNAPSHOT"/>
 				<caller organisation="edu.berkeley.cs" name="chisel3_2.11" conf="default, compile, runtime, master" rev="2.11.12" rev-constraint-default="2.11.12" rev-constraint-dynamic="2.11.12" callerrev="3.2-SNAPSHOT"/>
 				<caller organisation="org.scala-lang" name="scala-reflect" conf="compile, runtime" rev="2.11.12" rev-constraint-default="2.11.12" rev-constraint-dynamic="2.11.12" callerrev="2.11.12"/>
-				<caller organisation="org.json4s" name="json4s-scalap_2.11" conf="compile, runtime" rev="2.11.12" rev-constraint-default="2.11.12" rev-constraint-dynamic="2.11.12" callerrev="3.6.1"/>
-				<caller organisation="com.github.scopt" name="scopt_2.11" conf="compile, runtime" rev="2.11.12" rev-constraint-default="2.11.12" rev-constraint-dynamic="2.11.12" callerrev="3.7.0"/>
+				<caller organisation="org.json4s" name="json4s-ast_2.11" conf="compile, runtime" rev="2.11.12" rev-constraint-default="2.11.12" rev-constraint-dynamic="2.11.12" callerrev="3.6.7"/>
 				<artifacts>
 					<artifact name="scala-library" type="jar" ext="jar" status="no" details="" size="5749423" time="0" location="/localhome/rshojabro/.ivy2/cache/org.scala-lang/scala-library/jars/scala-library-2.11.12.jar">
 						<origin-location is-local="false" location="https://repo1.maven.org/maven2/org/scala-lang/scala-library/2.11.12/scala-library-2.11.12.jar"/>

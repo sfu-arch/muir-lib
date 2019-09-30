@@ -95,7 +95,7 @@ driver_main.cc| +-------------+Master Client    |                 |
 /* Receives a counter value as input. Waits for N cycles and then returns N + const as output */
 class NoneAccel(implicit p: Parameters) extends Module {
   val io = IO(new Bundle {
-    val host = new AXIClient(p(ShellKey).hostParams)
+    val host = new AXILiteClient(p(ShellKey).hostParams)
     val mem = new AXIMaster(p(ShellKey).memParams)
     val debug = Output(Vec(9,Bool()))
   })
@@ -197,7 +197,7 @@ class NoneAccel(implicit p: Parameters) extends Module {
   vcr.io.host.b.ready := io.host.b.ready
   io.host.b.valid := vcr.io.host.b.valid
   io.host.b.bits.resp := vcr.io.host.b.bits.resp
-  io.host.b.bits.id := io.host.w.bits.id
+//  io.host.b.bits.id := io.host.w.bits.id
 
   io.host.ar.ready := vcr.io.host.ar.ready
   vcr.io.host.ar.valid := io.host.ar.valid
@@ -206,11 +206,11 @@ class NoneAccel(implicit p: Parameters) extends Module {
   io.host.r.valid := vcr.io.host.r.valid
   io.host.r.bits.data := vcr.io.host.r.bits.data
   io.host.r.bits.resp := vcr.io.host.r.bits.resp
-  io.host.r.bits.id := io.host.ar.bits.id
+//  io.host.r.bits.id := io.host.ar.bits.id
 
-  io.host.b.bits.user <> DontCare
-  io.host.r.bits.user <> DontCare
-  io.host.r.bits.last := 1.U
+//  io.host.b.bits.user <> DontCare
+//  io.host.r.bits.user <> DontCare
+//  io.host.r.bits.last := 1.U
 
 
   when(io.host.ar.fire) {

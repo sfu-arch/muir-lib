@@ -37,7 +37,7 @@ class TestAccel2(implicit p: Parameters) extends MultiIOModule {
   val sim_clock = IO(Input(Clock()))
   val sim_wait = IO(Output(Bool()))
   val sim_shell = Module(new AXISimShell)
-  val vta_shell = Module(new NoneAccel())
+  val vta_shell = Module(new DNNAccel())
   sim_shell.sim_clock := sim_clock
   sim_wait := sim_shell.sim_wait
 

@@ -24,14 +24,14 @@ import chisel3._
 import chisel3.util._
 import config._
 import control.BasicBlockNoMaskNode
-import dnn.memory.{TensorLoad, TensorStore, TensorMaster, VMELoad, VMEStore}
+import dnn.memory.{TensorLoad, TensorMaster, TensorStore, VMELoad, VMEStore}
 import dnn.{DotNode, ReduceNode}
 import interfaces.{ControlBundle, DataBundle}
 import junctions.SplitCallNew
 import memory.{ReadTypMemoryController, WriteTypMemoryController}
 import node.{FXmatNxN, TypLoad, TypStore}
 import shell._
-
+import dnn.memory.ISA._
 
 /** Core.
   *
@@ -53,20 +53,65 @@ class DNNCore(implicit val p: Parameters) extends Module with CoreParams {
   })
 
 
-  val TensorLoad = Module(new TensorLoad)
-  val TensorStore = Module(new TensorStore)
+  val tensorLoad = Module(new TensorLoad(tensorType = "inp"))
+  val tensorStore = Module(new TensorStore(tensorType = "inp"))
+  val tl_Inst = Reg(UInt(INST_BITS.W).asTypeOf(new MemDecode))
+  val ts_Inst = Reg(UInt(INST_BITS.W).asTypeOf(new MemDecode))
 
-  val out = new TensorMaster(tensorType = "inp")
+//  val tensorMaster = new TensorMaster(tensorType = "inp")
 
-  io.vme.rd(0) <> TensorLoad.io.vme_rd
-  io.vme.wr(0) <> TensorStore.io.vme_wr
+  io.vme.rd(0) <> tensorLoad.io.vme_rd
+  io.vme.wr(0) <> tensorStore.io.vme_wr
 
-  TensorLoad.io.start := io.vcr.launch
-  TensorLoad.io.baddr := io.vcr.ptrs(0)
-  TensorLoad.io.inst  := io.vcr.vals(0)
-//  out.rd.
+  tensorLoad.io.start := io.vcr.launch
+  tensorLoad.io.baddr := io.vcr.ptrs(0)
+  tensorLoad.io.inst  := tl_Inst
+  io.vcr.finish := tensorLoad.io.done & tensorStore.io.done
 
-//  val VMELoad = Module(new VMELoad(false))
+  tensorStore.io.start  := io.vcr.launch
+  tensorStore.io.baddr := io.vcr.ptrs(1)
+  tensorStore.io.inst := ts_Inst
+
+
+  tensorStore.io.tensor.wr.bits.data := tensorLoad.io.tensor.rd.data
+  tensorStore.io.tensor.wr.bits.idx := 0.U
+
+  tl_Inst.xpad_0  :=  0.U
+  tl_Inst.xpad_1  :=  0.U
+  tl_Inst.ypad_0  :=  0.U
+  tl_Inst.ypad_1  :=  0.U
+  tl_Inst.xstride  :=  48.U
+  tl_Inst.xsize  :=  48.U
+  tl_Inst.ysize  :=  1.U
+  tl_Inst.empty_0  :=  0.U
+  tl_Inst.dram_offset  :=  64.U
+  tl_Inst.sram_offset  :=  0.U
+  tl_Inst.id  :=  3.U
+  tl_Inst.push_next  :=  0.U
+  tl_Inst.push_prev  :=  0.U
+  tl_Inst.pop_next  :=  0.U
+  tl_Inst.pop_prev  :=  0.U
+  tl_Inst.op  :=  0.U
+
+  ts_Inst.xpad_0  :=  0.U
+  ts_Inst.xpad_1  :=  0.U
+  ts_Inst.ypad_0  :=  0.U
+  ts_Inst.ypad_1  :=  0.U
+  ts_Inst.xstride  :=  48.U
+  ts_Inst.xsize  :=  48.U
+  ts_Inst.ysize  :=  1.U
+  ts_Inst.empty_0  :=  0.U
+  ts_Inst.dram_offset  :=  64.U
+  ts_Inst.sram_offset  :=  0.U
+  ts_Inst.id  :=  4.U
+  ts_Inst.push_next  :=  0.U
+  ts_Inst.push_prev  :=  0.U
+  ts_Inst.pop_next  :=  0.U
+  ts_Inst.pop_prev  :=  0.U
+  ts_Inst.op  :=  0.U
+
+
+  //  val VMELoad = Module(new VMELoad(false))
 
 //  VMELoad.io.memReq <> DontCare
 //  VMELoad.io.memResp <> DontCare
