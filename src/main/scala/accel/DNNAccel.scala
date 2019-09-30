@@ -23,7 +23,7 @@ import chisel3._
 import chisel3.util._
 import config._
 import shell._
-//import config._
+import dnn.memory.CoreParams
 
   /*
               +---------------------------+
@@ -46,41 +46,6 @@ driver_main.cc| +-------------+Master Client    |                 |
               +---------------------------+     +-----------------+
 */
 
-
-/** Register File.
-  *
-  * Six 32-bit register file.
-  *
-  * -------------------------------
-  *  Register description    | addr
-  * -------------------------|-----
-  *  Control status register | 0x00
-  *  Cycle counter           | 0x04
-  *  Constant value          | 0x08
-  *  Vector length           | 0x0c
-  *  Input pointer lsb       | 0x10
-  *  Input pointer msb       | 0x14
-  *  Output pointer lsb      | 0x18
-  *  Output pointer msb      | 0x1c
-  * -------------------------------
-
-  * ------------------------------
-  *  Control status register | bit
-  * ------------------------------
-  *  Launch                  | 0
-  *  Finish                  | 1
-  * ------------------------------
-  */
-
-
-/*
-+------------------+                          +-----------------+
-|                  | f(bits)+--------+        |                 |
-|   VMEReadMaster  +------->+Buffers +-------->VMEWriteMaster   |
-|                  |        +--------+        |                 |
-+------------------+                          +-----------------+
-
- */
 
 /*
   To use DNNAccel.v in CycloneV, change host interface from AXILiteClient to AXIClient and uncomment following lines:
@@ -107,8 +72,8 @@ class DNNAccel(implicit p: Parameters) extends Module {
 
   val vcr = Module(new VCR)
   val vme = Module(new VME)
-  val core = Module(new DNNCoreTest)
-//  val core = Module(new DNNCore)
+//  val core = Module(new DNNCoreTest)
+  val core = Module(new DNNCore)
 
   /* ================================================================== *
    *                       Host to VCR Connection                       *
