@@ -20,7 +20,7 @@ package accel
  */
 
 import arbiters.TypeStackFile
-import chisel3._
+import chisel3.{when, _}
 import chisel3.util._
 import config._
 import control.BasicBlockNoMaskNode
@@ -45,7 +45,7 @@ import dnn.memory.ISA._
   * More info about these interfaces and modules can be found in the shell
   * directory.
   */
-class DNNCore(implicit val p: Parameters) extends Module with CoreParams {
+class DNNCore(implicit val p: Parameters) extends Module {
 //  val mp = p(ShellKey).memParams
   val io = IO(new Bundle {
     val vcr = new VCRClient
@@ -63,12 +63,12 @@ class DNNCore(implicit val p: Parameters) extends Module with CoreParams {
   io.vme.rd(0) <> tensorLoad.io.vme_rd
   io.vme.wr(0) <> tensorStore.io.vme_wr
 
-  tensorLoad.io.start := io.vcr.launch
+  tensorLoad.io.start := false.B
   tensorLoad.io.baddr := io.vcr.ptrs(0)
   tensorLoad.io.inst  := tl_Inst
   io.vcr.finish := tensorLoad.io.done & tensorStore.io.done
 
-  tensorStore.io.start  := io.vcr.launch
+  tensorStore.io.start  := false.B
   tensorStore.io.baddr := io.vcr.ptrs(1)
   tensorStore.io.inst := ts_Inst
 
@@ -109,6 +109,36 @@ class DNNCore(implicit val p: Parameters) extends Module with CoreParams {
   ts_Inst.pop_next  :=  0.U
   ts_Inst.pop_prev  :=  0.U
   ts_Inst.op  :=  0.U
+
+  val sIdle :: sReadTensor :: sWriteTensor :: sFinish :: Nil = Enum(4)
+  val state = RegInit(sIdle)
+  switch(state) {
+      is(sIdle) {
+        when(io.vcr.launch) {
+          tensorLoad.io.start := true.B
+          state := sReadTensor
+        }
+      }
+      is(sReadTensor) {
+        when(tensorLoad.io.done) {
+          tensorStore.io.start := true.B
+          state := sWriteTensor
+        }
+      }
+      is(sWriteTensor) {
+        when(tensorStore.io.done) {
+          state := sFinish
+        }
+      }
+      is(sFinish) {
+        state := sIdle
+      }
+  }
+
+  val last = state === sWriteTensor && tensorStore.io.vme_wr.ack
+  io.vcr.finish := last
+
+
 
 
   //  val VMELoad = Module(new VMELoad(false))
