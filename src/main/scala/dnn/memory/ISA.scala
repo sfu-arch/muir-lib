@@ -54,7 +54,7 @@ trait ISAConstants{
   val OP_F = 3.asUInt(OP_BITS.W)
   val OP_A = 4.asUInt(OP_BITS.W)
   val OP_X = 5.asUInt(OP_BITS.W)
-
+//
   val ALU_OP_NUM = 5
   val ALU_OP     = Enum(ALU_OP_NUM)
 
@@ -105,7 +105,7 @@ object ISA extends ISAConstants {
   def FNSH = BitPat("b_????????_????????_????????_????????_????????_????????_????????_????????_????????_????????_????????_????????_????????_????????_????????_?????011")
 
 
-  class MemDecode extends Bundle with ISAConstants {
+  class MemDecode extends Bundle {
     val xpad_1      = UInt(M_PAD_BITS.W)
     val xpad_0      = UInt(M_PAD_BITS.W)
     val ypad_1      = UInt(M_PAD_BITS.W)
@@ -122,6 +122,29 @@ object ISA extends ISAConstants {
     val pop_next    = Bool( )
     val pop_prev    = Bool( )
     val op          = UInt(OP_BITS.W)
+  }
+
+  object MemDecode {
+  def default(): MemDecode = {
+      val y = Wire(new MemDecode())
+    y.xpad_0  :=  0.U
+    y.xpad_1  :=  0.U
+    y.ypad_0  :=  0.U
+    y.ypad_1  :=  0.U
+    y.xstride  :=  48.U
+    y.xsize  :=  48.U
+    y.ysize  :=  1.U
+    y.empty_0  :=  0.U
+    y.dram_offset  :=  64.U
+    y.sram_offset  :=  0.U
+    y.id  :=  3.U
+    y.push_next  :=  0.U
+    y.push_prev  :=  0.U
+    y.pop_next  :=  0.U
+    y.pop_prev  :=  0.U
+    y.op  :=  0.U
+    y
+    }
   }
 
 

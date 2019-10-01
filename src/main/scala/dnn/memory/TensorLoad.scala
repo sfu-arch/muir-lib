@@ -37,7 +37,7 @@ class TensorLoad(tensorType: String = "none", debug: Boolean = false)(
   val sizeFactor = tp.tensorLength * tp.numMemBlock
   val strideFactor = tp.tensorLength * tp.tensorWidth
 
-  val dec = io.inst.asTypeOf(new ISA.MemDecode)
+  val dec = io.inst.asTypeOf(new MemDecode)
   val dataCtrl = Module(
     new TensorDataCtrl(tensorType, sizeFactor, strideFactor))
   val dataCtrlDone = RegInit(false.B)

@@ -55,26 +55,35 @@ class DNNCore(implicit val p: Parameters) extends Module {
 
   val tensorLoad = Module(new TensorLoad(tensorType = "inp"))
   val tensorStore = Module(new TensorStore(tensorType = "inp"))
-  val tl_Inst = Reg(UInt(INST_BITS.W).asTypeOf(new MemDecode))
-  val ts_Inst = Reg(UInt(INST_BITS.W).asTypeOf(new MemDecode))
-
+  val tl_Inst = Wire(new MemDecode)
+  val ts_Inst = Wire(new MemDecode)
+  val indexCnt = Counter(10)
 //  val tensorMaster = new TensorMaster(tensorType = "inp")
+
+  io.vcr.ecnt(0).bits := 123.U
 
   io.vme.rd(0) <> tensorLoad.io.vme_rd
   io.vme.wr(0) <> tensorStore.io.vme_wr
 
   tensorLoad.io.start := false.B
   tensorLoad.io.baddr := io.vcr.ptrs(0)
-  tensorLoad.io.inst  := tl_Inst
+  tensorLoad.io.inst  := tl_Inst.asTypeOf(UInt(INST_BITS.W))
   io.vcr.finish := tensorLoad.io.done & tensorStore.io.done
 
   tensorStore.io.start  := false.B
-  tensorStore.io.baddr := io.vcr.ptrs(1)
-  tensorStore.io.inst := ts_Inst
+  tensorStore.io.baddr := io.vcr.ptrs(2)
+  tensorStore.io.inst := ts_Inst.asTypeOf(UInt(INST_BITS.W))
 
 
-  tensorStore.io.tensor.wr.bits.data := tensorLoad.io.tensor.rd.data
-  tensorStore.io.tensor.wr.bits.idx := 0.U
+  tensorLoad.io.tensor.wr <> DontCare
+  tensorStore.io.tensor.rd <> DontCare
+
+  tensorLoad.io.tensor.rd.idx.bits := indexCnt.value
+  tensorLoad.io.tensor.rd.idx.valid := true.B
+
+  tensorStore.io.tensor.wr.bits.data := tensorLoad.io.tensor.rd.data.bits
+  tensorStore.io.tensor.wr.valid := false.B
+  tensorStore.io.tensor.wr.bits.idx := indexCnt.value
 
   tl_Inst.xpad_0  :=  0.U
   tl_Inst.xpad_1  :=  0.U
@@ -84,7 +93,7 @@ class DNNCore(implicit val p: Parameters) extends Module {
   tl_Inst.xsize  :=  48.U
   tl_Inst.ysize  :=  1.U
   tl_Inst.empty_0  :=  0.U
-  tl_Inst.dram_offset  :=  64.U
+  tl_Inst.dram_offset  :=  0.U
   tl_Inst.sram_offset  :=  0.U
   tl_Inst.id  :=  3.U
   tl_Inst.push_next  :=  0.U
@@ -101,7 +110,7 @@ class DNNCore(implicit val p: Parameters) extends Module {
   ts_Inst.xsize  :=  48.U
   ts_Inst.ysize  :=  1.U
   ts_Inst.empty_0  :=  0.U
-  ts_Inst.dram_offset  :=  64.U
+  ts_Inst.dram_offset  :=  0.U
   ts_Inst.sram_offset  :=  0.U
   ts_Inst.id  :=  4.U
   ts_Inst.push_next  :=  0.U
@@ -110,19 +119,27 @@ class DNNCore(implicit val p: Parameters) extends Module {
   ts_Inst.pop_prev  :=  0.U
   ts_Inst.op  :=  0.U
 
-  val sIdle :: sReadTensor :: sWriteTensor :: sFinish :: Nil = Enum(4)
+  val sIdle :: sReadTensor :: sTransferTensor :: sWriteTensor :: sFinish :: Nil = Enum(5)
   val state = RegInit(sIdle)
   switch(state) {
       is(sIdle) {
         when(io.vcr.launch) {
           tensorLoad.io.start := true.B
+          indexCnt.value := 0.U
           state := sReadTensor
         }
       }
       is(sReadTensor) {
         when(tensorLoad.io.done) {
+          state := sTransferTensor
+        }
+      }
+      is(sTransferTensor) {
+        when(indexCnt.value === 9.U) {
           tensorStore.io.start := true.B
           state := sWriteTensor
+        }.otherwise {
+          indexCnt.inc( )
         }
       }
       is(sWriteTensor) {
@@ -130,13 +147,19 @@ class DNNCore(implicit val p: Parameters) extends Module {
           state := sFinish
         }
       }
-      is(sFinish) {
-        state := sIdle
-      }
+  }
+
+  when(tensorStore.io.vme_wr.ack && state === sFinish ) {
+    state := sIdle
+  }
+
+  when(state === sTransferTensor) {
+    tensorStore.io.tensor.wr.valid := true.B
   }
 
   val last = state === sWriteTensor && tensorStore.io.vme_wr.ack
   io.vcr.finish := last
+  io.vcr.ecnt(0).valid := last
 
 
 
