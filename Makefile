@@ -34,7 +34,7 @@ endif
 
 TOP = TestAccel2
 BUILD_NAME = build
-USE_TRACE = 0
+USE_TRACE = 1
 LIBNAME = libhw
 
 vta_dir = $(abspath ./)

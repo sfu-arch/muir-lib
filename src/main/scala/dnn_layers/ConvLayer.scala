@@ -27,7 +27,7 @@ class convLayerIO(implicit p: Parameters) extends CoreBundle {
 
 class convLayer(implicit val p: Parameters) extends Module with CoreParams {
   val io = IO(new convLayerIO())
-  val shape = new FXmatNxN(2,4)
+  val shape = new matNxN(2, false)
 
   val StackFile = Module(new TypeStackFile(ID = 0, Size = 32, NReads = 2, NWrites = 1)
   (WControl = new WriteTypMemoryController(NumOps = 1, BaseSize = 2, NumEntries = 1))

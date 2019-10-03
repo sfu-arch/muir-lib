@@ -53,35 +53,49 @@ class DNNCore(implicit val p: Parameters) extends Module {
   })
 
 
-  val tensorLoad = Module(new TensorLoad(tensorType = "inp"))
+  val tensorLoad1 = Module(new TensorLoad(tensorType = "inp"))
+  val tensorLoad2 = Module(new TensorLoad(tensorType = "inp"))
   val tensorStore = Module(new TensorStore(tensorType = "inp"))
   val tl_Inst = Wire(new MemDecode)
   val ts_Inst = Wire(new MemDecode)
-  val indexCnt = Counter(10)
+  val indexCnt = Counter(100)
 //  val tensorMaster = new TensorMaster(tensorType = "inp")
 
   io.vcr.ecnt(0).bits := 123.U
 
-  io.vme.rd(0) <> tensorLoad.io.vme_rd
+  io.vme.rd(0) <> tensorLoad1.io.vme_rd
+  io.vme.rd(1) <> tensorLoad2.io.vme_rd
   io.vme.wr(0) <> tensorStore.io.vme_wr
 
-  tensorLoad.io.start := false.B
-  tensorLoad.io.baddr := io.vcr.ptrs(0)
-  tensorLoad.io.inst  := tl_Inst.asTypeOf(UInt(INST_BITS.W))
-  io.vcr.finish := tensorLoad.io.done & tensorStore.io.done
+  tensorLoad1.io.start := false.B
+  tensorLoad1.io.baddr := io.vcr.ptrs(0)
+  tensorLoad1.io.inst  := tl_Inst.asTypeOf(UInt(INST_BITS.W))
+  tensorLoad2.io.start := false.B
+  tensorLoad2.io.baddr := io.vcr.ptrs(1)
+  tensorLoad2.io.inst  := tl_Inst.asTypeOf(UInt(INST_BITS.W))
+  io.vcr.finish := tensorLoad1.io.done & tensorLoad2.io.done & tensorStore.io.done
+
 
   tensorStore.io.start  := false.B
   tensorStore.io.baddr := io.vcr.ptrs(2)
   tensorStore.io.inst := ts_Inst.asTypeOf(UInt(INST_BITS.W))
 
 
-  tensorLoad.io.tensor.wr <> DontCare
+  tensorLoad1.io.tensor.wr <> DontCare
+  tensorLoad2.io.tensor.wr <> DontCare
   tensorStore.io.tensor.rd <> DontCare
 
-  tensorLoad.io.tensor.rd.idx.bits := indexCnt.value
-  tensorLoad.io.tensor.rd.idx.valid := true.B
+  tensorLoad1.io.tensor.rd.idx.bits := indexCnt.value
+  tensorLoad1.io.tensor.rd.idx.valid := true.B
+  tensorLoad2.io.tensor.rd.idx.bits := indexCnt.value
+  tensorLoad2.io.tensor.rd.idx.valid := true.B
 
-  tensorStore.io.tensor.wr.bits.data := tensorLoad.io.tensor.rd.data.bits
+//  tensorStore.io.tensor.wr.bits.data := tensorLoad1.io.tensor.rd.data.bits
+  for (i <- 0 until tensorLoad2.tp.tensorLength) {
+    for (j <- 0 until tensorLoad2.tp.tensorWidth) {
+      tensorStore.io.tensor.wr.bits.data(i)(j) := tensorLoad1.io.tensor.rd.data.bits(i)(j) + tensorLoad2.io.tensor.rd.data.bits(i)(j)
+    }
+  }
   tensorStore.io.tensor.wr.valid := false.B
   tensorStore.io.tensor.wr.bits.idx := indexCnt.value
 
@@ -89,8 +103,8 @@ class DNNCore(implicit val p: Parameters) extends Module {
   tl_Inst.xpad_1  :=  0.U
   tl_Inst.ypad_0  :=  0.U
   tl_Inst.ypad_1  :=  0.U
-  tl_Inst.xstride  :=  48.U
-  tl_Inst.xsize  :=  48.U
+  tl_Inst.xstride  :=  7.U
+  tl_Inst.xsize  :=  7.U
   tl_Inst.ysize  :=  1.U
   tl_Inst.empty_0  :=  0.U
   tl_Inst.dram_offset  :=  0.U
@@ -106,8 +120,8 @@ class DNNCore(implicit val p: Parameters) extends Module {
   ts_Inst.xpad_1  :=  0.U
   ts_Inst.ypad_0  :=  0.U
   ts_Inst.ypad_1  :=  0.U
-  ts_Inst.xstride  :=  48.U
-  ts_Inst.xsize  :=  48.U
+  ts_Inst.xstride  :=  7.U
+  ts_Inst.xsize  :=  7.U
   ts_Inst.ysize  :=  1.U
   ts_Inst.empty_0  :=  0.U
   ts_Inst.dram_offset  :=  0.U
@@ -119,23 +133,30 @@ class DNNCore(implicit val p: Parameters) extends Module {
   ts_Inst.pop_prev  :=  0.U
   ts_Inst.op  :=  0.U
 
-  val sIdle :: sReadTensor :: sTransferTensor :: sWriteTensor :: sFinish :: Nil = Enum(5)
+  val sIdle :: sReadTensor1 :: sReadTensor2 :: sTransferTensor :: sWriteTensor :: Nil = Enum(5)
   val state = RegInit(sIdle)
   switch(state) {
       is(sIdle) {
         when(io.vcr.launch) {
-          tensorLoad.io.start := true.B
+          tensorLoad1.io.start := true.B
+//          tensorLoad2.io.start := true.B
           indexCnt.value := 0.U
-          state := sReadTensor
+          state := sReadTensor1
         }
       }
-      is(sReadTensor) {
-        when(tensorLoad.io.done) {
+      is(sReadTensor1) {
+        when(tensorLoad1.io.done){// && tensorLoad2.io.done) {
+          tensorLoad2.io.start := true.B
+          state := sReadTensor2
+        }
+      }
+      is(sReadTensor2) {
+        when(tensorLoad2.io.done){
           state := sTransferTensor
         }
       }
       is(sTransferTensor) {
-        when(indexCnt.value === 9.U) {
+        when(indexCnt.value === 99.U) {
           tensorStore.io.start := true.B
           state := sWriteTensor
         }.otherwise {
@@ -144,12 +165,12 @@ class DNNCore(implicit val p: Parameters) extends Module {
       }
       is(sWriteTensor) {
         when(tensorStore.io.done) {
-          state := sFinish
+          state := sIdle//sFinish
         }
       }
   }
 
-  when(tensorStore.io.vme_wr.ack && state === sFinish ) {
+  when(tensorStore.io.vme_wr.ack && state === sWriteTensor ) {
     state := sIdle
   }
 
