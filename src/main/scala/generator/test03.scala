@@ -1,25 +1,12 @@
 package dandelion.generator
 
-import dandelion.fpu._
-import dandelion.accel._
-import dandelion.arbiters._
 import chisel3._
-import chisel3.util._
-import chisel3.Module._
-import chisel3.testers._
-import chisel3.iotesters._
-import chisel3.util.experimental.BoringUtils
 import dandelion.config._
 import dandelion.control._
 import dandelion.interfaces._
 import dandelion.junctions._
-import dandelion.loop._
 import dandelion.memory._
-import muxes._
 import dandelion.node._
-import org.scalatest._
-import regfile._
-import dandelion.memory.stack._
 import util._
 
 
@@ -93,13 +80,17 @@ class test03DF(implicit p: Parameters) extends test03DFIO()(p) {
   val binaryOp_5 = Module(new ComputeNode(NumOuts = 1, ID = 5, opCode = "mul")(sign = false))
 
   //  ret i32 %8, !UID !9, !BB_UID !10
-  val ret_6 = Module(new RetNode2(retTypes = List(32), ID = 6))
+  val ret_6 = Module(new RetNode2(retTypes = List(32), ID = 7))
 
   //-----------------------------------------------------------------------------------p
 
   val st_0 = Module(new UnTypStore(NumPredOps = 0, NumSuccOps = 0, ID = 7, RouteID = 0))
   //new
-  val buf_0 = Module(new DebugBufferNode(NumPredOps = 0, NumSuccOps = 0, ID = 8, RouteID = 0))
+  val buf_0 = Module(new DebugBufferNode(ID = 8, RouteID = 1))
+
+
+//  dontTouch(buf_0.io.memResp)
+//  dontTouch(MemCtrl.io.WriteOut(1))
 
   //new
   //------------------------------------------------------------------------------------v
@@ -195,9 +186,9 @@ class test03DF(implicit p: Parameters) extends test03DFIO()(p) {
   ret_6.io.In.enable <> bb_0.io.Out(8)
 
   //new
-  buf_0.io.enable.bits := ControlBundle.active()
-  buf_0.io.enable.valid := true.B
-  buf_0.io.Out(0).ready := true.B
+//  buf_0.io.enable.bits := ControlBundle.active()
+//  buf_0.io.enable.valid := true.B
+//  buf_0.io.Out(0).ready := true.B
 
   //new
   //-----------------------------------------p
@@ -205,8 +196,6 @@ class test03DF(implicit p: Parameters) extends test03DFIO()(p) {
   st_0.io.enable.valid := true.B
   binaryOp_4.io.DebugEnable.get <> bb_0.io.DebugEnable
 
-  //buf_0.io.enable.bits := ControlBundle.active()
-  //buf_0.io.enable.valid := true.B
 
   //-----------------------------------------------v
 
@@ -271,14 +260,10 @@ class test03DF(implicit p: Parameters) extends test03DFIO()(p) {
   binaryOp_4.io.LeftIO <> InputSplitter.io.Out.data.elements("field1")(2)
 
   //------------------------------------------p
-  // binaryOp_4.io.DebugIO.get := true.B
 
   val data_queue = Queue(binaryOp_4.io.LogCheck.get, 20)
   val addr_queue = Queue(binaryOp_4.io.LogCheckAddr.get, 20)
-  //-------val x = Module(new Queue(UInt(4.W),20))
-  //---------BoringUtils.addSink(x.io.enq,"")
-  //---------st_0.io.inData  <> x.io.deq
-  //--------data_queue.
+
   data_queue.nodeq()
   addr_queue.nodeq()
 

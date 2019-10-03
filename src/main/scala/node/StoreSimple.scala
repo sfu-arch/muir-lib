@@ -1,9 +1,8 @@
 package dandelion.node
 
-import chisel3.{RegInit, _}
+import chisel3._
 import chisel3.util._
 import chisel3.util.experimental.BoringUtils
-import org.scalacheck.Prop.False
 import dandelion.config._
 import dandelion.interfaces._
 import utility.Constants._
@@ -73,15 +72,15 @@ class UnTypStore(NumPredOps: Int,
   val ReqValid = RegInit(false.B)
 
 
- //------------------------------
+  //------------------------------
 
-  if (ID == 7) {
-    val SinkVal = Wire (UInt(6.W))
-    SinkVal:= 0.U
-    val Uniq_name = "me"
-    BoringUtils.addSink(SinkVal, Uniq_name)
-    //printf("[***************************sinksource*******************" + SinkVal)
-  }
+  //  if (ID == 7) {
+  //    val SinkVal = Wire (UInt(6.W))
+  //    SinkVal:= 0.U
+  //    val Uniq_name = "me"
+  //    BoringUtils.addSink(SinkVal, Uniq_name)
+  //    printf("[***************************sinksource*******************" + SinkVal)
+  //  }
   //----------------------------------
 
 
@@ -129,6 +128,8 @@ class UnTypStore(NumPredOps: Int,
   io.memReq.bits.taskID := data_R.taskID | addr_R.taskID | enable_R.taskID
   io.memReq.bits.mask := 15.U
   io.memReq.valid := false.B
+
+  dontTouch(io.memResp)
 
   /*=============================================
   =            ACTIONS (possibly dangerous)     =
@@ -206,33 +207,50 @@ class UnTypStore(NumPredOps: Int,
 }
 
 
-class DebugBufferIO(NumPredOps: Int = 0,
-              NumSuccOps: Int = 0,
-              NumOuts: Int = 1)(implicit p: Parameters)
-  extends HandShakingIOPS(NumPredOps, NumSuccOps, NumOuts)(new DataBundle) {
-
-  // Memory request
-  val memReq = Decoupled(new WriteReq())
-  // Memory response.
-  val memResp = Input(Flipped(new WriteResp()))
-
-  override def cloneType = new DebugBufferIO(NumPredOps, NumSuccOps, NumOuts).asInstanceOf[this.type]
-}
+//class DebugBufferIO(NumPredOps: Int = 0,
+//                    NumSuccOps: Int = 0,
+//                    NumOuts: Int = 1)(implicit p: Parameters)
+//  extends HandShakingIOPS(NumPredOps, NumSuccOps, NumOuts)(new DataBundle) {
+//
+//  // Memory request
+//  val memReq = Decoupled(new WriteReq())
+//  // Memory response.
+//  val memResp = Input(Flipped(new WriteResp()))
+//
+//  override def cloneType = new DebugBufferIO(NumPredOps, NumSuccOps, NumOuts).asInstanceOf[this.type]
+//}
 
 /**
   * @brief Store Node. Implements store operations
   * @details [long description]
   * @param NumPredOps [Number of predicate memory operations]
   */
-class DebugBufferNode(NumPredOps: Int = 0, NumSuccOps: Int = 0, NumOuts: Int = 1,
-                 Typ: UInt = MT_W, ID: Int, RouteID: Int)
-                (implicit p: Parameters,
-                 name: sourcecode.Name,  file: sourcecode.File)
-  extends HandShaking(NumPredOps, NumSuccOps, NumOuts, ID)(new DataBundle)(p) {
+
+class DebugBufferNode(
+                       NumOuts: Int = 1,
+                       Typ: UInt = MT_W, ID: Int, RouteID: Int)
+                     (implicit val p: Parameters,
+                      name: sourcecode.Name,
+                      file: sourcecode.File)
+  extends Module with CoreParams with UniformPrintfs {
+
+
+  //class DebugBufferNode(NumPredOps: Int = 0, NumSuccOps: Int = 0, NumOuts: Int = 1,
+  //                      Typ: UInt = MT_W, ID: Int, RouteID: Int)
+  //                     (implicit p: Parameters,
+  //                      name: sourcecode.Name, file: sourcecode.File)
+  //  extends HandShaking(NumPredOps, NumSuccOps, NumOuts, ID)(new DataBundle)(p) {
 
   // Set up StoreIO
-  override lazy val io = IO(new DebugBufferIO(NumPredOps, NumSuccOps, NumOuts))
+  //  override lazy val io = IO(new DebugBufferIO(NumPredOps, NumSuccOps, NumOuts))
   // Printf debugging
+
+  val io = IO(new Bundle {
+    //  // Memory request
+    val memReq = Decoupled(new WriteReq())
+    //  // Memory response.
+    val memResp = Input(Flipped(new WriteResp()))
+  })
   val node_name = name.value
   val module_name = file.value.split("/").tail.last.split("\\.").head.capitalize
   override val printfSigil = "[" + module_name + "] " + node_name + ": " + ID + " "
@@ -247,122 +265,149 @@ class DebugBufferNode(NumPredOps: Int = 0, NumSuccOps: Int = 0, NumOuts: Int = 1
   //---------------------------
   // -------
 
-  for (i <- 0 until NumOuts) {
-    io.Out(i).bits := DataBundle.default
-    io.Out(i).valid := false.B
-  }
+  val LogData = Module(new Queue(UInt(xlen.W), 4))
 
-  val LogData = Module(new Queue(UInt(4.W), 4))
-  val LogAddress = Cat(0.U((xlen - dbg_counter.value.getWidth - 2).W), dbg_counter.value << 2.U)
-
-//  val LogAddress = Queue(Decoupled(UInt(10.W)),20)
-  val st_node = Module(new UnTypStore(NumPredOps, NumSuccOps, ID = 0, RouteID = 0))
-
-  //?
-  st_node.io.enable.bits := ControlBundle.active()
-  st_node.io.enable.valid := true.B
-
+  val st_node = Module(new UnTypDebugStore(ID = 0, RouteID = RouteID))
 
   LogData.io.enq.bits := 0.U
   LogData.io.enq.valid := false.B
   LogData.io.deq.ready := false.B
 
-  BoringUtils.addSink(LogData.io.deq.bits, "Test_data")
-  BoringUtils.addSink(LogData.io.deq.valid, "Test_valid")
-  BoringUtils.addSource(LogData.io.enq.ready, "Test_ready")
+  val queue_data = WireInit(0.U(xlen.W))
+  val queue_valid = WireInit(false.B)
+  val queue_ready = WireInit(false.B)
+
+  BoringUtils.addSink(queue_data, "Test_data")
+  BoringUtils.addSink(queue_valid, "Test_valid")
+  BoringUtils.addSource(queue_ready, "Test_ready")
+
+  LogData.io.enq.bits := queue_data
+  LogData.io.enq.valid := queue_valid
+  queue_ready := LogData.io.enq.ready
+
+
+  st_node.io.InData.bits := DataBundle(LogData.io.deq.bits)
+  st_node.io.InData.valid := LogData.io.deq.valid
+  LogData.io.deq.ready := st_node.io.InData.ready
 
   io.memReq <> st_node.io.memReq
   st_node.io.memResp <> io.memResp
 
-  st_node.io.enable.bits := ControlBundle.active()
-  st_node.io.enable.valid := true.B
 
-  st_node.io.Out(0).ready := true.B
+  val (addr_cnt, wrap) = Counter(st_node.io.InData.fire, 4096)
 
-  val addr_gen = RegInit(0.U(32.W))
-
-  when(st_node.io.inData.ready && LogData.io.deq.valid ){
-    dbg_counter.inc()
-    st_node.io.inData.enq(DataBundle(LogData.io.deq.bits))
-    st_node.io.GepAddr.enq(DataBundle(addr_gen + 1.U))
-  }.otherwise{
-    st_node.io.inData.noenq()
-    st_node.io.GepAddr.noenq()
-  }
-
+  st_node.io.GepAddr.bits := DataBundle((addr_cnt << 2.U).asUInt())
+  st_node.io.GepAddr.valid := true.B
 
 
 }
 
 
-
-class NewDebugBufferNode(NumPredOps: Int = 0, NumSuccOps: Int = 0, NumOuts: Int = 1,
-                      Typ: UInt = MT_W, ID: Int, RouteID: Int)
-                     (implicit p: Parameters,
-                      name: sourcecode.Name,  file: sourcecode.File)
-  extends HandShaking(NumPredOps, NumSuccOps, NumOuts, ID)(new DataBundle)(p) {
+/**
+  * This is a test for debug store node
+  *
+  * @brief Store Node. Implements store operations
+  * @details [long description]
+  */
+class UnTypDebugStore(
+                       NumOuts: Int = 1,
+                       Typ: UInt = MT_W, ID: Int, RouteID: Int)
+                     (implicit val p: Parameters,
+                      name: sourcecode.Name,
+                      file: sourcecode.File)
+  extends Module with CoreParams with UniformPrintfs {
 
   // Set up StoreIO
-  override lazy val io = IO(new DebugBufferIO(NumPredOps, NumSuccOps, NumOuts))
+  val io = IO(new Bundle {
+
+    //Input address
+    val GepAddr = Flipped(Decoupled(new DataBundle()))
+    //Input data
+    val InData = Flipped(Decoupled(new DataBundle()))
+
+    // Memory request
+    val memReq = Decoupled(new WriteReq())
+    // Memory response.
+    val memResp = Input(Flipped(new WriteResp()))
+  })
   // Printf debugging
   val node_name = name.value
   val module_name = file.value.split("/").tail.last.split("\\.").head.capitalize
   override val printfSigil = "[" + module_name + "] " + node_name + ": " + ID + " "
   val (cycleCount, _) = Counter(true.B, 32 * 1024)
-  val inData = new DataBundle
-  val GepAddr = new DataBundle
-  //------------------------------
-  val dbg_counter = Counter(1024)
 
-  val Uniq_name_Data = "meData"
-  //val Uniq_name_Adr = "meAdr"
-  //---------------------------
-  // -------
+  /*=============================================
+  =            Register declarations            =
+  =============================================*/
 
-  for (i <- 0 until NumOuts) {
-    io.Out(i).bits := DataBundle.default
-    io.Out(i).valid := false.B
+  // OP Inputs
+  val addr_R = RegInit(DataBundle.default)
+  val addr_valid_R = RegInit(false.B)
+
+  val data_R = RegInit(DataBundle.default)
+  val data_valid_R = RegInit(false.B)
+
+  // State machine
+  val s_idle :: s_RECEIVING :: s_Done :: Nil = Enum(3)
+  val state = RegInit(s_idle)
+
+
+  // GepAddr
+  io.GepAddr.ready := ~addr_valid_R
+  when(io.GepAddr.fire()) {
+    addr_R := io.GepAddr.bits
+    addr_valid_R := true.B
   }
 
-  val LogData = Module(new Queue(UInt(4.W), 4))
-  val LogAddress = Cat(0.U((xlen - dbg_counter.value.getWidth - 2).W), dbg_counter.value << 2.U)
-
-  //  val LogAddress = Queue(Decoupled(UInt(10.W)),20)
-  val st_node = Module(new UnTypStore(NumPredOps, NumSuccOps, ID = 0, RouteID = 0))
-
-  //?
-  st_node.io.enable.bits := ControlBundle.active()
-  st_node.io.enable.valid := true.B
-
-
-  LogData.io.enq.bits := 0.U
-  LogData.io.enq.valid := false.B
-  LogData.io.deq.ready := false.B
-
-  BoringUtils.addSink(LogData.io.deq.bits, "Test_data")
-  BoringUtils.addSink(LogData.io.deq.valid, "Test_valid")
-  BoringUtils.addSource(LogData.io.enq.ready, "Test_ready")
-
-  io.memReq <> st_node.io.memReq
-  st_node.io.memResp <> io.memResp
-
-  st_node.io.enable.bits := ControlBundle.active()
-  st_node.io.enable.valid := true.B
-
-  st_node.io.Out(0).ready := true.B
-
-  val addr_gen = RegInit(0.U(32.W))
-
-  when(st_node.io.inData.ready && LogData.io.deq.valid ){
-    dbg_counter.inc()
-    st_node.io.inData.enq(DataBundle(LogData.io.deq.bits))
-    st_node.io.GepAddr.enq(DataBundle(addr_gen + 1.U))
-  }.otherwise{
-    st_node.io.inData.noenq()
-    st_node.io.GepAddr.noenq()
+  // InData
+  io.InData.ready := ~data_valid_R
+  when(io.InData.fire()) {
+    data_R := io.InData.bits
+    data_valid_R := true.B
   }
 
+  // Default values for memory ports
+  io.memReq.bits.address := addr_R.data
+  io.memReq.bits.data := data_R.data
+  io.memReq.bits.Typ := Typ
+  io.memReq.bits.RouteID := RouteID.U
+  io.memReq.bits.taskID := data_R.taskID | addr_R.taskID
+  io.memReq.bits.mask := 15.U
+  io.memReq.valid := false.B
 
+  /*=============================================
+  =            ACTIONS (possibly dangerous)     =
+  =============================================*/
+  val latch_data = addr_valid_R && data_valid_R
 
+  switch(state) {
+    is(s_idle) {
+      when(latch_data) {
+        io.memReq.valid := true.B
+        when(io.memReq.fire) {
+          state := s_RECEIVING
+        }
+      }
+    }
+    is(s_RECEIVING) {
+      when(io.memResp.valid) {
+        state := s_Done
+      }
+    }
+    is(s_Done) {
+      // Clear all the valid states.
+      addr_R := DataBundle.default
+      addr_valid_R := false.B
+      // Reset data.
+      data_R := DataBundle.default
+      data_valid_R := false.B
+
+      state := s_idle
+      if (log) {
+        printf("[LOG] " + "[" + module_name + "] [TID->%d] [STORE]" + node_name + ": Fired @ %d Mem[%d] = %d\n",
+          data_R.taskID, cycleCount, addr_R.data, data_R.data)
+      }
+    }
+  }
 }
 

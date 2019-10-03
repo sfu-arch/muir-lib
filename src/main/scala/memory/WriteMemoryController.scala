@@ -249,9 +249,6 @@ class WriteMemoryController(NumOps: Int, BaseSize: Int, NumEntries: Int)(implici
                5. Cache response demux                                                             =
   =========================================================================*/
 
-  for (i <- 0 until MLPSize) {
-  }
-
   //  Handshaking input arbiter with allocator
   in_arb.io.out.ready := alloc_arb.io.out.valid
   alloc_arb.io.out.ready := in_arb.io.out.valid

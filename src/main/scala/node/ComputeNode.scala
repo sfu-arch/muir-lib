@@ -103,14 +103,18 @@ class ComputeNode(NumOuts: Int, ID: Int, opCode: String)
   }
 
   //-------------------p
+  val address = 512.U
   if (Debug){
    when(io.DebugEnable.get){
      dbg_counter.inc()
-     CaptureLog( cycleCount, (dbg_counter.value << 2.U).asUInt())
+     CaptureLog(state, address)
+//     CaptureLog( state , (dbg_counter.value << 2.U).asUInt())
+
+
    }
   }
 
-  if(ID == 4){
+  if(ID == 4 && Debug){
     val test_value = Wire(UInt(4.W))
     val test_value_valid = Wire(Bool())
     val test_value_ready = Wire(Bool())
@@ -128,35 +132,6 @@ class ComputeNode(NumOuts: Int, ID: Int, opCode: String)
     }
   }
 
-  if (Debug) {
-
-
-//    val sourceVal = Decoupled(UInt(4.W))
-//    val adrVal    = Decoupled(UInt(10.W))
-//    sourceVal.bits := 5.U
-//    val debug_src_valid = RegInit(false.B)
-//
-//    adrVal := dbg_counter.value << 2.U
-//    sourceVal.valid := debug_src_valid
-//    adrVal.valid := debug_src_valid
-//    adrVal.valid := false.B
-//    sourceVal.valid := false.B
-//
-//    when(io.DebugEnable.get) {
-//      dbg_counter.inc()
-//      debug_src_valid := true.B
-//    }
-//    when(!io.DebugEnable.get){
-//      debug_src_valid := false.B
-//    }
-//
-//    if (ID == 4) {
-//      val Uniq_name_Data = "meData"
-//      val Uniq_name_Adr = "meAdr"
-//      BoringUtils.addSource(sourceVal, Uniq_name_Data)
-//      BoringUtils.addSource(adrVal, Uniq_name_Adr)
-//    }
-  }
 
 
   //------------------v
