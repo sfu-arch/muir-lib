@@ -15,7 +15,7 @@ import util._
  * ================================================================== */
 
 abstract class test03DFIO(implicit val p: Parameters) extends Module with CoreParams {
-    val io = IO(new Bundle {
+  val io = IO(new Bundle {
     val in = Flipped(Decoupled(new Call(List(32, 32))))
     val MemResp = Flipped(Valid(new MemResp))
     val MemReq = Decoupled(new MemReq)
@@ -31,7 +31,6 @@ class test03DF(implicit p: Parameters) extends test03DFIO()(p) {
    * ================================================================== */
 
 
-
   //-----------------------------------------------------------------------p
   val MemCtrl = Module(new UnifiedController(ID = 0, Size = 32, NReads = 0, NWrites = 2)
   //NumOps = 1 to NumOps = 2
@@ -45,6 +44,7 @@ class test03DF(implicit p: Parameters) extends test03DFIO()(p) {
 
   val InputSplitter = Module(new SplitCallNew(List(3, 3)))
   InputSplitter.io.In <> io.in
+
 
   /* ================================================================== *
    *                   PRINTING LOOP HEADERS                            *
@@ -89,8 +89,32 @@ class test03DF(implicit p: Parameters) extends test03DFIO()(p) {
   val buf_0 = Module(new DebugBufferNode(ID = 8, RouteID = 1))
 
 
-//  dontTouch(buf_0.io.memResp)
-//  dontTouch(MemCtrl.io.WriteOut(1))
+  /**
+    * Debuging states for store node
+    */
+
+  val sIdle :: sActive :: Nil = Enum(2)
+  val state = RegInit(sIdle)
+
+  switch(state) {
+    is(sIdle) {
+      when(InputSplitter.io.Out.enable.fire) {
+        state := sActive
+      }
+    }
+    is(sActive) {
+      when(ret_6.io.Out.fire) {
+        state := sIdle
+      }
+    }
+
+  }
+
+  buf_0.io.Enable := state === sActive
+
+
+  //  dontTouch(buf_0.io.memResp)
+  //  dontTouch(MemCtrl.io.WriteOut(1))
 
   //new
   //------------------------------------------------------------------------------------v
@@ -186,9 +210,9 @@ class test03DF(implicit p: Parameters) extends test03DFIO()(p) {
   ret_6.io.In.enable <> bb_0.io.Out(8)
 
   //new
-//  buf_0.io.enable.bits := ControlBundle.active()
-//  buf_0.io.enable.valid := true.B
-//  buf_0.io.Out(0).ready := true.B
+  //  buf_0.io.enable.bits := ControlBundle.active()
+  //  buf_0.io.enable.valid := true.B
+  //  buf_0.io.Out(0).ready := true.B
 
   //new
   //-----------------------------------------p
@@ -267,10 +291,10 @@ class test03DF(implicit p: Parameters) extends test03DFIO()(p) {
   data_queue.nodeq()
   addr_queue.nodeq()
 
-  when(st_0.io.inData.ready && data_queue.valid && addr_queue.valid){
+  when(st_0.io.inData.ready && data_queue.valid && addr_queue.valid) {
     st_0.io.inData.enq(data_queue.deq().asDataBundle())
     st_0.io.GepAddr.enq(addr_queue.deq().asDataBundle())
-  }.otherwise{
+  }.otherwise {
     st_0.io.inData.noenq()
     st_0.io.GepAddr.noenq()
   }

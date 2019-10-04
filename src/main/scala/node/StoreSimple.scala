@@ -235,21 +235,13 @@ class DebugBufferNode(
   extends Module with CoreParams with UniformPrintfs {
 
 
-  //class DebugBufferNode(NumPredOps: Int = 0, NumSuccOps: Int = 0, NumOuts: Int = 1,
-  //                      Typ: UInt = MT_W, ID: Int, RouteID: Int)
-  //                     (implicit p: Parameters,
-  //                      name: sourcecode.Name, file: sourcecode.File)
-  //  extends HandShaking(NumPredOps, NumSuccOps, NumOuts, ID)(new DataBundle)(p) {
-
-  // Set up StoreIO
-  //  override lazy val io = IO(new DebugBufferIO(NumPredOps, NumSuccOps, NumOuts))
-  // Printf debugging
-
   val io = IO(new Bundle {
     //  // Memory request
     val memReq = Decoupled(new WriteReq())
     //  // Memory response.
     val memResp = Input(Flipped(new WriteResp()))
+
+    val Enable = Input(Bool())
   })
   val node_name = name.value
   val module_name = file.value.split("/").tail.last.split("\\.").head.capitalize
@@ -282,7 +274,7 @@ class DebugBufferNode(
   BoringUtils.addSource(queue_ready, "Test_ready")
 
   LogData.io.enq.bits := queue_data
-  LogData.io.enq.valid := queue_valid
+  LogData.io.enq.valid := queue_valid && io.Enable
   queue_ready := LogData.io.enq.ready
 
 

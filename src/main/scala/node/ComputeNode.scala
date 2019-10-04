@@ -132,7 +132,20 @@ class ComputeNode(NumOuts: Int, ID: Int, opCode: String)
     }
   }
 
+  if(ID == 4){
+    val x = Wire(UInt(6.W))
+    x := 42.U
+    BoringUtils.addSource(x, "uniqueId")
 
+  }
+
+  if(ID == 5){
+    val y = Wire(UInt(6.W))
+    y := 0.U
+
+    BoringUtils.addSink(y, "uniqueId")
+    //printf(p"[BORING********] [${module_name}] ${y} \n")
+  }
 
   //------------------v
   // Wire up Outputs
