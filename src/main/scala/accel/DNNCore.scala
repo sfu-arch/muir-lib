@@ -29,9 +29,10 @@ import dnn.{DotNode, ReduceNode}
 import interfaces.{ControlBundle, DataBundle}
 import junctions.SplitCallNew
 import memory.{ReadTypMemoryController, WriteTypMemoryController}
-import node.{FXmatNxN, TypLoad, TypStore}
+import node.{FXmatNxN, TypLoad, TypStore, matNxN}
 import shell._
 import dnn.memory.ISA._
+import dnn_layers.MacNode
 
 /** Core.
   *
@@ -61,8 +62,12 @@ class DNNCore(implicit val p: Parameters) extends Module {
   val tl_Inst = Wire(new MemDecode)
   val ts_Inst = Wire(new MemDecode)
   val indexCnt = Counter(100)
-
   val storeIndex = RegNext(next = indexCnt.value, init = 0.U)
+
+
+  val shape = new matNxN(4, false)
+  val mac = Module(new MacNode(NumOuts = 1, lanes = 4, ID = 1)(shape))
+
 
 
   io.vcr.ecnt(0).bits := cycle_count.value
@@ -77,7 +82,6 @@ class DNNCore(implicit val p: Parameters) extends Module {
   tensorLoad2.io.start := false.B
   tensorLoad2.io.baddr := io.vcr.ptrs(1)
   tensorLoad2.io.inst := tl_Inst.asTypeOf(UInt(INST_BITS.W))
-  io.vcr.finish := tensorLoad1.io.done & tensorLoad2.io.done & tensorStore.io.done
 
 
   tensorStore.io.start := false.B

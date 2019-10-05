@@ -12,7 +12,7 @@ import node.FXmatNxN
 //import javafx.scene.chart.PieChart.Data
 import node.{AluGenerator, HandShakingIONPS, HandShakingNPS, Shapes}
 
-class MacNode[L <: Shapes : OperatorDot](NumOuts: Int, ID: Int, lanes: Int, opCode: String)(left: => L)(implicit p: Parameters)
+class MacNode[L <: Shapes : OperatorDot](NumOuts: Int, ID: Int, lanes: Int)(left: => L)(implicit p: Parameters)
   extends HandShakingNPS(NumOuts, ID)(new CustomDataBundle(UInt(left.getWidth.W)))(p) {
   override lazy val io = IO(new DotIO(NumOuts)(left))
 
