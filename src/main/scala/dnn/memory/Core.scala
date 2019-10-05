@@ -42,7 +42,7 @@ case class CoreParams(
     accBits: Int = 32,
     outBits: Int = 8,
     uopMemDepth: Int = 512,
-    inpMemDepth: Int = 2, //512,
+    inpMemDepth: Int = 4, //512,
     wgtMemDepth: Int = 512,
     accMemDepth: Int = 512,
     outMemDepth: Int = 512,
