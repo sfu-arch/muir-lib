@@ -147,8 +147,8 @@ class TensorReadReq(tensorType: String = "none")(implicit p: Parameters)
 }
 
 object TensorReadReq {
-  def default(implicit p: Parameters): TensorReadReq = {
-    val wire = Wire(new TensorReadReq)
+  def default(tensorTYpe: String = "none")(implicit p: Parameters): TensorReadReq = {
+    val wire = Wire(new TensorReadReq(tensorTYpe))
     wire.address := 0.U
     wire.taskID := 0.U
     wire.RouteID := 0.U
