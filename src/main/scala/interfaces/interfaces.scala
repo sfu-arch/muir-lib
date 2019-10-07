@@ -4,6 +4,7 @@ package interfaces
 import chisel3._
 import chisel3.util.{Decoupled, _}
 import config._
+import dnn.memory.TensorParams
 import utility.Constants._
 
 import scala.collection.immutable.ListMap
@@ -131,6 +132,56 @@ object ReadResp {
     wire
   }
 }
+
+/** Tensor Read interface into Scratchpad stack
+ *  address: Word aligned address to read from
+ *  node : dataflow node id to return data to
+ **/
+class TensorReadReq(tensorType: String = "none")(implicit p: Parameters)
+  extends RouteID {
+  val tp = new TensorParams(tensorType)
+  val address = UInt(xlen.W)
+  val taskID = UInt(tlen.W)
+  val Typ = UInt(8.W)
+
+}
+
+object TensorReadReq {
+  def default(implicit p: Parameters): TensorReadReq = {
+    val wire = Wire(new TensorReadReq)
+    wire.address := 0.U
+    wire.taskID := 0.U
+    wire.RouteID := 0.U
+    wire.Typ := MT_W
+    wire
+  }
+}
+
+
+//  data : data returned from scratchpad
+class TensorReadResp(implicit p: Parameters)
+  extends ValidT
+    with RouteID {
+  val data = UInt(xlen.W)
+
+  override def toPrintable: Printable = {
+    p"TensorReadResp {\n" +
+      p"  valid  : ${valid}\n" +
+      p"  RouteID: ${RouteID}\n" +
+      p"  data   : 0x${Hexadecimal(data)} }"
+  }
+}
+
+object TensorReadResp {
+  def default(implicit p: Parameters): TensorReadResp = {
+    val wire = Wire(new TensorReadResp)
+    wire.data := 0.U
+    wire.RouteID := 0.U
+    wire.valid := false.B
+    wire
+  }
+}
+
 
 /**
   * Write request to memory

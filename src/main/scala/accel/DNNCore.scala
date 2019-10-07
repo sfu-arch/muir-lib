@@ -65,9 +65,16 @@ class DNNCore(implicit val p: Parameters) extends Module {
   val storeIndex = RegNext(next = indexCnt.value, init = 0.U)
 
 
-  val shape = new matNxN(4, false)
-  val mac = Module(new MacNode(NumOuts = 1, lanes = 4, ID = 1)(shape))
+//  val shape = new matNxN(2, false)
+//  val mac = Module(new MacNode(NumOuts = 1, lanes = 4, ID = 1)(shape))
 
+//  mac.io.enable.bits.control := true.B
+//  mac.io.enable.valid := true.B
+
+//  mac.io.LeftIO.bits.data := tensorLoad1.io.tensor.rd.data.bits.asUInt()
+
+  val WControl = new WriteTypMemoryController(NumOps = 1, BaseSize = 2, NumEntries = 1)
+  val RControl = new ReadTypMemoryController(NumOps = 2, BaseSize = 2, NumEntries = 2))
 
 
   io.vcr.ecnt(0).bits := cycle_count.value
