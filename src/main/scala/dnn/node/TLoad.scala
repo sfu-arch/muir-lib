@@ -15,7 +15,7 @@ class TLoadIO(NumPredOps: Int, NumSuccOps: Int, NumOuts: Int, tensorType: String
   // GepAddr: The calculated address comming from GEP node
   val GepAddr = Flipped(Decoupled(new DataBundle))
   // Tensor request
-  val tensorReq  = Decoupled(new TensorReadReq())
+  val tensorReq  = Decoupled(new TensorReadReq(tensorType))
   // Tensor response.
   val tensorResp = Input(Flipped(new TensorReadResp()))
 
@@ -30,15 +30,16 @@ class TLoadIO(NumPredOps: Int, NumSuccOps: Int, NumOuts: Int, tensorType: String
 class TLoad(NumPredOps: Int,
             NumSuccOps: Int,
             NumOuts: Int,
-            ID: Int,
-            RouteID: Int)
+            ID: Int = 0,
+            RouteID: Int = 0,
+            tensorType: String = "none")
            (implicit p: Parameters,
               name: sourcecode.Name,
               file: sourcecode.File)
   extends HandShaking(NumPredOps, NumSuccOps, NumOuts, ID)(new TypBundle)(p) {
 
   // Set up StoreIO
-  override lazy val io = IO(new TLoadIO(NumPredOps, NumSuccOps, NumOuts))
+  override lazy val io = IO(new TLoadIO(NumPredOps, NumSuccOps, NumOuts, tensorType))
   // Printf debugging
   val node_name       = name.value
   val module_name     = file.value.split("/").tail.last.split("\\.").head.capitalize
