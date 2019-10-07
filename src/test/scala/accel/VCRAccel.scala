@@ -58,7 +58,7 @@ class TestAccel2(implicit p: Parameters) extends MultiIOModule {
 // vta_shell.io.host <> sim_shell.host
 }
 
-class DefaultDe10Config extends Config(new De10Config ++ new CoreConfig)
+class DefaultDe10Config extends Config(new De10Config ++ new CoreConfig ++ new MiniConfig)
 class  DefaultPynqConfig extends Config(new PynqConfig ++ new CoreConfig)
 
 object TestXilinxShellMain extends App {
