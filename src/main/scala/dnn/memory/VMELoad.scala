@@ -5,7 +5,7 @@ import chisel3.util._
 import config._
 import dnn._
 import interfaces.{ControlBundle, DataBundle, TypBundle, WriteReq, WriteResp}
-import node.TypStore
+import node.TStore
 import shell._
 
 /**
@@ -28,7 +28,7 @@ class VMELoad(debug: Boolean = false)(implicit val p: Parameters) extends Module
   val WriteDataCounter = Counter(math.pow(2, io.vme_cmd.bits.lenBits).toInt)
   val buffer = Module(new Queue(io.vme_read.data.bits.cloneType, 50))
 
-  val StoreType = Module(new TypStore(NumPredOps = 0, NumSuccOps = 0, NumOuts = 1, ID = 0, RouteID = 0))
+  val StoreType = Module(new TStore(NumPredOps = 0, NumSuccOps = 0, NumOuts = 1, ID = 0, RouteID = 0))
 
   StoreType.io.inData.bits := TypBundle.default
   StoreType.io.inData.valid := false.B

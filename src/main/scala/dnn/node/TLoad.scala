@@ -9,17 +9,14 @@ import node.{HandShaking, HandShakingIOPS}
 import utility.Constants._
 
 
-class TLoadIO(NumPredOps: Int, NumSuccOps: Int, NumOuts: Int, tensorType: String = "none")(implicit p: Parameters) extends HandShakingIOPS(NumPredOps, NumSuccOps, NumOuts)(new TypBundle) {
-  // Node specific IO
+class TLoadIO(NumPredOps: Int, NumSuccOps: Int, NumOuts: Int, tensorType: String = "none")(implicit p: Parameters)
+  extends HandShakingIOPS(NumPredOps, NumSuccOps, NumOuts)(new TypBundle) {
   val tp = new TensorParams(tensorType)
-  // GepAddr: The calculated address comming from GEP node
   val GepAddr = Flipped(Decoupled(new DataBundle))
-  // Tensor request
   val tensorReq  = Decoupled(new TensorReadReq(tensorType))
-  // Tensor response.
-  val tensorResp = Input(Flipped(new TensorReadResp()))
+  val tensorResp = Input(Flipped(new TensorReadResp(tensorType)))
 
-  override def cloneType = new TLoadIO(NumPredOps, NumSuccOps, NumOuts).asInstanceOf[this.type]
+  override def cloneType = new TLoadIO(NumPredOps, NumSuccOps, NumOuts, tensorType).asInstanceOf[this.type]
 }
 
 /**
@@ -62,7 +59,7 @@ class TLoad(NumPredOps: Int,
 
   // State machine
   val s_idle :: s_RECEIVING :: s_Done :: Nil = Enum(3)
-  val state                                  = RegInit(s_idle)
+  val state = RegInit(s_idle)
 
 
   /*================================================
@@ -94,8 +91,8 @@ class TLoad(NumPredOps: Int,
   }
 
   io.tensorReq.valid := false.B
-  io.tensorReq.bits.address := addr_R.data
-  io.tensorReq.bits.Typ := MT_W
+  io.tensorReq.bits.index := addr_R.data
+//  io.tensorReq.bits.Typ := MT_W
   io.tensorReq.bits.RouteID := RouteID.U
   io.tensorReq.bits.taskID := addr_R.taskID
 
@@ -113,8 +110,8 @@ class TLoad(NumPredOps: Int,
     is(s_idle) {
       when(IsEnableValid() && mem_req_fire) {
         when(predicate) {
-          io.memReq.valid := true.B
-          when(io.memReq.ready) {
+          io.tensorReq.valid := true.B
+          when(io.tensorReq.ready) {
             state := s_RECEIVING
           }
         }.otherwise {
@@ -127,8 +124,8 @@ class TLoad(NumPredOps: Int,
       }
     }
     is(s_RECEIVING) {
-      when(io.memResp.valid && (recvptr =/= (Beats).U)) {
-        linebuffer(recvptr) := io.memResp.data
+      when(io.tensorResp.valid && (recvptr =/= (Beats).U)) {
+        linebuffer(recvptr) := io.tensorResp.data
         recvptr := recvptr + 1.U
       }
       when(recvptr === (Beats).U) {

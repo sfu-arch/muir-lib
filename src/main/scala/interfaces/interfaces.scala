@@ -133,48 +133,46 @@ object ReadResp {
   }
 }
 
-/** Tensor Read interface into Scratchpad stack
- *  address: Word aligned address to read from
+/** Tensor Read interface into tensorFile of TensorLoads
+ *  index: index of tensorFile
  *  node : dataflow node id to return data to
  **/
 class TensorReadReq(tensorType: String = "none")(implicit p: Parameters)
   extends RouteID {
   val tp = new TensorParams(tensorType)
-  val address = UInt(xlen.W)
+  val index = UInt(tp.memAddrBits.W)
   val taskID = UInt(tlen.W)
-  val Typ = UInt(8.W)
-
 }
 
 object TensorReadReq {
-  def default(tensorTYpe: String = "none")(implicit p: Parameters): TensorReadReq = {
-    val wire = Wire(new TensorReadReq(tensorTYpe))
-    wire.address := 0.U
+  def default(tensorType: String = "none")(implicit p: Parameters): TensorReadReq = {
+    val wire = Wire(new TensorReadReq(tensorType))
+    wire.index := 0.U
     wire.taskID := 0.U
     wire.RouteID := 0.U
-    wire.Typ := MT_W
     wire
   }
 }
 
 
-//  data : data returned from scratchpad
-class TensorReadResp(implicit p: Parameters)
+//  data : data returned from tensorFile
+class TensorReadResp(tensorType: String = "none")(implicit p: Parameters)
   extends ValidT
     with RouteID {
-  val data = UInt(xlen.W)
+  val tp = new TensorParams(tensorType)
+  val data = Vec(tp.tensorLength, Vec(tp.tensorWidth, UInt(tp.tensorElemBits.W)))
 
   override def toPrintable: Printable = {
     p"TensorReadResp {\n" +
       p"  valid  : ${valid}\n" +
       p"  RouteID: ${RouteID}\n" +
-      p"  data   : 0x${Hexadecimal(data)} }"
+      p"  data   : 0x${Hexadecimal(data.asUInt())} }"
   }
 }
 
 object TensorReadResp {
-  def default(implicit p: Parameters): TensorReadResp = {
-    val wire = Wire(new TensorReadResp)
+  def default(tensorType: String = "none")(implicit p: Parameters): TensorReadResp = {
+    val wire = Wire(new TensorReadResp(tensorType))
     wire.data := 0.U
     wire.RouteID := 0.U
     wire.valid := false.B
@@ -217,6 +215,42 @@ object WriteReq {
 
 // Explicitly indicate done flag
 class WriteResp(implicit p: Parameters)
+  extends ValidT
+    with RouteID {
+  val done = Bool()
+}
+
+/**
+  * Tensor Write request to tensorFile
+  * @param p [description]
+  * @return [description]
+  */
+
+class TensorWriteReq(tensorType: String = "none")(implicit p: Parameters)
+  extends RouteID {
+  val tp = new TensorParams(tensorType)
+  val index = UInt(tp.memAddrBits.W)
+  val data = UInt(xlen.W)
+  val mask = UInt((xlen / 8).W)
+  val taskID = UInt(tlen.W)
+  val Typ = UInt(8.W)
+}
+
+object TensorWriteReq {
+  def default(tensortype: String = "none")(implicit p: Parameters): TensorWriteReq = {
+    val wire = Wire(new TensorWriteReq)
+    wire.index := 0.U
+    wire.data := 0.U
+    wire.mask := 0.U
+    wire.taskID := 0.U
+    wire.RouteID := 0.U
+    wire.Typ := MT_W
+    wire
+  }
+}
+
+// Explicitly indicate done flag
+class TensorWriteResp(tensorType: String = "none")(implicit p: Parameters)
   extends ValidT
     with RouteID {
   val done = Bool()

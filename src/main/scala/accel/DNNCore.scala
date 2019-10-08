@@ -73,8 +73,8 @@ class DNNCore(implicit val p: Parameters) extends Module {
 
 //  mac.io.LeftIO.bits.data := tensorLoad1.io.tensor.rd.data.bits.asUInt()
 
-  val WControl = new WriteTypMemoryController(NumOps = 1, BaseSize = 2, NumEntries = 1)
-  val RControl = new ReadTypMemoryController(NumOps = 2, BaseSize = 2, NumEntries = 2))
+//  val WControl = new WriteTypMemoryController(NumOps = 1, BaseSize = 2, NumEntries = 1)
+//  val RControl = new ReadTypMemoryController(NumOps = 2, BaseSize = 2, NumEntries = 2)
 
 
   io.vcr.ecnt(0).bits := cycle_count.value

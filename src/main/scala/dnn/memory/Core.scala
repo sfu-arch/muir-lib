@@ -19,15 +19,10 @@
 
 package dnn.memory
 
-import chisel3._
-import dnn._
 
 import chisel3._
 import chisel3.util._
 import config._
-import dnn._
-import interfaces.{ControlBundle, DataBundle, TypBundle, WriteReq, WriteResp}
-import node.TypStore
 import shell._
 
 
