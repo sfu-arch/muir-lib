@@ -259,6 +259,8 @@ class DebugBufferNode(
 
   val LogData = Module(new Queue(UInt(xlen.W), 4))
 
+
+
   val st_node = Module(new UnTypDebugStore(ID = 0, RouteID = RouteID))
 
   LogData.io.enq.bits := 0.U

@@ -113,10 +113,6 @@ class test03DF(implicit p: Parameters) extends test03DFIO()(p) {
   buf_0.io.Enable := state === sActive
 
 
-  //  dontTouch(buf_0.io.memResp)
-  //  dontTouch(MemCtrl.io.WriteOut(1))
-
-  //new
   //------------------------------------------------------------------------------------v
 
   /* ================================================================== *
@@ -283,7 +279,7 @@ class test03DF(implicit p: Parameters) extends test03DFIO()(p) {
 
   binaryOp_4.io.LeftIO <> InputSplitter.io.Out.data.elements("field1")(2)
 
-  //------------------------------------------p
+  //------------------------------------------p for handshaking debugging
 
   val data_queue = Queue(binaryOp_4.io.LogCheck.get, 20)
   val addr_queue = Queue(binaryOp_4.io.LogCheckAddr.get, 20)
