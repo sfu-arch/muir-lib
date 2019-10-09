@@ -173,7 +173,7 @@ class TensorReadResp(tensorType: String = "none")(implicit p: Parameters)
 object TensorReadResp {
   def default(tensorType: String = "none")(implicit p: Parameters): TensorReadResp = {
     val wire = Wire(new TensorReadResp(tensorType))
-    wire.data := 0.U
+    wire.data.foreach( _.foreach(_ := 0.U))
     wire.RouteID := 0.U
     wire.valid := false.B
     wire
@@ -230,21 +230,19 @@ class TensorWriteReq(tensorType: String = "none")(implicit p: Parameters)
   extends RouteID {
   val tp = new TensorParams(tensorType)
   val index = UInt(tp.memAddrBits.W)
-  val data = UInt(xlen.W)
+  val data = Vec(tp.tensorLength, Vec(tp.tensorWidth, UInt(tp.tensorElemBits.W)))
   val mask = UInt((xlen / 8).W)
   val taskID = UInt(tlen.W)
-  val Typ = UInt(8.W)
 }
 
 object TensorWriteReq {
-  def default(tensortype: String = "none")(implicit p: Parameters): TensorWriteReq = {
-    val wire = Wire(new TensorWriteReq)
+  def default(tensorType: String = "none")(implicit p: Parameters): TensorWriteReq = {
+    val wire = Wire(new TensorWriteReq(tensorType))
     wire.index := 0.U
-    wire.data := 0.U
+    wire.data.foreach( _.foreach(_ := 0.U))
     wire.mask := 0.U
     wire.taskID := 0.U
     wire.RouteID := 0.U
-    wire.Typ := MT_W
     wire
   }
 }
@@ -256,6 +254,7 @@ class TensorWriteResp(tensorType: String = "none")(implicit p: Parameters)
   val done = Bool()
 }
 
+// ----------------------------------------------
 //  data : data returned from scratchpad
 class FUResp(implicit p: Parameters)
   extends ValidT

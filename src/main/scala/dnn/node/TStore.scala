@@ -12,11 +12,10 @@ import utility.Constants._
 class TStoreIO(NumPredOps: Int, NumSuccOps: Int, NumOuts: Int, tensorType: String = "none")(implicit p: Parameters)
   extends HandShakingIOPS(NumPredOps, NumSuccOps, NumOuts)(new TypBundle) {
   val tp = new TensorParams(tensorType)
-
   val GepAddr = Flipped(Decoupled(new DataBundle))
   val inData  = Flipped(Decoupled(new TypBundle))
-  val tensorReq   = Decoupled(new TensorWriteReq())
-  val tensorResp  = Input(Flipped(new tensorWriteResp()))
+  val tensorReq   = Decoupled(new TensorWriteReq(tensorType))
+  val tensorResp  = Input(Flipped(new TensorWriteResp(tensorType)))
 
   override def cloneType = new TStoreIO(NumPredOps, NumSuccOps, NumOuts).asInstanceOf[this.type]
 }
@@ -31,14 +30,15 @@ class TStore(NumPredOps: Int,
              NumSuccOps: Int,
              NumOuts: Int,
              ID: Int,
-             RouteID: Int)
-            (implicit p: Parameters,
+             RouteID: Int,
+             tensorType: String = "none")
+             (implicit p: Parameters,
                name: sourcecode.Name,
                file: sourcecode.File)
   extends HandShaking(NumPredOps, NumSuccOps, NumOuts, ID)(new TypBundle)(p) {
 
   // Set up StoreIO
-  override lazy val io = IO(new TStoreIO(NumPredOps, NumSuccOps, NumOuts))
+  override lazy val io = IO(new TStoreIO(NumPredOps, NumSuccOps, NumOuts, tensorType))
 
   // Printf debugging
   val node_name = name.value
@@ -104,13 +104,13 @@ class TStore(NumPredOps: Int,
 
 
   // Outgoing Address Req ->
-  io.memReq.valid := false.B
-  io.memReq.bits.address := addr_R.data
-  io.memReq.bits.data    := buffer(sendptr.value)
-  io.memReq.bits.Typ := MT_W
-  io.memReq.bits.RouteID := RouteID.U
-  io.memReq.bits.taskID  := enable_R.taskID | addr_R.taskID | data_R.taskID
-  io.memReq.bits.mask    := 15.U
+  io.tensorReq.valid := false.B
+  io.tensorReq.bits.index := addr_R.data
+  io.tensorReq.bits.data    := buffer(sendptr.value)
+//  io.tensorReq.bits.Typ := MT_W
+  io.tensorReq.bits.RouteID := RouteID.U
+  io.tensorReq.bits.taskID  := enable_R.taskID | addr_R.taskID | data_R.taskID
+  io.tensorReq.bits.mask    := 15.U
 
   // Connect successors outputs to the enable status
   when(io.enable.fire()) {
@@ -123,9 +123,9 @@ class TStore(NumPredOps: Int,
     switch(state) {
       is(s_idle) {
         when(enable_valid_R && mem_req_fire) {
-          io.memReq.valid := true.B
+          io.tensorReq.valid := true.B
           // Arbitration ready. Move on to the next word
-          when(io.memReq.fire()) {
+          when(io.tensorReq.fire()) {
             sendptr.inc()
             // If last word then move to next state.
             when(sendptr.value === (Beats - 1).U) {
@@ -136,7 +136,7 @@ class TStore(NumPredOps: Int,
       }
       is(s_RECEIVING) {
         //  ACTION:  <- Incoming Data
-        when(io.memResp.valid) {
+        when(io.tensorResp.valid) {
           // Set output to valid
           ValidSucc()
           ValidOut()
