@@ -15,7 +15,6 @@ import dnn.types.MAC
 import interfaces._
 import muxes._
 import util._
-import node._
 import utility.UniformPrintfs
 
 

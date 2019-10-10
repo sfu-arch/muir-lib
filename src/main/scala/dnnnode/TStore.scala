@@ -1,23 +1,22 @@
-package dnn.node
+package dnnnode
 
 import chisel3._
 import chisel3.util._
 import config._
 import dnn.memory.TensorParams
 import interfaces._
-import node.{HandShaking, HandShakingIOPS}
+import node.{HandShaking, HandShakingIOPS, Shapes}
 import utility.Constants._
 
 
-class TStoreIO(NumPredOps: Int, NumSuccOps: Int, NumOuts: Int, tensorType: String = "none")(implicit p: Parameters)
-  extends HandShakingIOPS(NumPredOps, NumSuccOps, NumOuts)(new TypBundle) {
-  val tp = new TensorParams(tensorType)
+class TStoreIO[gen <: Shapes](NumPredOps: Int, NumSuccOps: Int, NumOuts: Int)(shape: => gen)(implicit p: Parameters)
+  extends HandShakingIOPS(NumPredOps, NumSuccOps, NumOuts)(new CustomDataBundle(UInt(shape.getWidth.W))) {
   val GepAddr = Flipped(Decoupled(new DataBundle))
   val inData  = Flipped(Decoupled(new TypBundle))
-  val tensorReq   = Decoupled(new TensorWriteReq(tensorType))
-  val tensorResp  = Input(Flipped(new TensorWriteResp(tensorType)))
+  val tensorReq   = Decoupled(new TensorWriteReq(shape.getWidth))
+  val tensorResp  = Input(Flipped(new TensorWriteResp))
 
-  override def cloneType = new TStoreIO(NumPredOps, NumSuccOps, NumOuts).asInstanceOf[this.type]
+  override def cloneType = new TStoreIO(NumPredOps, NumSuccOps, NumOuts)(shape).asInstanceOf[this.type]
 }
 
 /**
@@ -26,19 +25,14 @@ class TStoreIO(NumPredOps: Int, NumSuccOps: Int, NumOuts: Int, tensorType: Strin
  *
  * @param NumPredOps [Number of predicate memory operations]
  */
-class TStore(NumPredOps: Int,
-             NumSuccOps: Int,
-             NumOuts: Int,
-             ID: Int,
-             RouteID: Int,
-             tensorType: String = "none")
-             (implicit p: Parameters,
-               name: sourcecode.Name,
-               file: sourcecode.File)
-  extends HandShaking(NumPredOps, NumSuccOps, NumOuts, ID)(new TypBundle)(p) {
-
-  // Set up StoreIO
-  override lazy val io = IO(new TStoreIO(NumPredOps, NumSuccOps, NumOuts, tensorType))
+class TStore[L <: Shapes](NumPredOps: Int,
+                          NumSuccOps: Int,
+                          NumOuts: Int,
+                          ID: Int = 0,
+                          RouteID: Int)(shape: => L)
+                         (implicit p: Parameters, name: sourcecode.Name, file: sourcecode.File)
+  extends HandShaking(NumPredOps, NumSuccOps, NumOuts, ID)(new CustomDataBundle(UInt(shape.getWidth.W)))(p) {
+  override lazy val io = IO(new TStoreIO(NumPredOps, NumSuccOps, NumOuts)(shape))
 
   // Printf debugging
   val node_name = name.value

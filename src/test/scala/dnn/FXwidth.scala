@@ -5,9 +5,7 @@ import chisel3._
 import Chisel.iotesters.{ChiselFlatSpec, SteppedHWIOTester}
 import chisel3.iotesters._
 import config._
-import node.{FXmatNxN, FXvecN, Shapes}
 import org.scalatest.{FlatSpec, Matchers}
-import node._
 
 
 class WidthTests(df: changeWidth[FXmatNxN])(implicit p: config.Parameters) extends PeekPokeTester(df) {

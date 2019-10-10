@@ -14,7 +14,6 @@ import dnn.types.TwoOperand
 import interfaces._
 import muxes._
 import util._
-import node._
 import utility.UniformPrintfs
 
 

@@ -14,7 +14,6 @@ import dnn.types.TwoOperand
 import interfaces._
 import muxes._
 import util._
-import node._
 import utility.UniformPrintfs
 
 class NCycle_Reduction[T <: Data : TwoOperand.OperatorTwoOperand](val gen: T, val N: Int, val pipelined: Boolean = false, val opcode: String)
