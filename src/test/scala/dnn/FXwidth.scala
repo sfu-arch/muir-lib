@@ -5,6 +5,7 @@ import chisel3._
 import Chisel.iotesters.{ChiselFlatSpec, SteppedHWIOTester}
 import chisel3.iotesters._
 import config._
+import node._
 import org.scalatest.{FlatSpec, Matchers}
 
 

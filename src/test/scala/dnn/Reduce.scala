@@ -5,6 +5,7 @@ import chisel3.iotesters.PeekPokeTester
 import config._
 import org.scalatest.{FlatSpec, Matchers}
 import FPU._
+import node._
 
 // Tester.
 class ReduceCompTests(df: ReduceNode[matNxN])

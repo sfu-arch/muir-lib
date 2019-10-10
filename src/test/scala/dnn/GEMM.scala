@@ -3,6 +3,7 @@ package dnn
 import chisel3._
 import chisel3.iotesters.PeekPokeTester
 import config._
+import node._
 import org.scalatest.{FlatSpec, Matchers}
 
 
