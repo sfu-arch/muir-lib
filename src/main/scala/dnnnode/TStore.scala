@@ -45,7 +45,8 @@ class TStore[L <: Shapes](NumPredOps: Int,
 
   // OP Inputs
   val addr_R = RegInit(DataBundle.default)
-  val data_R = RegInit(DataBundle.default)
+//  val data_R = RegInit(DataBundle.default)
+  val data_R = RegInit(CustomDataBundle.default(0.U(shape.getWidth.W)))
   val addr_valid_R = RegInit(false.B)
   val data_valid_R = RegInit(false.B)
 
@@ -138,7 +139,7 @@ class TStore[L <: Shapes](NumPredOps: Int,
         addr_R := DataBundle.default
         addr_valid_R := false.B
         // Reset data.
-        data_R := DataBundle.default
+        data_R := CustomDataBundle.default(0.U(shape.getWidth.W))
         data_valid_R := false.B
         // Clear all other state
         Reset()

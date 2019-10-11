@@ -21,8 +21,8 @@ class TStoreNodeTests(df: TStore[matNxN]) (implicit p: config.Parameters) extend
     poke(df.io.tensorResp.valid,false)
 
 
-    poke(c.io.SuccOp(0).ready,true)
-    poke(c.io.Out(0).ready,false)
+    poke(df.io.SuccOp(0).ready,true)
+    poke(df.io.Out(0).ready,false)
 
 
     for (t <- 0 until 20) {
@@ -31,30 +31,30 @@ class TStoreNodeTests(df: TStore[matNxN]) (implicit p: config.Parameters) extend
 
       //IF ready is set
       // send address
-      if (peek(c.io.GepAddr.ready) == 1) {
-        poke(c.io.GepAddr.valid, true)
-        poke(c.io.GepAddr.bits.data, 12)
-        poke(c.io.GepAddr.bits.predicate, true)
-        poke(c.io.inData.valid, true)
-        poke(c.io.inData.bits.data, t+1)
-        poke(c.io.inData.bits.predicate,true)
+      if (peek(df.io.GepAddr.ready) == 1) {
+        poke(df.io.GepAddr.valid, true)
+        poke(df.io.GepAddr.bits.data, 12)
+        poke(df.io.GepAddr.bits.predicate, true)
+        poke(df.io.inData.valid, true)
+        poke(df.io.inData.bits.data, t+1)
+        poke(df.io.inData.bits.predicate,true)
 // //         poke(c.io.inData.bits.valid,true)
-        poke(c.io.enable.bits.control,true)
-        poke(c.io.enable.valid,true)
+        poke(df.io.enable.bits.control,true)
+        poke(df.io.enable.valid,true)
       }
 
-      if((peek(c.io.tensorReq.valid) == 1) && (t > 4))
+      if((peek(df.io.tensorReq.valid) == 1) && (t > 4))
       {
-        poke(c.io.tensorReq.ready,true)
+        poke(df.io.tensorReq.ready,true)
       }
 
-      if (t > 5 && peek(c.io.tensorReq.ready) == 1)
+      if (t > 5 && peek(df.io.tensorReq.ready) == 1)
       {
         // poke(c.io.memReq.ready,false)
         // poke(c.io.memResp.data,t)
-        poke(c.io.tensorResp.valid,true)
+        poke(df.io.tensorResp.valid,true)
       }
-          printf(s"t: ${t}  io.Out: ${peek(c.io.Out(0))} \n")
+          printf(s"t: ${t}  io.Out: ${peek(df.io.Out(0))} \n")
 
     }
 

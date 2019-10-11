@@ -141,7 +141,7 @@ class TLoad[L <: Shapes](NumPredOps: Int,
         state := s_idle
         if (log) {
           printf("[LOG] " + "[" + module_name + "] [TID->%d] [LOAD] " + node_name + ": Output fired @ %d, Address:%d, Value: %d\n",
-            enable_R.taskID, cycleCount, addr_R.data, data_R.data.asUInt())
+            enable_R.taskID, cycleCount, addr_R.data, data_R.data)
           //printf("DEBUG " + node_name + ": $%d = %d\n", addr_R.data, data_R.data)
         }
       }
@@ -156,7 +156,7 @@ class TLoad[L <: Shapes](NumPredOps: Int,
       case "med" => {}
       case "low" => {
         printfInfo("Cycle %d : { \"Inputs\": {\"GepAddr\": %x},", x, (addr_valid_R))
-        printf("\"State\": {\"State\": \"%x\", \"data_R(Valid,Data,Pred)\":\"%x,%x,%x\" },", state, data_valid_R, data_R.data.asUInt(), data_R.predicate)
+        printf("\"State\": {\"State\": \"%x\", \"data_R(Valid,Data,Pred)\":\"%x,%x,%x\" },", state, data_valid_R, data_R.data, data_R.predicate)
         printf("\"Outputs\": {\"Out\": %x}", io.Out(0).fire())
         printf("}")
       }

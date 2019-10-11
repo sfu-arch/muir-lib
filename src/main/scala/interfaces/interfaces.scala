@@ -224,6 +224,7 @@ class WriteResp(implicit p: Parameters)
 
 class TensorWriteReq(val dataWidth: Int)(implicit p: Parameters)
   extends RouteID {
+  override def cloneType = new TensorWriteReq(dataWidth).asInstanceOf[this.type]
   val index = UInt(xlen.W)
   val data = UInt(dataWidth.W)
   val mask = UInt((xlen / 8).W)
