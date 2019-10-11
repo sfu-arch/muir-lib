@@ -156,6 +156,8 @@ object TensorReadReq {
 //  data : data returned from tensorFile
 class TensorReadResp(val dataWidth: Int)(implicit p: Parameters) extends ValidT  with RouteID {
   val data = UInt(dataWidth.W)
+  override def cloneType = new TensorReadResp(dataWidth).asInstanceOf[this.type]
+
   override def toPrintable: Printable = {
     p"TensorReadResp {\n" +
       p"  valid  : ${valid}\n" +
