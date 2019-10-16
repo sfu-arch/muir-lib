@@ -101,6 +101,26 @@ class TensorMaster(tensorType: String = "none")(implicit p: Parameters)
     new TensorMaster(tensorType).asInstanceOf[this.type]
 }
 
+/** TensorReadMaster.
+  *
+  * This interface issue read tensor-requests to scratchpads (TensorLoads).
+  */
+class TensorReadMaster(tensorType: String = "none")(implicit p: Parameters)
+  extends TensorParams(tensorType) {
+  val rd = new Bundle {
+    val idx = ValidIO(UInt(memAddrBits.W))
+    val data = Flipped(
+      ValidIO(Vec(tensorLength, Vec(tensorWidth, UInt(tensorElemBits.W)))))
+  }
+  def tieoffRead() {
+    rd.idx.valid := false.B
+    rd.idx.bits := 0.U
+  }
+  override def cloneType =
+    new TensorReadMaster(tensorType).asInstanceOf[this.type]
+}
+
+
 /** TensorClient.
   *
   * This interface receives read and write tensor-requests to scratchpads. For example,

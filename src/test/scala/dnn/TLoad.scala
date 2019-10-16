@@ -30,16 +30,6 @@ class TLoadNodeTests(df: TLoad[matNxN]) (implicit p: config.Parameters) extends 
   sigs zip Control("Default") map {case(s,d) => poke(s,d)}
   sigs zip Control("Active") map {case(s,d) => poke(s,d)}
 
-  // Enable1.valid,
-  // Enable1.control,
-  // Input1.valid,
-  // Input1.data,
-  // Input1.predicate,
-  // Pred op.valid,
-  // memReq.valid,
-  // memreq.ready,
-  // Succ_op,
-  // io.Out
 
     for (t <- 0 until 20) {
              step(1)
@@ -56,7 +46,8 @@ class TLoadNodeTests(df: TLoad[matNxN]) (implicit p: config.Parameters) extends 
 
       if (t > 5 && peek(df.io.tensorReq.ready) == 1)
       {
-        poke(df.io.tensorResp.data,t)
+//        poke(df.io.tensorResp.data,t)
+        poke(df.io.tensorResp.data, 0xdeadbeef+t)
         poke(df.io.tensorResp.valid,true)
       }
     }
