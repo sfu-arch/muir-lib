@@ -27,15 +27,14 @@ class WriteTensorController[L <: Shapes] (NumOps: Int, tensorType: String = "non
   io.tensor.wr.bits.idx := io.WriteIn.bits.index
   io.tensor.wr.bits.data := io.WriteIn.bits.data.asTypeOf(io.tensor.wr.bits.data)
 
-  //io.tensor.wr.bits.data.asUInt() <> io.WriteIn.bits.data
   io.WriteOut.valid := io.tensor.wr.valid
 
   io.tensor.wr.valid := true.B
 
   io.tensor.rd <> DontCare
 
-  io.WriteOut <> DontCare
-  io.WriteIn <> DontCare
+//  io.WriteOut <> DontCare
+//  io.WriteIn <> DontCare
   /*=============================================
   =           Declare Read Table                =
   =============================================*/
