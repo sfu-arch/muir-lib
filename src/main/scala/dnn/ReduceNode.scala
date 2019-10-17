@@ -123,7 +123,11 @@ class ReduceNode[L <: Shapes : OperatorReduction](NumOuts: Int, ID: Int, pipelin
   }
 
 
-  printf(p"\n State : ${state} Output: ${data_R}")
+  /**
+    * Cant print value with more than 64bits.
+    * In this example value is > 64bits
+    */
+  //printf(p"\n State : ${state} Output: ${data_R}")
 
   var classname: String = (left.getClass).toString
   var signed            = "S"

@@ -85,7 +85,7 @@ class DNNCore(implicit val p: Parameters) extends Module {
      *                      Basic Block signals                         *
      * ================================================================== */
 
-  conv_bb.io.predicateIn.bits.control := io.vcr.launch
+  conv_bb.io.predicateIn.bits := ControlBundle(io.vcr.launch)
   conv_bb.io.predicateIn.valid := io.vcr.launch
 
   LoadA.io.enable <> conv_bb.io.Out(0)
@@ -113,17 +113,17 @@ class DNNCore(implicit val p: Parameters) extends Module {
   /* ================================================================== *
      *         read/write Tensor Controllers signals                    *
      * ================================================================== */
-  readTensorController1.io.ReadIn <> LoadA.io.tensorReq
-  LoadA.io.tensorResp <> readTensorController1.io.ReadOut
+  readTensorController1.io.ReadIn(0) <> LoadA.io.tensorReq
+  LoadA.io.tensorResp <> readTensorController1.io.ReadOut(0)
   tensorLoad1.io.tensor <> readTensorController1.io.tensor
 
-  readTensorController2.io.ReadIn <> LoadB.io.tensorReq
-  LoadB.io.tensorResp <> readTensorController2.io.ReadOut
+  readTensorController2.io.ReadIn(0) <> LoadB.io.tensorReq
+  LoadB.io.tensorResp <> readTensorController2.io.ReadOut(0)
   tensorLoad2.io.tensor <> readTensorController2.io.tensor
 
 
-  writeTensorController.io.WriteIn <> Store.io.tensorReq
-  Store.io.tensorResp <> writeTensorController.io.WriteOut
+  writeTensorController.io.WriteIn(0) <> Store.io.tensorReq
+  Store.io.tensorResp <> writeTensorController.io.WriteOut(0)
   tensorStore.io.tensor <> writeTensorController.io.tensor
 
   /* ================================================================== *
@@ -142,6 +142,8 @@ class DNNCore(implicit val p: Parameters) extends Module {
   Store.io.GepAddr.valid := true.B
   Store.io.GepAddr.bits.taskID := 0.U
   Store.io.GepAddr.bits.data := storeIndex
+
+  Store.io.GepAddr.bits := DataBundle(storeIndex)
 
   Store.io.PredOp(0) <> LoadA.io.SuccOp(0)
   Store.io.PredOp(1) <> LoadB.io.SuccOp(0)

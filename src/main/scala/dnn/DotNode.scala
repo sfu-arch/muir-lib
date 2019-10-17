@@ -141,7 +141,11 @@ class DotNode[L <: Shapes : OperatorDot](NumOuts: Int, ID: Int, lanes: Int, opCo
   }
 
 
-  printf(p"\n State : ${state} Predicate ${predicate} Left ${left_R} Right ${right_R} Output: ${data_R}")
+  /**
+    * Cant print value with more than 64bits.
+    * In this example value is > 64bits
+    */
+  //printf(p"\n State : ${state} Predicate ${predicate} Left ${left_R} Right ${right_R} Output: ${data_R}")
 
   var classname: String = (left.getClass).toString
   var signed            = "S"

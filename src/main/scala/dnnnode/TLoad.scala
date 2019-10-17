@@ -12,7 +12,7 @@ import utility.Constants._
 class TLoadIO[gen <: Shapes](NumPredOps: Int, NumSuccOps: Int, NumOuts: Int)(shape: => gen)(implicit p: Parameters)
   extends HandShakingIOPS(NumPredOps, NumSuccOps, NumOuts)(new CustomDataBundle(UInt(shape.getWidth.W))) {
   val GepAddr = Flipped(Decoupled(new DataBundle))
-  val tensorReq  = Decoupled(new TensorReadReq())
+  val tensorReq = Decoupled(new TensorReadReq())
   val tensorResp = Input(Flipped(new TensorReadResp(shape.getWidth)))
 
   override def cloneType = new TLoadIO(NumPredOps, NumSuccOps, NumOuts)(shape).asInstanceOf[this.type]
@@ -82,7 +82,7 @@ class TLoad[L <: Shapes](NumPredOps: Int,
 
   io.tensorReq.valid := false.B
   io.tensorReq.bits.index := addr_R.data
-//  io.tensorReq.bits.Typ := Typ
+  //  io.tensorReq.bits.Typ := Typ
   io.tensorReq.bits.RouteID := RouteID.U
   io.tensorReq.bits.taskID := addr_R.taskID
 
@@ -139,11 +139,16 @@ class TLoad[L <: Shapes](NumPredOps: Int,
         Reset()
         // Reset state.
         state := s_idle
-        if (log) {
-          printf("[LOG] " + "[" + module_name + "] [TID->%d] [LOAD] " + node_name + ": Output fired @ %d, Address:%d, Value: %d\n",
-            enable_R.taskID, cycleCount, addr_R.data, data_R.data)
-          //printf("DEBUG " + node_name + ": $%d = %d\n", addr_R.data, data_R.data)
-        }
+
+        /**
+          * Cant print value with more than 64bits.
+          * In this example value is > 64bits
+          */
+        //        if (log) {
+        //          printf("[LOG] " + "[" + module_name + "] [TID->%d] [LOAD] " + node_name + ": Output fired @ %d, Address:%d, Value: %d\n",
+        //            enable_R.taskID, cycleCount, addr_R.data, data_R.data)
+        //printf("DEBUG " + node_name + ": $%d = %d\n", addr_R.data, data_R.data)
+        //        }
       }
     }
   }

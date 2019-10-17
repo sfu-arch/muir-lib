@@ -4,15 +4,14 @@ import chisel3.util._
 import chisel3.{Module, _}
 import config._
 import interfaces._
+import muxes.Demux
 import node._
 
 abstract class WTController[gen <: Shapes](NumOps: Int, tensorType: String = "none")(shape: => gen)(implicit val p: Parameters)
   extends Module {
   val io = IO(new Bundle {
-//    val ReadIn  = Vec(NumOps, Flipped(Decoupled(new TensorReadReq())))
-//    val ReadOut = Vec(NumOps, Output(new TensorReadResp(shape.getWidth)))
-    val WriteIn  = Flipped(Decoupled(new TensorWriteReq(shape.getWidth)))
-    val WriteOut = Output(new TensorWriteResp())
+    val WriteIn  = Vec(NumOps, Flipped(Decoupled(new TensorWriteReq(shape.getWidth))))
+    val WriteOut = Vec(NumOps, Output(new TensorWriteResp()))
     val tensor = new TensorMaster(tensorType)
   })
 }
@@ -21,25 +20,32 @@ abstract class WTController[gen <: Shapes](NumOps: Int, tensorType: String = "no
 class WriteTensorController[L <: Shapes] (NumOps: Int, tensorType: String = "none")(shape: => L)(implicit p: Parameters)
   extends WTController(NumOps, tensorType)(shape)(p) {
 
-  /*=====================================================================
-  =            Wire up incoming reads from nodes to ReadMSHR            =
-  =====================================================================*/
-  io.tensor.wr.bits.idx := io.WriteIn.bits.index
-  io.tensor.wr.bits.data := io.WriteIn.bits.data.asTypeOf(io.tensor.wr.bits.data)
+  val arbiter = Module(new RRArbiter(new TensorWriteReq(shape.getWidth), NumOps))
+  val demux = Module(new Demux(new TensorWriteResp, NumOps))
 
-  io.WriteOut.valid := io.tensor.wr.valid
+  // Wire up inputs with the arbiter and outputs with demux
+  for (i <- 0 until NumOps) {
+    arbiter.io.in(i) <> io.WriteIn(i)
+    io.WriteOut(i) <> demux.io.outputs(i)
+  }
 
-  io.tensor.wr.valid := true.B
+  val chosen_reg = RegInit(0.U)
+  when(arbiter.io.out.fire){
+    chosen_reg := arbiter.io.chosen
+  }
 
+  io.tensor.wr.valid := arbiter.io.out.valid
+  io.tensor.wr.bits.data := arbiter.io.out.bits.data.asTypeOf(io.tensor.wr.bits.data)
+  io.tensor.wr.bits.idx := arbiter.io.out.bits.index
   io.tensor.rd <> DontCare
 
-//  io.WriteOut <> DontCare
-//  io.WriteIn <> DontCare
-  /*=============================================
-  =           Declare Read Table                =
-  =============================================*/
+  arbiter.io.out.ready := true.B
 
-
+  demux.io.sel := chosen_reg
+  demux.io.en := arbiter.io.out.valid
+  demux.io.input.valid := arbiter.io.out.valid
+  demux.io.input.RouteID := io.WriteIn(arbiter.io.chosen).bits.RouteID
+  demux.io.input.done := arbiter.io.out.valid
 
 }
 

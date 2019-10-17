@@ -12,19 +12,18 @@ import utility.Constants._
 class TStoreIO[gen <: Shapes](NumPredOps: Int, NumSuccOps: Int, NumOuts: Int)(shape: => gen)(implicit p: Parameters)
   extends HandShakingIOPS(NumPredOps, NumSuccOps, NumOuts)(new CustomDataBundle(UInt(shape.getWidth.W))) {
   val GepAddr = Flipped(Decoupled(new DataBundle))
-  val inData  = Flipped(Decoupled(new CustomDataBundle(UInt(shape.getWidth.W))))
-  val tensorReq   = Decoupled(new TensorWriteReq(shape.getWidth))
-  val tensorResp  = Input(Flipped(new TensorWriteResp))
+  val inData = Flipped(Decoupled(new CustomDataBundle(UInt(shape.getWidth.W))))
+  val tensorReq = Decoupled(new TensorWriteReq(shape.getWidth))
+  val tensorResp = Input(Flipped(new TensorWriteResp))
 
   override def cloneType = new TStoreIO(NumPredOps, NumSuccOps, NumOuts)(shape).asInstanceOf[this.type]
 }
 
 /**
- * @brief TYPE Store Node. Implements store operations
- * @details [long description]
- *
- * @param NumPredOps [Number of predicate memory operations]
- */
+  * @brief TYPE Store Node. Implements store operations
+  * @details [long description]
+  * @param NumPredOps [Number of predicate memory operations]
+  */
 class TStore[L <: Shapes](NumPredOps: Int,
                           NumSuccOps: Int,
                           NumOuts: Int,
@@ -45,7 +44,7 @@ class TStore[L <: Shapes](NumPredOps: Int,
 
   // OP Inputs
   val addr_R = RegInit(DataBundle.default)
-//  val data_R = RegInit(DataBundle.default)
+  //  val data_R = RegInit(DataBundle.default)
   val data_R = RegInit(CustomDataBundle.default(0.U(shape.getWidth.W)))
   val addr_valid_R = RegInit(false.B)
   val data_valid_R = RegInit(false.B)
@@ -95,7 +94,7 @@ class TStore[L <: Shapes](NumPredOps: Int,
   // Outgoing Address Req ->
   io.tensorReq.bits.index := addr_R.data
   io.tensorReq.bits.data := data_R.data
-//  io.tensorReq.bits.Typ := Typ
+  //  io.tensorReq.bits.Typ := Typ
   io.tensorReq.bits.RouteID := RouteID.U
   io.tensorReq.bits.taskID := data_R.taskID | addr_R.taskID | enable_R.taskID
   io.tensorReq.bits.mask := 15.U
@@ -145,11 +144,16 @@ class TStore[L <: Shapes](NumPredOps: Int,
         Reset()
         // Reset state.
         state := s_idle
-        if (log) {
-          printf("[LOG] " + "[" + module_name + "] [TID->%d] [STORE]" + node_name + ": Fired @ %d Mem[%d] = %d\n",
-            enable_R.taskID, cycleCount, addr_R.data, data_R.data)
-          //printf("DEBUG " + node_name + ": $%d = %d\n", addr_R.data, data_R.data)
-        }
+
+        /**
+          * Cant print value with more than 64bits.
+          * In this example value is > 64bits
+          */
+        //        if (log) {
+        //          printf("[LOG] " + "[" + module_name + "] [TID->%d] [STORE]" + node_name + ": Fired @ %d Mem[%d] = %d\n",
+        //            enable_R.taskID, cycleCount, addr_R.data, data_R.data)
+        //          //printf("DEBUG " + node_name + ": $%d = %d\n", addr_R.data, data_R.data)
+        //        }
       }
     }
   }

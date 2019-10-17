@@ -394,6 +394,16 @@ object DataBundle {
     wire.taskID := 0.U
     wire
   }
+
+  def apply(data : UInt = 0.U , taskID: UInt = 0.U)(implicit p: Parameters): DataBundle = {
+    val wire = Wire(new DataBundle())
+    wire.data := data
+    wire.taskID := taskID
+    wire.predicate := true.B
+    wire
+  }
+
+
 }
 
 class TypBundle(implicit p: Parameters) extends ValidT with PredicateT with TaskID {
