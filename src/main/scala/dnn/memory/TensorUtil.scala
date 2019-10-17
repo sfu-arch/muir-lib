@@ -120,6 +120,28 @@ class TensorReadMaster(tensorType: String = "none")(implicit p: Parameters)
     new TensorReadMaster(tensorType).asInstanceOf[this.type]
 }
 
+/** TensorWriteMaster.
+  *
+  * This interface issue write tensor-requests to scratchpads (TensorStores).
+  */
+class TensorWriteMaster(tensorType: String = "none")(implicit p: Parameters)
+  extends TensorParams(tensorType) {
+  val wr = ValidIO(new Bundle {
+    val idx = UInt(memAddrBits.W)
+    val data = Vec(tensorLength, Vec(tensorWidth, UInt(tensorElemBits.W)))
+  })
+  def tieoffWrite() {
+    wr.valid := false.B
+    wr.bits.idx := 0.U
+    wr.bits.data.foreach { b =>
+      b.foreach { c =>
+        c := 0.U
+      }
+    }
+  }
+  override def cloneType =
+    new TensorWriteMaster(tensorType).asInstanceOf[this.type]
+}
 
 /** TensorClient.
   *

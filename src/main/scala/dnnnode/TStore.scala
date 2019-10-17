@@ -12,7 +12,7 @@ import utility.Constants._
 class TStoreIO[gen <: Shapes](NumPredOps: Int, NumSuccOps: Int, NumOuts: Int)(shape: => gen)(implicit p: Parameters)
   extends HandShakingIOPS(NumPredOps, NumSuccOps, NumOuts)(new CustomDataBundle(UInt(shape.getWidth.W))) {
   val GepAddr = Flipped(Decoupled(new DataBundle))
-  val inData  = Flipped(Decoupled(new TypBundle))
+  val inData  = Flipped(Decoupled(new CustomDataBundle(UInt(shape.getWidth.W))))
   val tensorReq   = Decoupled(new TensorWriteReq(shape.getWidth))
   val tensorResp  = Input(Flipped(new TensorWriteResp))
 

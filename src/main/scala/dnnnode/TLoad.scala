@@ -12,7 +12,7 @@ import utility.Constants._
 class TLoadIO[gen <: Shapes](NumPredOps: Int, NumSuccOps: Int, NumOuts: Int)(shape: => gen)(implicit p: Parameters)
   extends HandShakingIOPS(NumPredOps, NumSuccOps, NumOuts)(new CustomDataBundle(UInt(shape.getWidth.W))) {
   val GepAddr = Flipped(Decoupled(new DataBundle))
-  val tensorReq  = Decoupled(new TensorReadReq)
+  val tensorReq  = Decoupled(new TensorReadReq())
   val tensorResp = Input(Flipped(new TensorReadResp(shape.getWidth)))
 
   override def cloneType = new TLoadIO(NumPredOps, NumSuccOps, NumOuts)(shape).asInstanceOf[this.type]

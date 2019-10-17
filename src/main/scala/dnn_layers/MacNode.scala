@@ -8,7 +8,7 @@ import config.{Parameters, XLEN}
 import config._
 import dnn.types.OperatorDot
 import interfaces.CustomDataBundle
-import node.FXmatNxN
+import node.{FXmatNxN, matNxN}
 //import javafx.scene.chart.PieChart.Data
 import node.{AluGenerator, HandShakingIONPS, HandShakingNPS, Shapes}
 
@@ -17,7 +17,7 @@ class MacNode[L <: Shapes : OperatorDot](NumOuts: Int, ID: Int, lanes: Int)(left
   override lazy val io = IO(new DotIO(NumOuts)(left))
 
   val dotNode = Module(new DotNode(NumOuts = 1, ID = ID, lanes, "Mul")(left))
-  val reduceNode = Module(new ReduceNode(NumOuts = 1, ID = ID, false, "Add")(new FXmatNxN(2,4)))
+  val reduceNode = Module(new ReduceNode(NumOuts = 1, ID = ID, false, "Add")(new matNxN(2,false)))
 
   // Connect IO to dotNode
   dotNode.io.enable <> io.enable
