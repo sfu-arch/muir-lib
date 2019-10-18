@@ -34,7 +34,7 @@ class bitCastTester(df: BitCastNode)
   )
   if(df.isDebug()){
 
-    println(s"STATE of BitCastNode is : 0x${peek(df.io.LogCheck.get.bits.data.asUInt())}\n")
+  //  println(s"STATE of BitCastNode is : 0x${peek(df.io.LogCheck.get.bits.data.asUInt())}\n")
   }
 
   //V

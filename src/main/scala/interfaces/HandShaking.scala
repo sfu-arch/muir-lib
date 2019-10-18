@@ -47,11 +47,10 @@ class HandShakingIONPS[T <: Data](val NumOuts: Int, val Debug: Boolean = false)(
   val enable = Flipped(Decoupled(new ControlBundle))
   // Output IO
   val Out    = Vec(NumOuts, Decoupled(gen))
-  //p
-
+  /*hs
   val LogCheck = if (Debug) Some (Decoupled(new CustomDataBundle(UInt (32.W)))) else None
   val LogCheckAddr = if (Debug) Some (Decoupled(new CustomDataBundle(UInt (32.W)))) else None
-  //v
+  hs*/
   override def cloneType = new HandShakingIONPS(NumOuts)(gen).asInstanceOf[this.type]
 
 }
@@ -85,9 +84,9 @@ class HandShakingIOPS[T <: Data](val NumPredOps: Int,
   // Output IO
   val Out    = Vec(NumOuts, Decoupled(gen))
   // Logging port
-  //#
+  /*hs
   val LogCheck = if (Debug) Some(Decoupled(new CustomDataBundle(UInt(2.W)))) else None
-//ask about this
+  hs*/
   override def cloneType = new HandShakingIOPS(NumPredOps, NumSuccOps, NumOuts)(gen).asInstanceOf[this.type]
 
 }
@@ -110,9 +109,9 @@ class HandShakingFusedIO[T <: Data](val NumIns: Int, val NumOuts: Int
   val In     = Flipped(Vec(NumIns, Decoupled(gen)))
   // Output IO
   val Out    = Vec(NumOuts, Decoupled(gen))
-
+  /*hs
   val LogCheck = if (Debug) Some(Decoupled(new CustomDataBundle(UInt(2.W)))) else None
-
+  hs*/
   override def cloneType = new HandShakingFusedIO(NumIns, NumOuts)(gen).asInstanceOf[this.type]
 
 }
@@ -136,8 +135,9 @@ class HandShakingCtrlMaskIO(val NumInputs: Int,
   // Output IO
   val MaskBB = Vec(NumPhi, Decoupled(UInt(NumInputs.W)))
   val Out    = Vec(NumOuts, Decoupled(new ControlBundle))
+  /*hs
   val LogCheck = if (Debug) Some(Decoupled(new CustomDataBundle(UInt(2.W)))) else None
-
+  hs*/
   override def cloneType = new HandShakingCtrlMaskIO(NumInputs, NumOuts, NumPhi).asInstanceOf[this.type]
 }
 
@@ -154,8 +154,9 @@ class HandShakingCtrlNoMaskIO(val NumOuts: Int
   extends CoreBundle( )(p) {
   // Output IO
   val Out = Vec(NumOuts, Decoupled(new ControlBundle))
+  /*hs
   val LogCheck = if (Debug) Some(Decoupled(new CustomDataBundle(UInt(2.W)))) else None
-
+  hs*/
   override def cloneType = new HandShakingCtrlNoMaskIO(NumOuts).asInstanceOf[this.type]
 }
 
@@ -218,7 +219,7 @@ class HandShakingNPS[T <: Data](val NumOuts: Int,
   /*===================================*
    *            Helper Checks          *
    *===================================*/
-  //p
+  /*hs
   if(Debug){
     io.LogCheck.get.valid := false.B
     io.LogCheck.get.bits := DataBundle.default
@@ -234,7 +235,7 @@ class HandShakingNPS[T <: Data](val NumOuts: Int,
       io.LogCheckAddr.get.valid := true.B
     }
   }
-  //v
+  hs*/
 
 
 
@@ -259,7 +260,7 @@ class HandShakingNPS[T <: Data](val NumOuts: Int,
       fire_mask reduce {_ & _}
     }
   }
-
+  /*hs
   def IsDebugReady(): Bool = {
     if(Debug){
       io.LogCheck.get.ready
@@ -267,7 +268,7 @@ class HandShakingNPS[T <: Data](val NumOuts: Int,
       return true.B
     }
   }
-
+  hs*/
   def IsOutValid(): Bool = {
     //    out_valid_R.asUInt.andR
     if (NumOuts == 0) {
@@ -369,7 +370,7 @@ class HandShakingFused[T <: PredicateT](val NumIns: Int, val NumOuts: Int,
    *            Helper Checks          *
    *===================================*/
 
-  //p
+  /*hs
   if(Debug){
     io.LogCheck.get.valid := false.B
     io.LogCheck.get.bits := DataBundle.default
@@ -382,7 +383,7 @@ class HandShakingFused[T <: PredicateT](val NumIns: Int, val NumOuts: Int,
     }
   }
 
-  //v
+  hs*/
 
   def IsEnable(): Bool = {
     enable_R.control
@@ -516,7 +517,7 @@ class HandShakingCtrlNPS(val NumOuts: Int,
    *            Helper Checks          *
    *===================================*/
 
-  //p
+  /*hs
   if(Debug){
     io.LogCheck.get.valid := false.B
     io.LogCheck.get.bits := DataBundle.default
@@ -528,7 +529,7 @@ class HandShakingCtrlNPS(val NumOuts: Int,
       io.LogCheck.get.valid := true.B
     }
   }
-  //v
+  hs*/
 
 
   def IsEnable(): Bool = {
@@ -667,7 +668,7 @@ class HandShaking[T <: Data](val NumPredOps: Int,
   =====================================*/
 
 
-  //p
+  /*hs
   if(Debug){
     io.LogCheck.get.valid := false.B
     io.LogCheck.get.bits := DataBundle.default
@@ -679,7 +680,7 @@ class HandShaking[T <: Data](val NumPredOps: Int,
       io.LogCheck.get.valid := true.B
     }
   }
-  //v
+  hs*/
 
 
 
@@ -841,7 +842,7 @@ class HandShakingCtrlMask(val NumInputs: Int,
    *            Helper Checks          *
    *===================================*/
 
-  //p
+  /*hs
   if(Debug){
     io.LogCheck.get.valid := false.B
     io.LogCheck.get.bits := DataBundle.default
@@ -853,7 +854,7 @@ class HandShakingCtrlMask(val NumInputs: Int,
       io.LogCheck.get.valid := true.B
     }
   }
-  //v
+  hs*/
 
   // OUTs
   def IsOutReady(): Bool = {
@@ -950,7 +951,7 @@ class HandShakingCtrlNoMask(val NumInputs: Int,
    *            Helper Checks          *
    *===================================*/
 
-  //p
+  /*hs
   if(Debug){
     io.LogCheck.get.valid := false.B
     io.LogCheck.get.bits := DataBundle.default
@@ -962,7 +963,7 @@ class HandShakingCtrlNoMask(val NumInputs: Int,
       io.LogCheck.get.valid := true.B
     }
   }
-  //v
+  hs*/
   // OUTs
   def IsOutReady(): Bool = {
     out_ready_R.asUInt.andR

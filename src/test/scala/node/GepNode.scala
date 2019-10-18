@@ -77,7 +77,7 @@ class GepTester(df: GepOneNode)
   )
   if(df.isDebug()){
 
-    println(s"STATE of GepNode is : 0x${peek(df.io.LogCheck.get.bits.data.asUInt())}\n")
+   // println(s"STATE of GepNode is : 0x${peek(df.io.LogCheck.get.bits.data.asUInt())}\n")
   }
 
 

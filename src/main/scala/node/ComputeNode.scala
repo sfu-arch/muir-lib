@@ -23,7 +23,6 @@ class ComputeNodeIO(NumOuts: Int, Debug: Boolean)
   val RightIO = Flipped(Decoupled(new DataBundle()))
 
   //p
-  //val LogIO = Decoupled(new DataBundle())
 
   val DebugEnable = if (Debug) Some(Flipped(new Bool)) else None
 
@@ -102,17 +101,19 @@ class ComputeNode(NumOuts: Int, ID: Int, opCode: String)
     right_valid_R := true.B
   }
 
-  //-------------------p
+  /*hs
   val address = 512.U
   if (Debug){
    when(io.DebugEnable.get){
      dbg_counter.inc()
      //CaptureLog(state, address)
-//     CaptureLog( state , (dbg_counter.value << 2.U).asUInt())
+    CaptureLog( state , (dbg_counter.value << 2.U).asUInt())
 
 
    }
   }
+
+  hs*/
   val test_value = Wire(UInt(4.W))
   test_value := ID.U
 

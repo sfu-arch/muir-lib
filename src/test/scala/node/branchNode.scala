@@ -34,7 +34,7 @@ class BranchTester(df: CBranchNode)(implicit p: Parameters) extends PeekPokeTest
   )
   if(df.isDebug()){
 
-    println(s"STATE of ComputeNode is : 0x${peek(df.io.LogCheck.get.bits.data.asUInt())}\n")
+   // println(s"STATE of ComputeNode is : 0x${peek(df.io.LogCheck.get.bits.data.asUInt())}\n")
   }
   //
 

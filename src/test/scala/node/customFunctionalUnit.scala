@@ -54,7 +54,7 @@ class CustomTester(df: CustomFunctionalNode)
   )
   if(df.isDebug()){
 
-    println(s"STATE of CustomFunctionalUnitNode is : 0x${peek(df.io.LogCheck.get.bits.data.asUInt())}\n")
+   // println(s"STATE of CustomFunctionalUnitNode is : 0x${peek(df.io.LogCheck.get.bits.data.asUInt())}\n")
   }
 //
   for( i <- 0 until 10){

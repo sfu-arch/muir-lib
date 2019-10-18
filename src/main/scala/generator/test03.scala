@@ -33,9 +33,9 @@ class test03DF(implicit p: Parameters) extends test03DFIO()(p) {
 
 
   //-----------------------------------------------------------------------p
-  val MemCtrl = Module(new UnifiedController(ID = 0, Size = 32, NReads = 0, NWrites = 2)
+  val MemCtrl = Module(new UnifiedController(ID = 0, Size = 32, NReads = 0, NWrites = 1)
   //NumOps = 1 to NumOps = 2
-  (WControl = new WriteMemoryController(NumOps = 2, BaseSize = 2, NumEntries = 2))
+  (WControl = new WriteMemoryController(NumOps = 1, BaseSize = 2, NumEntries = 2))
   (RControl = new ReadMemoryController(NumOps = 0, BaseSize = 2, NumEntries = 2))
   (RWArbiter = new ReadWriteArbiter()))
   io.MemReq <> MemCtrl.io.MemReq
@@ -68,7 +68,7 @@ class test03DF(implicit p: Parameters) extends test03DFIO()(p) {
   val select_1 = Module(new SelectNode(NumOuts = 1, ID = 1)(fast = false))
 
   //  %5 = sub nsw i32 %0, %4, !UID !5
-  val binaryOp_2 = Module(new ComputeNode(NumOuts = 1, ID = 2, opCode = "sub")(sign = false))
+  val binaryOp_2 = Module(new ComputeNode(NumOuts = 1, ID = 2, opCode = "sub")(sign = false, Debug = true))
 
   //  %6 = select i1 %3, i32 0, i32 %0, !UID !6
   val select_3 = Module(new SelectNode(NumOuts = 1, ID = 3)(fast = false))
@@ -85,9 +85,9 @@ class test03DF(implicit p: Parameters) extends test03DFIO()(p) {
   val ret_6 = Module(new RetNode2(retTypes = List(32), ID = 7))
 
   //-----------------------------------------------------------------------------------p
-
+  /*hs
   val st_0 = Module(new UnTypStore(NumPredOps = 0, NumSuccOps = 0, ID = 7, RouteID = 0))
-  //new
+  hs*/
 
 
 
@@ -212,12 +212,14 @@ class test03DF(implicit p: Parameters) extends test03DFIO()(p) {
   //  buf_0.io.enable.valid := true.B
   //  buf_0.io.Out(0).ready := true.B
 
-  //new
+  /*hs
   //-----------------------------------------p
   st_0.io.enable.bits := ControlBundle.active()
   st_0.io.enable.valid := true.B
-  binaryOp_4.io.DebugEnable.get <> bb_0.io.DebugEnable
 
+   hs*/
+  binaryOp_4.io.DebugEnable.get <> bb_0.io.DebugEnable
+  binaryOp_2.io.DebugEnable.get <> bb_0.io.DebugEnable
 
   //-----------------------------------------------v
 
@@ -234,13 +236,13 @@ class test03DF(implicit p: Parameters) extends test03DFIO()(p) {
   /* ================================================================== *
    *                   CONNECTING MEMORY CONNECTIONS                    *
    * ================================================================== */
-  //-----------------------------------p
-
+  /*hs
   MemCtrl.io.WriteIn(0) <> st_0.io.memReq
   st_0.io.memResp <> MemCtrl.io.WriteOut(0)
-  MemCtrl.io.WriteIn(1) <> buf_0.io.memReq
-  buf_0.io.memResp <> MemCtrl.io.WriteOut(1)
-  //----------------------------------------------v
+
+  hs */
+  MemCtrl.io.WriteIn(0) <> buf_0.io.memReq
+  buf_0.io.memResp <> MemCtrl.io.WriteOut(0)
 
   /* ================================================================== *
    *                   PRINT SHARED CONNECTIONS                         *
@@ -282,7 +284,7 @@ class test03DF(implicit p: Parameters) extends test03DFIO()(p) {
   binaryOp_4.io.LeftIO <> InputSplitter.io.Out.data.elements("field1")(2)
 
   //------------------------------------------p for handshaking debugging
-
+  /*hs
   val data_queue = Queue(binaryOp_4.io.LogCheck.get, 20)
   val addr_queue = Queue(binaryOp_4.io.LogCheckAddr.get, 20)
 
@@ -298,7 +300,7 @@ class test03DF(implicit p: Parameters) extends test03DFIO()(p) {
   }
 
   st_0.io.Out(0).ready := true.B
-
+  hs*/
   //------------------------------------------------------------v
 
 
