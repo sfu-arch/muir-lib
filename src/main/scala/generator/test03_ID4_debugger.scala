@@ -17,8 +17,7 @@ import util._
 
 abstract class Debug03IO(implicit val p: Parameters) extends Module with CoreParams {
   val io = IO(new Bundle {
-    val in = Flipped(Decoupled(new Call(List())))
-    val finish = Flipped(Decoupled(new Call(List())))
+    val Enable = Input(Bool())
     val MemResp = Flipped(Valid(new MemResp))
     val MemReq = Decoupled(new MemReq)
 //    val out = Decoupled(new Call(List()))
@@ -45,37 +44,7 @@ class Debug03DF(implicit p: Parameters) extends Debug03IO()(p) {
 
   //new
   val buf_0 = Module(new DebugBufferNode(ID = 8, RouteID = 1, Bore_ID = 2))
-
-
-  /**
-    * Debuging states for store node
-    */
-
-  /**
-    * Debuging states for store node
-    */
-
-  val sIdle :: sActive :: Nil = Enum(2)
-  val state = RegInit(sIdle)
-
-  io.in.ready := (state === sIdle)
-  io.finish.ready := (state === sActive)
-
-  switch(state) {
-    is(sIdle) {
-      when(io.in.fire) {
-        state := sActive
-      }
-    }
-    is(sActive) {
-      when(io.finish.fire) {
-        state := sIdle
-      }
-    }
-
-  }
-
-  buf_0.io.Enable := state === sActive
+  buf_0.io.Enable := io.Enable
 
 
 

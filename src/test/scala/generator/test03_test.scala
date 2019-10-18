@@ -37,7 +37,6 @@ class test03Main(implicit p: Parameters) extends AccelIO(List(32, 32), List(32))
 
   // Wire up the cache and modules under test.
   val test03 = Module(new test03DF())
-
   val test03_debug = Module(new Debug03DF())
 
   //Put an arbiter infront of cache
@@ -63,18 +62,37 @@ class test03Main(implicit p: Parameters) extends AccelIO(List(32, 32), List(32))
   test03.io.in <> io.in
   io.out <> test03.io.out
 
-  test03_debug.io.in.bits.enable := ControlBundle.default
-  test03_debug.io.finish.bits.enable := ControlBundle.default
-  test03_debug.io.in.valid := io.in.fire
-  test03_debug.io.finish.valid := io.out.fire
+  /**
+    * Debuging states for store node
+    */
+  val sIdle :: sActive :: Nil = Enum(2)
+  val state = RegInit(sIdle)
+
+  test03_debug.io.Enable := (state === sActive)
+
+  switch(state) {
+    is(sIdle) {
+      when(io.in.fire) {
+        state := sActive
+      }
+    }
+    is(sActive) {
+      when(test03.io.out.fire) {
+        state := sIdle
+      }
+    }
+
+  }
+
 
 
   // Check if trace option is on or off
-  if (p(TRACE) == false) {
-    println(Console.RED + "****** Trace option is off. *********" + Console.RESET)
+  if (!p(TRACE)) {
+    println(Console.RED + """****** Trace option is off. *********""" + Console.RESET)
   }
-  else
+  else {
     println(Console.BLUE + "****** Trace option is on. *********" + Console.RESET)
+  }
 
 
 }
