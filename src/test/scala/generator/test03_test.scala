@@ -38,6 +38,8 @@ class test03Main(implicit p: Parameters) extends AccelIO(List(32, 32), List(32))
   // Wire up the cache and modules under test.
   val test03 = Module(new test03DF())
 
+  val test03_debug = Module(new Debug03DF())
+
   //Put an arbiter infront of cache
   val CacheArbiter = Module(new MemArbiter(2))
 
@@ -49,6 +51,12 @@ class test03Main(implicit p: Parameters) extends AccelIO(List(32, 32), List(32))
   CacheArbiter.io.cpu.MemReq(1) <> io.req
   io.resp <> CacheArbiter.io.cpu.MemResp(1)
 
+//  CacheArbiter.io.cpu.MemReq(2) <> test03_debug.io.MemReq
+//  test03_debug.io.MemResp <> CacheArbiter.io.cpu.MemResp(2)
+
+  test03_debug.io.MemReq.ready := false.B
+  test03_debug.io.MemResp <> DontCare
+
   //Connect cache to the arbiter
   cache.io.cpu.req <> CacheArbiter.io.cache.MemReq
   CacheArbiter.io.cache.MemResp <> cache.io.cpu.resp
@@ -56,6 +64,11 @@ class test03Main(implicit p: Parameters) extends AccelIO(List(32, 32), List(32))
   //Connect in/out ports
   test03.io.in <> io.in
   io.out <> test03.io.out
+
+  test03_debug.io.in.bits.enable := ControlBundle.default
+  test03_debug.io.finish.bits.enable := ControlBundle.default
+  test03_debug.io.in.valid := io.in.fire
+  test03_debug.io.finish.valid := io.out.fire
 
 
   // Check if trace option is on or off

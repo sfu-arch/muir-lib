@@ -14,6 +14,7 @@ import util._
  *                   PRINTING PORTS DEFINITION                        *
  * ================================================================== */
 
+
 abstract class test03DFIO(implicit val p: Parameters) extends Module with CoreParams {
   val io = IO(new Bundle {
     val in = Flipped(Decoupled(new Call(List(32, 32))))
@@ -75,6 +76,7 @@ class test03DF(implicit p: Parameters) extends test03DFIO()(p) {
   //  %7 = sub nsw i32 %1, %6, !UID !7
   //-----------------------------pv, what we track, numouts ++d
   val binaryOp_4 = Module(new ComputeNode(NumOuts = 1, ID = 4, opCode = "sub")(sign = false, Debug = true))
+  val buf_0 = Module(new DebugBufferNode(ID = 8, RouteID = 1, Bore_ID = 4))
 
   //  %8 = mul nsw i32 %5, %7, !UID !8
   val binaryOp_5 = Module(new ComputeNode(NumOuts = 1, ID = 5, opCode = "mul")(sign = false))
@@ -86,7 +88,7 @@ class test03DF(implicit p: Parameters) extends test03DFIO()(p) {
 
   val st_0 = Module(new UnTypStore(NumPredOps = 0, NumSuccOps = 0, ID = 7, RouteID = 0))
   //new
-  val buf_0 = Module(new DebugBufferNode(ID = 8, RouteID = 1))
+
 
 
   /**
@@ -294,7 +296,6 @@ class test03DF(implicit p: Parameters) extends test03DFIO()(p) {
     st_0.io.inData.noenq()
     st_0.io.GepAddr.noenq()
   }
-  //  st_0.io.inData.valid := true.B
 
   st_0.io.Out(0).ready := true.B
 

@@ -107,23 +107,25 @@ class ComputeNode(NumOuts: Int, ID: Int, opCode: String)
   if (Debug){
    when(io.DebugEnable.get){
      dbg_counter.inc()
-     CaptureLog(state, address)
+     //CaptureLog(state, address)
 //     CaptureLog( state , (dbg_counter.value << 2.U).asUInt())
 
 
    }
   }
+  val test_value = Wire(UInt(4.W))
+  test_value := ID.U
 
-  if(ID == 4 && Debug){
-    val test_value = Wire(UInt(4.W))
+  if(Debug){
+    //val test_value = Wire(UInt(4.W))
     val test_value_valid = Wire(Bool())
     val test_value_ready = Wire(Bool())
-    test_value := cycleCount
+    //test_value := 5.U
     test_value_valid := false.B
     test_value_ready := false.B
-    BoringUtils.addSource(test_value, "Test_data")
-    BoringUtils.addSource(test_value_valid, "Test_valid")
-    BoringUtils.addSink(test_value_ready, "Test_ready")
+    BoringUtils.addSource(test_value, "data" + ID)
+    BoringUtils.addSource(test_value_valid, "valid" + ID)
+    BoringUtils.addSink(test_value_ready, "ready" + ID)
 
     when(io.DebugEnable.get){
        test_value_valid := true.B
@@ -132,20 +134,7 @@ class ComputeNode(NumOuts: Int, ID: Int, opCode: String)
     }
   }
 
-  if(ID == 4){
-    val x = Wire(UInt(6.W))
-    x := 42.U
-    BoringUtils.addSource(x, "uniqueId")
 
-  }
-
-  if(ID == 5){
-    val y = Wire(UInt(6.W))
-    y := 0.U
-
-    BoringUtils.addSink(y, "uniqueId")
-    //printf(p"[BORING********] [${module_name}] ${y} \n")
-  }
 
   //------------------v
   // Wire up Outputs
@@ -174,7 +163,7 @@ class ComputeNode(NumOuts: Int, ID: Int, opCode: String)
       }
     }
     is(s_COMPUTE) {
-
+     // test_value := 3.U
       when(IsOutReady()) {
         // Reset data
         left_valid_R := false.B

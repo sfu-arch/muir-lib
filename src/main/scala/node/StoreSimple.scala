@@ -228,7 +228,7 @@ class UnTypStore(NumPredOps: Int,
 
 class DebugBufferNode(
                        NumOuts: Int = 1,
-                       Typ: UInt = MT_W, ID: Int, RouteID: Int)
+                       Typ: UInt = MT_W, ID: Int, RouteID: Int, Bore_ID: Int)
                      (implicit val p: Parameters,
                       name: sourcecode.Name,
                       file: sourcecode.File)
@@ -251,13 +251,12 @@ class DebugBufferNode(
   val GepAddr = new DataBundle
   //------------------------------
   val dbg_counter = Counter(1024)
-
   val Uniq_name_Data = "meData"
   //val Uniq_name_Adr = "meAdr"
   //---------------------------
   // -------
 
-  val LogData = Module(new Queue(UInt(xlen.W), 4))
+  val LogData = Module(new Queue(UInt(xlen.W), 20))
 
 
 
@@ -271,9 +270,9 @@ class DebugBufferNode(
   val queue_valid = WireInit(false.B)
   val queue_ready = WireInit(false.B)
 
-  BoringUtils.addSink(queue_data, "Test_data")
-  BoringUtils.addSink(queue_valid, "Test_valid")
-  BoringUtils.addSource(queue_ready, "Test_ready")
+  BoringUtils.addSink(queue_data, "data" + Bore_ID)
+  BoringUtils.addSink(queue_valid, "valid" +  Bore_ID)
+  BoringUtils.addSource(queue_ready, "ready" + Bore_ID)
 
   LogData.io.enq.bits := queue_data
   LogData.io.enq.valid := queue_valid && io.Enable
