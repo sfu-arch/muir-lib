@@ -30,14 +30,14 @@ import shell._
 case class CoreParams(
     batch: Int = 1,
     blockOut: Int = 16,
-    blockIn: Int = 16,
+    blockIn: Int = 8, //16
     inpBits: Int = 8,
     wgtBits: Int = 8,
     uopBits: Int = 32,
     accBits: Int = 32,
     outBits: Int = 8,
     uopMemDepth: Int = 512,
-    inpMemDepth: Int = 4, //512,
+    inpMemDepth: Int = 512,
     wgtMemDepth: Int = 512,
     accMemDepth: Int = 512,
     outMemDepth: Int = 512,
@@ -67,7 +67,7 @@ class CoreConfig
         CoreParams(
           batch = 1,
           blockOut = 16,
-          blockIn = 16,
+          blockIn = 8, //16
           inpBits = 8,
           wgtBits = 8,
           uopBits = 32,

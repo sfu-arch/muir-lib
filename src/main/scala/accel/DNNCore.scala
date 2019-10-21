@@ -76,9 +76,9 @@ class DNNCore(implicit val p: Parameters) extends Module {
 
   val conv_bb = Module(new BasicBlockNoMaskNode(NumInputs = 1, NumOuts = 5, BID = 0))
 
-  val LoadA = Module(new TLoad(NumPredOps = 0, NumSuccOps = 0, NumOuts = 1, ID = 0, RouteID = 0)(shape))
-  val LoadB = Module(new TLoad(NumPredOps = 0, NumSuccOps = 0, NumOuts = 1, ID = 0, RouteID = 0)(shape))
-  val Store = Module(new TStore(NumPredOps = 0, NumSuccOps = 0, NumOuts = 1, ID = 0, RouteID = 0)(shape))
+  val LoadA = Module(new TLoad(NumPredOps = 0, NumSuccOps = 1, NumOuts = 1, ID = 0, RouteID = 0)(shape))
+  val LoadB = Module(new TLoad(NumPredOps = 0, NumSuccOps = 1, NumOuts = 1, ID = 0, RouteID = 0)(shape))
+  val Store = Module(new TStore(NumPredOps = 2, NumSuccOps = 0, NumOuts = 1, ID = 0, RouteID = 0)(shape))
   val dotNode = Module(new DotNode(NumOuts = 1, ID = 0, lanes = 4, "Mul")(shape))
   val reduceNode = Module(new ReduceNode(NumOuts = 1, ID = 1, false, "Add")(shape))
 
@@ -147,8 +147,8 @@ class DNNCore(implicit val p: Parameters) extends Module {
 
 //  Store.io.GepAddr.bits := DataBundle(storeIndex)
 
-//  Store.io.PredOp(0) <> LoadA.io.SuccOp(0)
-//  Store.io.PredOp(1) <> LoadB.io.SuccOp(0)
+  Store.io.PredOp(0) <> LoadA.io.SuccOp(0)
+  Store.io.PredOp(1) <> LoadB.io.SuccOp(0)
   Store.io.Out(0).ready := true.B
 
 
@@ -172,23 +172,6 @@ class DNNCore(implicit val p: Parameters) extends Module {
   tensorStore.io.inst := ts_Inst.asTypeOf(UInt(INST_BITS.W))
 
 
-//  tensorLoad1.io.tensor.wr <> DontCare
-//  tensorLoad2.io.tensor.wr <> DontCare
-//  tensorStore.io.tensor.rd <> DontCare
-
-//  tensorLoad1.io.tensor.rd.idx.bits := indexCnt.value
-//  tensorLoad1.io.tensor.rd.idx.valid := true.B
-//  tensorLoad2.io.tensor.rd.idx.bits := indexCnt.value
-//  tensorLoad2.io.tensor.rd.idx.valid := true.B
-
-  //  tensorStore.io.tensor.wr.bits.data := tensorLoad1.io.tensor.rd.data.bits
-//  for (i <- 0 until tensorLoad2.tp.tensorLength) {
-//    for (j <- 0 until tensorLoad2.tp.tensorWidth) {
-//      tensorStore.io.tensor.wr.bits.data(i)(j) := tensorLoad1.io.tensor.rd.data.bits(i)(j) + tensorLoad2.io.tensor.rd.data.bits(i)(j)
-//    }
-//  }
-//  tensorStore.io.tensor.wr.valid := false.B
-//  tensorStore.io.tensor.wr.bits.idx := storeIndex
 
   tl_Inst.xpad_0 := 0.U
   tl_Inst.xpad_1 := 0.U
@@ -231,7 +214,6 @@ class DNNCore(implicit val p: Parameters) extends Module {
     is(sIdle) {
       when(io.vcr.launch) {
         tensorLoad1.io.start := true.B
-        //          tensorLoad2.io.start := true.B
         indexCnt.value := 0.U
         MacLatency.value := 0.U
         state := sReadTensor1
