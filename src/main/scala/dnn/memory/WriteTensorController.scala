@@ -29,9 +29,12 @@ class WriteTensorController[L <: Shapes] (NumOps: Int, tensorType: String = "non
     io.WriteOut(i) <> demux.io.outputs(i)
   }
 
+  val arb_valid_r = RegInit(false.B)
+
   val chosen_reg = RegInit(0.U)
   when(arbiter.io.out.fire){
     chosen_reg := arbiter.io.chosen
+    arb_valid_r := true.B
   }
 
   io.tensor.wr.valid := arbiter.io.out.valid
@@ -42,10 +45,10 @@ class WriteTensorController[L <: Shapes] (NumOps: Int, tensorType: String = "non
   arbiter.io.out.ready := true.B
 
   demux.io.sel := chosen_reg
-  demux.io.en := arbiter.io.out.valid
-  demux.io.input.valid := arbiter.io.out.valid
+  demux.io.en := arb_valid_r //arbiter.io.out.valid
+  demux.io.input.valid := arb_valid_r //arbiter.io.out.valid
   demux.io.input.RouteID := io.WriteIn(arbiter.io.chosen).bits.RouteID
-  demux.io.input.done := arbiter.io.out.valid
+  demux.io.input.done := arb_valid_r //arbiter.io.out.valid
 
 }
 

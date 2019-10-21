@@ -56,7 +56,7 @@ class DNNCore(implicit val p: Parameters) extends Module {
 
   val cycle_count = new Counter(2000)
 
-  val shape = new matNxN(2, false)
+  val shape = new matNxN(4, false)
 
   val tensorLoad1 = Module(new TensorLoad(tensorType = "inp"))
   val readTensorController1 = Module(new ReadTensorController(1, "inp")(shape))
@@ -70,14 +70,15 @@ class DNNCore(implicit val p: Parameters) extends Module {
   val tl_Inst = Wire(new MemDecode)
   val ts_Inst = Wire(new MemDecode)
   val indexCnt = Counter(100)
+  val MacLatency = Counter(200)
   val storeIndex = RegNext(next = indexCnt.value, init = 0.U)
 
 
   val conv_bb = Module(new BasicBlockNoMaskNode(NumInputs = 1, NumOuts = 5, BID = 0))
 
-  val LoadA = Module(new TLoad(NumPredOps = 0, NumSuccOps = 1, NumOuts = 1, ID = 0, RouteID = 0)(shape))
-  val LoadB = Module(new TLoad(NumPredOps = 0, NumSuccOps = 1, NumOuts = 1, ID = 0, RouteID = 0)(shape))
-  val Store = Module(new TStore(NumPredOps = 2, NumSuccOps = 0, NumOuts = 1, ID = 0, RouteID = 0)(shape))
+  val LoadA = Module(new TLoad(NumPredOps = 0, NumSuccOps = 0, NumOuts = 1, ID = 0, RouteID = 0)(shape))
+  val LoadB = Module(new TLoad(NumPredOps = 0, NumSuccOps = 0, NumOuts = 1, ID = 0, RouteID = 0)(shape))
+  val Store = Module(new TStore(NumPredOps = 0, NumSuccOps = 0, NumOuts = 1, ID = 0, RouteID = 0)(shape))
   val dotNode = Module(new DotNode(NumOuts = 1, ID = 0, lanes = 4, "Mul")(shape))
   val reduceNode = Module(new ReduceNode(NumOuts = 1, ID = 1, false, "Add")(shape))
 
@@ -129,24 +130,25 @@ class DNNCore(implicit val p: Parameters) extends Module {
   /* ================================================================== *
     *                       Load Store signals                          *
     * ================================================================== */
-  LoadA.io.GepAddr.valid := true.B
+  LoadA.io.GepAddr.valid := false.B
   LoadA.io.GepAddr.bits.taskID := 0.U
   LoadA.io.GepAddr.bits.predicate := true.B
   LoadA.io.GepAddr.bits.data := indexCnt.value
 
-  LoadB.io.GepAddr.valid := true.B
+  LoadB.io.GepAddr.valid := false.B
   LoadB.io.GepAddr.bits.taskID := 0.U
   LoadB.io.GepAddr.bits.predicate := true.B
   LoadB.io.GepAddr.bits.data := indexCnt.value
 
-  Store.io.GepAddr.valid := true.B
+  Store.io.GepAddr.valid := reduceNode.io.Out(0).valid
   Store.io.GepAddr.bits.taskID := 0.U
   Store.io.GepAddr.bits.data := storeIndex
+  Store.io.GepAddr.bits.predicate := true.B
 
-  Store.io.GepAddr.bits := DataBundle(storeIndex)
+//  Store.io.GepAddr.bits := DataBundle(storeIndex)
 
-  Store.io.PredOp(0) <> LoadA.io.SuccOp(0)
-  Store.io.PredOp(1) <> LoadB.io.SuccOp(0)
+//  Store.io.PredOp(0) <> LoadA.io.SuccOp(0)
+//  Store.io.PredOp(1) <> LoadB.io.SuccOp(0)
   Store.io.Out(0).ready := true.B
 
 
@@ -222,7 +224,8 @@ class DNNCore(implicit val p: Parameters) extends Module {
   ts_Inst.pop_prev := 0.U
   ts_Inst.op := 0.U
 
-  val sIdle :: sReadTensor1 :: sReadTensor2 :: sTransferTensor :: sWriteTensor :: Nil = Enum(5)
+  val sIdle :: sReadTensor1 :: sReadTensor2 :: sMacStart :: sMacWaiting :: sNextOp :: sWriteTensor :: sFinish :: Nil = Enum(8)
+
   val state = RegInit(sIdle)
   switch(state) {
     is(sIdle) {
@@ -230,6 +233,7 @@ class DNNCore(implicit val p: Parameters) extends Module {
         tensorLoad1.io.start := true.B
         //          tensorLoad2.io.start := true.B
         indexCnt.value := 0.U
+        MacLatency.value := 0.U
         state := sReadTensor1
       }
     }
@@ -241,21 +245,36 @@ class DNNCore(implicit val p: Parameters) extends Module {
     }
     is(sReadTensor2) {
       when(tensorLoad2.io.done) {
-        state := sTransferTensor
+        state := sMacStart
       }
     }
-    is(sTransferTensor) {
+    is(sMacStart) {
+      LoadA.io.GepAddr.valid := true.B
+      LoadB.io.GepAddr.valid := true.B
+      state := sMacWaiting
+    }
+    is(sMacWaiting) {
+      when(reduceNode.io.Out(0).fire()) {
+        state := sNextOp
+      }
+    }
+    is(sNextOp) {
       when(indexCnt.value === ts_Inst.xsize) {
-        tensorStore.io.start := true.B
         indexCnt.value := 0.U
         state := sWriteTensor
       }.otherwise {
+        state := sMacStart
         indexCnt.inc()
       }
     }
+
     is(sWriteTensor) {
+      tensorStore.io.start := true.B
+      state := sFinish
+    }
+    is(sFinish) {
       when(tensorStore.io.done) {
-        state := sIdle //sFinish
+        state := sIdle
       }
     }
   }
@@ -264,11 +283,8 @@ class DNNCore(implicit val p: Parameters) extends Module {
     state := sIdle
   }
 
-  when(state === sTransferTensor) {
-    tensorStore.io.tensor.wr.valid := true.B
-  }
 
-  val last = state === sWriteTensor && tensorStore.io.vme_wr.ack
+  val last = state === sFinish && tensorStore.io.vme_wr.ack
   io.vcr.finish := last
   io.vcr.ecnt(0).valid := last
 

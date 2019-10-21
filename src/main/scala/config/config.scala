@@ -61,7 +61,7 @@ abstract class CoreBundle(implicit val p: Parameters) extends ParameterizedBundl
 
 class MiniConfig extends Config((site, here, up) => {
   // Core
-  case XLEN => 32
+  case XLEN => 8 //32
   case TLEN => 10
   case GLEN => 16
   // # Max bits of cache request tag.

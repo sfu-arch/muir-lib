@@ -13,12 +13,12 @@ class DotCompTests(df: DotNode[matNxN])
   poke(df.io.enable.valid, true)
   poke(df.io.enable.bits.control, true)
 
-  poke(df.io.LeftIO.bits.data, 0xFEFEFEFEL)
+  poke(df.io.LeftIO.bits.data, 0x0401010101010102L)
   poke(df.io.LeftIO.valid, true)
   poke(df.io.LeftIO.bits.predicate, true)
 
 
-  poke(df.io.RightIO.bits.data, 0x04020402L)
+  poke(df.io.RightIO.bits.data, 0x0501010101010103L)
   poke(df.io.RightIO.valid, true)
   poke(df.io.RightIO.bits.predicate, true)
 
@@ -73,8 +73,8 @@ class DotCompTester extends FlatSpec with Matchers {
 //    } should be(true)
 
         chisel3.iotesters.Driver.execute(Array("--backend-name", "verilator", "--target-dir", "test_run_dir"),
-          () => new DotNode(NumOuts = 1, ID = 0, 4, "Mul")(new FXmatNxN(2,4))) {
-          c => new FXDotCompTests(c)
+          () => new DotNode(NumOuts = 1, ID = 0, 4, "Mul")(new matNxN(4,false))) {
+          c => new DotCompTests(c)
         } should be(true)
     //    chisel3.iotesters.Driver.execute(Array("--backend-name", "verilator", "--target-dir", "test_run_dir"),
     //      () => new DotNode(NumOuts = 1, ID = 0, 4, "Mul")(new FPmatNxN(2, t = FType.M))) {
