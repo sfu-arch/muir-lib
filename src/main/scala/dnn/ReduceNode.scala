@@ -28,7 +28,7 @@ class ReduceFU[L <: Shapes : OperatorReduction](left: => L, pipelined: Boolean, 
 }
 
 class ReduceIO[L <: Shapes](NumOuts: Int)(left: => L)(implicit p: Parameters)
-  extends HandShakingIONPS(NumOuts)(new CustomDataBundle(UInt((left.getWidth).W))) {
+  extends HandShakingIONPS(NumOuts)(new CustomDataBundle(UInt(p(XLEN).W))) {
   // LeftIO: Left input data for computation
   val LeftIO = Flipped(Decoupled(new CustomDataBundle(UInt((left.getWidth).W))))
 
@@ -36,7 +36,7 @@ class ReduceIO[L <: Shapes](NumOuts: Int)(left: => L)(implicit p: Parameters)
 }
 
 class ReduceNode[L <: Shapes : OperatorReduction](NumOuts: Int, ID: Int, pipelined: Boolean, opCode: String)(left: => L)(implicit p: Parameters)
-  extends HandShakingNPS(NumOuts, ID)(new CustomDataBundle(UInt(left.getWidth.W)))(p) {
+  extends HandShakingNPS(NumOuts, ID)(new CustomDataBundle(UInt(p(XLEN).W)))(p) {
   override lazy val io = IO(new ReduceIO(NumOuts)(left))
 
   /*===========================================*

@@ -25,14 +25,13 @@ import chisel3.util._
 import config._
 import control.BasicBlockNoMaskNode
 import dnn.memory.{ReadTensorController, TensorLoad, TensorMaster, TensorStore, WriteTensorController}
-import dnn.{DotNode, ReduceNode}
+import dnn.{DotNode, MacNode, ReduceNode}
 import interfaces.{ControlBundle, DataBundle}
 import junctions.SplitCallNew
 import memory.{ReadTypMemoryController, WriteTypMemoryController}
 import node.{FXmatNxN, UnTypStore, matNxN}
 import shell._
 import dnn.memory.ISA._
-import dnn_layers.MacNode
 import dnnnode.{TLoad, TStore}
 
 /** Core.
@@ -74,13 +73,14 @@ class DNNCore(implicit val p: Parameters) extends Module {
   val storeIndex = RegNext(next = indexCnt.value, init = 0.U)
 
 
-  val conv_bb = Module(new BasicBlockNoMaskNode(NumInputs = 1, NumOuts = 5, BID = 0))
+  val conv_bb = Module(new BasicBlockNoMaskNode(NumInputs = 1, NumOuts = 4, BID = 0))
 
   val LoadA = Module(new TLoad(NumPredOps = 0, NumSuccOps = 1, NumOuts = 1, ID = 0, RouteID = 0)(shape))
   val LoadB = Module(new TLoad(NumPredOps = 0, NumSuccOps = 1, NumOuts = 1, ID = 0, RouteID = 0)(shape))
   val Store = Module(new TStore(NumPredOps = 2, NumSuccOps = 0, NumOuts = 1, ID = 0, RouteID = 0)(shape))
-  val dotNode = Module(new DotNode(NumOuts = 1, ID = 0, lanes = 4, "Mul")(shape))
-  val reduceNode = Module(new ReduceNode(NumOuts = 1, ID = 1, false, "Add")(shape))
+//  val dotNode = Module(new DotNode(NumOuts = 1, ID = 0, lanes = 4, "Mul")(shape))
+//  val reduceNode = Module(new ReduceNode(NumOuts = 1, ID = 1, false, "Add")(shape))
+  val macNode = Module(new MacNode(NumOuts = 1, ID = 0, lanes = 4)(shape))
 
   /* ================================================================== *
      *                      Basic Block signals                         *
@@ -92,23 +92,24 @@ class DNNCore(implicit val p: Parameters) extends Module {
   LoadA.io.enable <> conv_bb.io.Out(0)
   LoadB.io.enable <> conv_bb.io.Out(1)
   Store.io.enable <> conv_bb.io.Out(2)
-  dotNode.io.enable <> conv_bb.io.Out(3)
-  reduceNode.io.enable <> conv_bb.io.Out(4)
+  macNode.io.enable <> conv_bb.io.Out(3)
+//  dotNode.io.enable <> conv_bb.io.Out(3)
+//  reduceNode.io.enable <> conv_bb.io.Out(4)
 
   /* ================================================================== *
      *                    Dot and Reduce signals                        *
      * ================================================================== */
 
   // Connect IO to dotNode
-  dotNode.io.LeftIO <> LoadA.io.Out(0)
-  dotNode.io.RightIO <> LoadB.io.Out(0)
+  macNode.io.LeftIO <> LoadA.io.Out(0)
+  macNode.io.RightIO <> LoadB.io.Out(0)
 
-  reduceNode.io.LeftIO <> dotNode.io.Out(0)
+//  reduceNode.io.LeftIO <> dotNode.io.Out(0)
 
 
   // Wire up ReduceNode Outputs
-  for (i <- 0 until reduceNode.NumOuts) {
-    Store.io.inData <> reduceNode.io.Out(i)
+  for (i <- 0 until macNode.NumOuts) {
+    Store.io.inData <> macNode.io.Out(i)
   }
 
   /* ================================================================== *
@@ -140,7 +141,7 @@ class DNNCore(implicit val p: Parameters) extends Module {
   LoadB.io.GepAddr.bits.predicate := true.B
   LoadB.io.GepAddr.bits.data := indexCnt.value
 
-  Store.io.GepAddr.valid := reduceNode.io.Out(0).valid
+  Store.io.GepAddr.valid := macNode.io.Out(0).valid
   Store.io.GepAddr.bits.taskID := 0.U
   Store.io.GepAddr.bits.data := storeIndex
   Store.io.GepAddr.bits.predicate := true.B
@@ -236,7 +237,7 @@ class DNNCore(implicit val p: Parameters) extends Module {
       state := sMacWaiting
     }
     is(sMacWaiting) {
-      when(reduceNode.io.Out(0).fire()) {
+      when(macNode.io.Out(0).fire()) {
         state := sNextOp
       }
     }

@@ -7,6 +7,7 @@ import config._
 import node._
 import org.scalatest.{FlatSpec, Matchers}
 import FPU._
+import dnn.MacNode
 //import dnn.DotNode
 
 // Tester.
