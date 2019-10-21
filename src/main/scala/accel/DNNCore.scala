@@ -47,7 +47,6 @@ import dnnnode.{TLoad, TStore}
   * directory.
   */
 class DNNCore(implicit val p: Parameters) extends Module {
-  //  val mp = p(ShellKey).memParams
   val io = IO(new Bundle {
     val vcr = new VCRClient
     val vme = new VMEMaster
@@ -78,8 +77,6 @@ class DNNCore(implicit val p: Parameters) extends Module {
   val LoadA = Module(new TLoad(NumPredOps = 0, NumSuccOps = 1, NumOuts = 1, ID = 0, RouteID = 0)(shape))
   val LoadB = Module(new TLoad(NumPredOps = 0, NumSuccOps = 1, NumOuts = 1, ID = 0, RouteID = 0)(shape))
   val Store = Module(new TStore(NumPredOps = 2, NumSuccOps = 0, NumOuts = 1, ID = 0, RouteID = 0)(shape))
-//  val dotNode = Module(new DotNode(NumOuts = 1, ID = 0, lanes = 4, "Mul")(shape))
-//  val reduceNode = Module(new ReduceNode(NumOuts = 1, ID = 1, false, "Add")(shape))
   val macNode = Module(new MacNode(NumOuts = 1, ID = 0, lanes = 4)(shape))
 
   /* ================================================================== *
@@ -93,8 +90,6 @@ class DNNCore(implicit val p: Parameters) extends Module {
   LoadB.io.enable <> conv_bb.io.Out(1)
   Store.io.enable <> conv_bb.io.Out(2)
   macNode.io.enable <> conv_bb.io.Out(3)
-//  dotNode.io.enable <> conv_bb.io.Out(3)
-//  reduceNode.io.enable <> conv_bb.io.Out(4)
 
   /* ================================================================== *
      *                    Dot and Reduce signals                        *
@@ -103,8 +98,6 @@ class DNNCore(implicit val p: Parameters) extends Module {
   // Connect IO to dotNode
   macNode.io.LeftIO <> LoadA.io.Out(0)
   macNode.io.RightIO <> LoadB.io.Out(0)
-
-//  reduceNode.io.LeftIO <> dotNode.io.Out(0)
 
 
   // Wire up ReduceNode Outputs

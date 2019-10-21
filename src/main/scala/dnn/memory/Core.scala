@@ -30,7 +30,7 @@ import shell._
 case class CoreParams(
     batch: Int = 1,
     blockOut: Int = 16,
-    blockIn: Int = 8, //16
+    blockIn: Int = 16,
     inpBits: Int = 8,
     wgtBits: Int = 8,
     uopBits: Int = 32,
@@ -67,7 +67,7 @@ class CoreConfig
         CoreParams(
           batch = 1,
           blockOut = 16,
-          blockIn = 8, //16
+          blockIn = 16,
           inpBits = 8,
           wgtBits = 8,
           uopBits = 32,
