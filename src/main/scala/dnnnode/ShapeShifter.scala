@@ -5,24 +5,30 @@ import chisel3.{Flipped, Module, UInt, _}
 import config.{Parameters, XLEN}
 import dnn.types.{OperatorDot, OperatorReduction}
 import interfaces.CustomDataBundle
-import node.{HandShakingIONPS, HandShakingNPS, Shapes, matNxN}
+import node.{HandShakingIONPS, HandShakingNPS, Shapes, matNxN, vecN}
 
-class ShifterIO[gen <: Shapes](NumIns: Int, NumOuts: Int)(shapeIn: => gen)(shapeOut: => gen)(implicit p: Parameters)
+class ShapeShifterIO[gen <: vecN , gen2 <: Shapes](NumIns: Int, NumOuts: Int)(shapeIn: => gen)(shapeOut: => gen2)(implicit p: Parameters)
   extends HandShakingIONPS(NumOuts)(new CustomDataBundle(UInt(shapeOut.getWidth.W))) {
     val in = Vec(NumIns, Flipped(Decoupled(new CustomDataBundle(UInt(shapeIn.getWidth.W)))))
-    override def cloneType = new ShifterIO(NumIns, NumOuts)(shapeIn)(shapeOut).asInstanceOf[this.type]
+    override def cloneType = new ShapeShifterIO(NumIns, NumOuts)(shapeIn)(shapeOut).asInstanceOf[this.type]
   }
 
-class Shifter[L <: Shapes](NumIns: Int, NumOuts: Int, ID: Int, lanes: Int)(shapeIn: => L)(shapeOut: => L)(implicit p: Parameters)
+class ShapeShifter[L <: vecN, K <: Shapes](NumIns: Int, NumOuts: Int, ID: Int, lanes: Int)(shapeIn: => L)(shapeOut: => K)(implicit p: Parameters)
   extends HandShakingNPS(NumOuts, ID)(new CustomDataBundle(UInt(shapeOut.getWidth.W)))(p) {
-  override lazy val io = IO(new ShifterIO(NumIns, NumOuts)(shapeIn)(shapeOut))
+  override lazy val io = IO(new ShapeShifterIO(NumIns, NumOuts)(shapeIn)(shapeOut))
+
+  val x = Wire(shapeIn)
+  val y = x.toVecUInt()
 
 
-
-  val buffer = Module(new Queue(shapeIn,40))
+  val z = x.data
+  val buffer = Module(new Queue(shapeOut,40))
 
   val dataIn_R = RegInit(Vec(NumIns, CustomDataBundle.default(0.U(shapeIn.getWidth.W))))
 
+  for (i <- 0 until NumIns) {
+    dataIn_R(i) <> io.in(i)
+  }
 
 
 
