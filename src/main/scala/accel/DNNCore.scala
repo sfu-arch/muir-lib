@@ -78,9 +78,9 @@ class DNNCore(implicit val p: Parameters) extends Module {
   val LoadA = Module(new TLoad(NumPredOps = 0, NumSuccOps = 1, NumOuts = 1, ID = 0, RouteID = 0)(shapeIn))
   val LoadB = Module(new TLoad(NumPredOps = 0, NumSuccOps = 1, NumOuts = 1, ID = 0, RouteID = 0)(shapeIn))
   val Store = Module(new TStore(NumPredOps = 2, NumSuccOps = 0, NumOuts = 1, ID = 0, RouteID = 0)(shapeIn))
-  val macNode = Module(new MacNode(NumOuts = 1, ID = 0, lanes = 4)(shapeIn))
+  val macNode = Module(new MacNode(NumOuts = 1, ID = 0, lanes = 3)(shapeOut))
 
-//  val shapeShifter = Module(new ShapeShifter(NumIns = 3, ID = 0)(shapeIn)(shapeOut))
+  val shapeShifter = Module(new ShapeShifter(NumIns = 3, ID = 0)(shapeIn)(shapeOut))
   /* ================================================================== *
      *                      Basic Block signals                         *
      * ================================================================== */

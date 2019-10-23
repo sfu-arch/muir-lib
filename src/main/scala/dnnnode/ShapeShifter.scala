@@ -18,8 +18,8 @@ class ShapeShifter[L <: vecN, K <: Shapes](NumIns: Int, ID: Int)(shapeIn: => L)(
   extends HandShakingNPS(1, ID)(new CustomDataBundle(UInt(shapeOut.getWidth.W)))(p) {
   override lazy val io = IO(new ShapeShifterIO(NumIns)(shapeIn)(shapeOut))
 
-//  val x = Wire(shapeIn)
-//  val y = x.toVecUInt()
+  val x = Wire(shapeIn)
+  val y = x.toVecUInt()
 
 
 //  val z = x.data
@@ -29,12 +29,14 @@ class ShapeShifter[L <: vecN, K <: Shapes](NumIns: Int, ID: Int)(shapeIn: => L)(
  *            Registers                      *
  *===========================================*/
 //  val dataIn_R = RegInit(Vec(NumIns, CustomDataBundle.default(0.U(shapeIn.getWidth.W))))
-  val dataIn_R = RegInit(Vec(NumIns, Decoupled(shapeIn)))
-  val dataIn_vec = Wire(Vec(NumIns, shapeIn))
+//  val dataIn_R = RegInit(VecInit(NumIns, Decoupled(shapeIn.toVecUInt())))
+  val dataIn_R = RegInit(VecInit(Seq.fill(NumIns)(CustomDataBundle.default(0.U(shapeIn.getWidth.W)))))
+  val dataIn_vec = Vec(NumIns, Vec(shapeIn.N, UInt(xlen.W)))
+
   val ratio = shapeIn.data.size / NumIns  //8
 
   for (i <- 0 until NumIns) {
-    dataIn_vec(i) := dataIn_R(i).bits.toVecUInt() // 3, 24
+    dataIn_vec(i).asUInt() := dataIn_R(i) // 3, 24
   }
 
   val dataOut_Vec = Wire(Vec(ratio, Vec(NumIns*NumIns, UInt(xlen.W)))) //8, (9)
@@ -42,7 +44,7 @@ class ShapeShifter[L <: vecN, K <: Shapes](NumIns: Int, ID: Int)(shapeIn: => L)(
   for (i <- 0 until ratio) { //8
     for (j <- 0 until NumIns) {
       for (k <- 0 until NumIns) {
-        dataOut_Vec(i)(j*NumIns + k) := dataIn_vec(j).data(i*NumIns + k)
+        dataOut_Vec(i)(j*NumIns + k) := dataIn_vec(j)(i*NumIns + k)
       }
     }
   }
@@ -69,7 +71,7 @@ class ShapeShifter[L <: vecN, K <: Shapes](NumIns: Int, ID: Int)(shapeIn: => L)(
   for (i <- 0 until NumIns) {
     io.in(i).ready := ~dataIn_R(i).valid
     when(io.in(i).fire()) {
-      dataIn_R(i).bits.data := io.in(i).bits.data
+      dataIn_R(i).data := io.in(i).bits.data
       dataIn_R(i).valid := true.B
 //      dataIn_R(i).predicate := io.in(i).bits.predicate
     }
