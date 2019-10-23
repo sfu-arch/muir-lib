@@ -288,9 +288,9 @@ class DebugBufferNode(
 
 
   var (addr_cnt, wrap) = Counter(st_node.io.InData.fire, 4096)
-  if (node_cnt != 0.U) {
-    addr_cnt = node_cnt * 20.U
-  }
+
+  addr_cnt = node_cnt * 20.U
+
 
   st_node.io.GepAddr.bits := DataBundle((addr_cnt << 2.U).asUInt())
   st_node.io.GepAddr.valid := true.B
