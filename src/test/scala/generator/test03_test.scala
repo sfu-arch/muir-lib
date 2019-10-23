@@ -40,7 +40,7 @@ class test03Main(implicit p: Parameters) extends AccelIO(List(32, 32), List(32))
   val test03_debug = Module(new Debug03DF())
 
   //Put an arbiter infront of cache
-  val CacheArbiter = Module(new MemArbiter(3))
+  val CacheArbiter = Module(new MemArbiter(5))
 
   // Connect input signals to cache
   CacheArbiter.io.cpu.MemReq(0) <> test03.io.MemReq
@@ -53,6 +53,11 @@ class test03Main(implicit p: Parameters) extends AccelIO(List(32, 32), List(32))
   CacheArbiter.io.cpu.MemReq(2) <> test03_debug.io.MemReq
   test03_debug.io.MemResp <> CacheArbiter.io.cpu.MemResp(2)
 
+  CacheArbiter.io.cpu.MemReq(3) <> test03_debug.io.MemReq
+  test03_debug.io.MemResp <> CacheArbiter.io.cpu.MemResp(3)
+
+  CacheArbiter.io.cpu.MemReq(4) <> test03_debug.io.MemReq
+  test03_debug.io.MemResp <> CacheArbiter.io.cpu.MemResp(4)
 
   //Connect cache to the arbiter
   cache.io.cpu.req <> CacheArbiter.io.cache.MemReq

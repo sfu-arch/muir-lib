@@ -31,8 +31,7 @@ class test03DF(implicit p: Parameters) extends test03DFIO()(p) {
    *                   PRINTING MEMORY MODULES                          *
    * ================================================================== */
 
-
-  //-----------------------------------------------------------------------p
+  /*same C
   val MemCtrl = Module(new UnifiedController(ID = 0, Size = 32, NReads = 0, NWrites = 1)
   //NumOps = 1 to NumOps = 2
   (WControl = new WriteMemoryController(NumOps = 1, BaseSize = 2, NumEntries = 2))
@@ -40,8 +39,9 @@ class test03DF(implicit p: Parameters) extends test03DFIO()(p) {
   (RWArbiter = new ReadWriteArbiter()))
   io.MemReq <> MemCtrl.io.MemReq
   MemCtrl.io.MemResp <> io.MemResp
-  //---------------------------------------------------------------------------v
-
+  same C */
+  io.MemReq <> DontCare
+  io.MemResp <> DontCare
 
   val InputSplitter = Module(new SplitCallNew(List(3, 3)))
   InputSplitter.io.In <> io.in
@@ -76,10 +76,12 @@ class test03DF(implicit p: Parameters) extends test03DFIO()(p) {
   //  %7 = sub nsw i32 %1, %6, !UID !7
   //-----------------------------pv, what we track, numouts ++d
   val binaryOp_4 = Module(new ComputeNode(NumOuts = 1, ID = 4, opCode = "sub")(sign = false, Debug = true))
+  /* same C
   val buf_0 = Module(new DebugBufferNode(ID = 8, RouteID = 1, Bore_ID = 4))
+  same C */
 
   //  %8 = mul nsw i32 %5, %7, !UID !8
-  val binaryOp_5 = Module(new ComputeNode(NumOuts = 1, ID = 5, opCode = "mul")(sign = false))
+  val binaryOp_5 = Module(new ComputeNode(NumOuts = 1, ID = 5, opCode = "mul")(sign = false, Debug = true))
 
   //  ret i32 %8, !UID !9, !BB_UID !10
   val ret_6 = Module(new RetNode2(retTypes = List(32), ID = 7))
@@ -90,7 +92,7 @@ class test03DF(implicit p: Parameters) extends test03DFIO()(p) {
   hs*/
 
 
-
+  /* same C
   /**
     * Debuging states for store node
     */
@@ -115,7 +117,8 @@ class test03DF(implicit p: Parameters) extends test03DFIO()(p) {
   buf_0.io.Enable := state === sActive
 
 
-  //------------------------------------------------------------------------------------v
+  same C */
+
 
   /* ================================================================== *
    *                   PRINTING CONSTANTS NODES                         *
@@ -207,10 +210,6 @@ class test03DF(implicit p: Parameters) extends test03DFIO()(p) {
 
   ret_6.io.In.enable <> bb_0.io.Out(8)
 
-  //new
-  //  buf_0.io.enable.bits := ControlBundle.active()
-  //  buf_0.io.enable.valid := true.B
-  //  buf_0.io.Out(0).ready := true.B
 
   /*hs
   //-----------------------------------------p
@@ -218,8 +217,14 @@ class test03DF(implicit p: Parameters) extends test03DFIO()(p) {
   st_0.io.enable.valid := true.B
 
    hs*/
+  /* same C
   binaryOp_4.io.DebugEnable.get <> bb_0.io.DebugEnable
+
+  same C */
+
   binaryOp_2.io.DebugEnable.get <> bb_0.io.DebugEnable
+  binaryOp_4.io.DebugEnable.get <> bb_0.io.DebugEnable
+  binaryOp_5.io.DebugEnable.get <> bb_0.io.DebugEnable
 
   //-----------------------------------------------v
 
@@ -241,9 +246,11 @@ class test03DF(implicit p: Parameters) extends test03DFIO()(p) {
   st_0.io.memResp <> MemCtrl.io.WriteOut(0)
 
   hs */
+
+  /* same C
   MemCtrl.io.WriteIn(0) <> buf_0.io.memReq
   buf_0.io.memResp <> MemCtrl.io.WriteOut(0)
-
+  same C */
   /* ================================================================== *
    *                   PRINT SHARED CONNECTIONS                         *
    * ================================================================== */

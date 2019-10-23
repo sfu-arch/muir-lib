@@ -33,9 +33,9 @@ class Debug03DF(implicit p: Parameters) extends Debug03IO()(p) {
 
 
 
-  val MemCtrl = Module(new UnifiedController(ID = 0, Size = 32, NReads = 0, NWrites = 1)
+  val MemCtrl = Module(new UnifiedController(ID = 0, Size = 32, NReads = 0, NWrites = 3)
   //NumOps = 1 to NumOps = 2
-  (WControl = new WriteMemoryController(NumOps = 1, BaseSize = 2, NumEntries = 2))
+  (WControl = new WriteMemoryController(NumOps = 3, BaseSize = 2, NumEntries = 2))
   (RControl = new ReadMemoryController(NumOps = 0, BaseSize = 2, NumEntries = 2))
   (RWArbiter = new ReadWriteArbiter()))
   io.MemReq <> MemCtrl.io.MemReq
@@ -43,15 +43,23 @@ class Debug03DF(implicit p: Parameters) extends Debug03IO()(p) {
 
 
   //new
-  val buf_0 = Module(new DebugBufferNode(ID = 8, RouteID = 1, Bore_ID = 2))
+  val buf_0 = Module(new DebugBufferNode(ID = 1, RouteID = 1, Bore_ID = 2, node_cnt = 0.U))
   buf_0.io.Enable := io.Enable
-
-
+  val buf_1 = Module(new DebugBufferNode(ID = 2, RouteID = 2, Bore_ID = 4, node_cnt = 1.U))
+  buf_1.io.Enable := io.Enable
+  val buf_2 = Module(new DebugBufferNode(ID = 3, RouteID = 3, Bore_ID = 5, node_cnt = 2.U))
+  buf_2.io.Enable := io.Enable
 
 
   //-----------------------------------p
   MemCtrl.io.WriteIn(0) <> buf_0.io.memReq
   buf_0.io.memResp <> MemCtrl.io.WriteOut(0)
+
+  MemCtrl.io.WriteIn(1) <> buf_1.io.memReq
+  buf_1.io.memResp <> MemCtrl.io.WriteOut(1)
+
+  MemCtrl.io.WriteIn(2) <> buf_2.io.memReq
+  buf_2.io.memResp <> MemCtrl.io.WriteOut(2)
   //----------------------------------------------v
 
 
