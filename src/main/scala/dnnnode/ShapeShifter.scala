@@ -66,16 +66,8 @@ class ShapeShifter[L <: vecN, K <: Shapes](NumIns: Int, NumOuts: Int, ID: Int)(s
   buffer.io.enq.bits <> mux.io.output
   buffer.io.enq.valid := countOn
 
-
   val s_idle :: s_LATCH :: s_ACTIVE :: s_COMPUTE :: Nil = Enum(4)
   val state = RegInit(s_idle)
-
-  /*==========================================*
-   *           Predicate Evaluation           *
-   *==========================================*/
-
-  //val predicate = dataIn_R.map(_.predicate).reduceLeft(_ && _) & IsEnable()
-  val start = dataIn_R.map(_.valid).reduceLeft(_ && _) & IsEnableValid()
 
   /*===============================================*
    *            Latch inputs. Wire up left       *
