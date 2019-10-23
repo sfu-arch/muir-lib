@@ -111,6 +111,7 @@ class ShapeShifter[L <: vecN, K <: Shapes](NumIns: Int, NumOuts: Int, ID: Int)(s
       buffer.io.deq.ready := true.B
       when(buffer.io.deq.fire) {
         state := s_Finish
+        ValidOut()
       }
     }
     is(s_Finish) {
@@ -118,6 +119,7 @@ class ShapeShifter[L <: vecN, K <: Shapes](NumIns: Int, NumOuts: Int, ID: Int)(s
         when(buffer.io.deq.valid) {
           state := s_Finish
           data_out_R := buffer.io.deq.bits
+          Reset()
         }.otherwise {
           dataIn_R.foreach(_ := CustomDataBundle.default(0.U(shapeIn.getWidth.W)))
           dataIn_valid_R.foreach(_ := false.B)
