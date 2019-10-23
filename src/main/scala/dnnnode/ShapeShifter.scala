@@ -19,44 +19,37 @@ class ShapeShifter[L <: vecN, K <: Shapes](NumIns: Int, ID: Int)(shapeIn: => L)(
   extends HandShakingNPS(1, ID)(new CustomDataBundle(UInt(shapeOut.getWidth.W)))(p) {
   override lazy val io = IO(new ShapeShifterIO(NumIns)(shapeIn)(shapeOut))
 
-  val x = Wire(shapeIn)
-  val y = x.toVecUInt()
-
-
-  //  val z = x.data
   val buffer = Module(new Queue(shapeOut, 40))
 
   /*===========================================*
    *            Registers                      *
    *===========================================*/
-  //  val dataIn_R = RegInit(Vec(NumIns, CustomDataBundle.default(0.U(shapeIn.getWidth.W))))
-  //  val dataIn_R = RegInit(VecInit(NumIns, Decoupled(shapeIn.toVecUInt())))
   val dataIn_R = RegInit(VecInit(Seq.fill(NumIns)(CustomDataBundle.default(0.U(shapeIn.getWidth.W)))))
-  val dataIn_vec = Wire(Vec(NumIns, Vec(shapeIn.N, UInt(xlen.W))))
+  val dataIn_Wire = Wire(Vec(NumIns, Vec(shapeIn.N, UInt(xlen.W))))
 
   val ratio = shapeIn.data.size / NumIns //8
 
   val input_data = dataIn_R.map(_.data.asUInt())
-  val BYTE_SIZE = 8
 
   for (i <- 0 until NumIns) {
     for (j <- 0 until shapeIn.N) {
-      val index = ((j + 1) * BYTE_SIZE) - 1
-      dataIn_vec(i)(j) := input_data(i)(index, j * BYTE_SIZE) // 3, 24
+      val index = ((j + 1) * xlen) - 1
+      dataIn_Wire(i)(j) := input_data(i)(index, j * xlen) // 3, 24
     }
   }
 
-  val dataOut_Vec = Wire(Vec(ratio, Vec(NumIns * NumIns, UInt(xlen.W)))) //8, (9)
+  val dataOut_Wire = Wire(Vec(ratio, Vec(NumIns * NumIns, UInt(xlen.W)))) //8, (9)
 
   for (i <- 0 until ratio) { //8
     for (j <- 0 until NumIns) {
       for (k <- 0 until NumIns) {
-        dataOut_Vec(i)(j * NumIns + k) := dataIn_vec(j)(i * NumIns + k)
+        dataOut_Wire(i)(j * NumIns + k) := dataIn_Wire(j)(i * NumIns + k)
       }
     }
   }
 
-  val dataOut_R = RegNext(next = dataIn_vec, init = VecInit(Seq.fill(NumIns)(VecInit(Seq.fill(shapeIn.N)(0.U)))))
+//  val dataOut_R = RegNext(next = dataIn_Wire, init = VecInit(Seq.fill(NumIns)(VecInit(Seq.fill(shapeIn.N)(0.U)))))
+  val dataOut_R = RegNext(next = dataOut_Wire, init = VecInit(Seq.fill(ratio)(CustomDataBundle.default(0.U(shapeOut.getWidth.W)))))
 
   val s_idle :: s_LATCH :: s_ACTIVE :: s_COMPUTE :: Nil = Enum(4)
   val state = RegInit(s_idle)
