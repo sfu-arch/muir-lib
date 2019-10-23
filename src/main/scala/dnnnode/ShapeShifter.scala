@@ -25,6 +25,7 @@ class ShapeShifter[L <: vecN, K <: Shapes](NumIns: Int, NumOuts: Int, ID: Int)(s
    *            Registers                      *
    *===========================================*/
   val dataIn_R = RegInit(VecInit(Seq.fill(NumIns)(CustomDataBundle.default(0.U(shapeIn.getWidth.W)))))
+  val dataIn_valid_R = RegInit(VecInit(Seq.fill(NumIns)(true.B)))
   val dataIn_Wire = Wire(Vec(NumIns, Vec(shapeIn.N, UInt(xlen.W))))
 
   val ratio = shapeIn.data.size / NumIns //8
@@ -54,7 +55,7 @@ class ShapeShifter[L <: vecN, K <: Shapes](NumIns: Int, NumOuts: Int, ID: Int)(s
   val (cnt, wrap) = Counter(countOn, 8)
 
   mux.io.sel := cnt
-  mux.io.en := ~wrap
+  mux.io.en := countOn
   for (i <- 0 until ratio) {
     mux.io.inputs(i).data := dataOut_Wire(i).asTypeOf(CustomDataBundle(UInt(shapeOut.getWidth.W))).data
     mux.io.inputs(i).valid := dataIn_R.map(_.valid).reduceLeft(_ && _)
@@ -66,8 +67,6 @@ class ShapeShifter[L <: vecN, K <: Shapes](NumIns: Int, NumOuts: Int, ID: Int)(s
   buffer.io.enq.valid := countOn
 
 
-
-
   val s_idle :: s_LATCH :: s_ACTIVE :: s_COMPUTE :: Nil = Enum(4)
   val state = RegInit(s_idle)
 
@@ -75,7 +74,7 @@ class ShapeShifter[L <: vecN, K <: Shapes](NumIns: Int, NumOuts: Int, ID: Int)(s
    *           Predicate Evaluation           *
    *==========================================*/
 
-    val predicate = dataIn_R.map(_.predicate).reduceLeft(_ && _) &  IsEnable( )
+  //val predicate = dataIn_R.map(_.predicate).reduceLeft(_ && _) & IsEnable()
   val start = dataIn_R.map(_.valid).reduceLeft(_ && _) & IsEnableValid()
 
   /*===============================================*
@@ -86,18 +85,18 @@ class ShapeShifter[L <: vecN, K <: Shapes](NumIns: Int, NumOuts: Int, ID: Int)(s
 
   //printfInfo("start: %x\n", start)
   for (i <- 0 until NumIns) {
-    io.in(i).ready := ~dataIn_R(i).valid
+    io.in(i).ready := ~dataIn_valid_R(i)
     when(io.in(i).fire()) {
       dataIn_R(i).data := io.in(i).bits.data
-      dataIn_R(i).valid := true.B
-      countOn := true.B
-      dataIn_R(i).predicate := io.in(i).bits.predicate
+      dataIn_valid_R(i) := true.B
     }
   }
 
+  countOn := (dataIn_valid_R.reduceLeft(_ && _) ) && (buffer.io.enq.ready)
+
   for (i <- 0 until NumOuts) {
-//    io.Out(i).bits <> buffer.io.deq
-    buffer.io.deq.ready := io.Out.map(_.ready).reduceLeft(_ && _)
+    //    io.Out(i).bits <> buffer.io.deq
+    buffer.io.deq.ready := io.Out.map(_.ready).reduceLeft(_ & _)
     io.Out(i).bits.data := buffer.io.deq.bits.data
     io.Out(i).bits.valid := buffer.io.deq.valid //true.B
     io.Out(i).bits.predicate := buffer.io.deq.bits.predicate
@@ -108,7 +107,7 @@ class ShapeShifter[L <: vecN, K <: Shapes](NumIns: Int, NumOuts: Int, ID: Int)(s
     for (i <- 0 until NumIns) {
       dataIn_R(i) := CustomDataBundle.default(0.U(shapeIn.getWidth.W))
     }
-    Reset( )
+    Reset()
     countOn := false.B
   }
   when(!wrap) {
