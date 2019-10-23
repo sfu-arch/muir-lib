@@ -88,22 +88,22 @@ class ShapeShifter[L <: vecN, K <: Shapes](NumIns: Int, NumOuts: Int, ID: Int)(s
   countOn := (dataIn_valid_R.reduceLeft(_ && _)) && (buffer.io.enq.ready)
 
   for (i <- 0 until NumOuts) {
-    buffer.io.deq.ready := io.Out.map(_.ready).reduceLeft(_ & _)
     io.Out(i).bits := buffer.io.deq.bits
   }
 
   switch(state) {
     is(s_idle) {
       buffer.io.deq.ready := false.B
-      when(dataIn_valid_R.reduceLeft(_ && _) & buffer.io.deq.valid) {
-        ValidOut()
+      when(dataIn_valid_R.reduceLeft(_ && _)) {
         state := s_BufferWrite
+        countOn := false.B
       }
     }
     is (s_BufferWrite) {
-      countOn := true.B
-      when (wrap) {
+      buffer.io.deq.ready := false.B
+      when (wrap && buffer.io.deq.valid) {
         state := s_COMPUTE
+        countOn := false.B
       }
     }
     is(s_COMPUTE) {
