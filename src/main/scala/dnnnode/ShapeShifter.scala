@@ -1,7 +1,7 @@
 package dnnnode
 
 import Chisel.Enum
-import chisel3.util.{Decoupled, Queue, log2Ceil}
+import chisel3.util.{Decoupled, Queue, Counter}
 import chisel3.{Flipped, Module, UInt, _}
 import config.{Parameters, XLEN}
 import dnn.types.{OperatorDot, OperatorReduction}
@@ -20,6 +20,14 @@ class ShapeShifter[L <: vecN, K <: Shapes](NumIns: Int, ID: Int)(shapeIn: => L)(
   override lazy val io = IO(new ShapeShifterIO(NumIns)(shapeIn)(shapeOut))
 
   val buffer = Module(new Queue(shapeOut, 40))
+
+
+  val countOn = true.B
+  val (cnt, wrap) = Counter(countOn, 8)
+
+  when(wrap){
+    //Do something
+  }
 
   /*===========================================*
    *            Registers                      *
