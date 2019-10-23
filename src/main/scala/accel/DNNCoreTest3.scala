@@ -19,20 +19,17 @@ package accel
  * under the License.
  */
 
-import arbiters.TypeStackFile
-import chisel3.{when, _}
 import chisel3.util._
+import chisel3.{when, _}
 import config._
 import control.BasicBlockNoMaskNode
-import dnn.memory.{ReadTensorController, TensorLoad, TensorMaster, TensorStore, WriteTensorController}
-import dnn.{DotNode, MacNode, ReduceNode}
-import interfaces.{ControlBundle, DataBundle}
-import junctions.SplitCallNew
-import memory.{ReadTypMemoryController, WriteTypMemoryController}
-import node.{FXmatNxN, UnTypStore, matNxN, vecN}
-import shell._
+import dnn.MacNode
 import dnn.memory.ISA._
+import dnn.memory.{ReadTensorController, TensorLoad, TensorStore, WriteTensorController}
 import dnnnode.{ShapeShifter, TLoad, TStore}
+import interfaces.ControlBundle
+import node.{matNxN, vecN}
+import shell._
 
 /** Core.
   *
@@ -46,7 +43,7 @@ import dnnnode.{ShapeShifter, TLoad, TStore}
   * More info about these interfaces and modules can be found in the shell
   * directory.
   */
-class DNNCore(implicit val p: Parameters) extends Module {
+class DNNCoreTest3(implicit val p: Parameters) extends Module {
   val io = IO(new Bundle {
     val vcr = new VCRClient
     val vme = new VMEMaster
@@ -55,7 +52,6 @@ class DNNCore(implicit val p: Parameters) extends Module {
   val cycle_count = new Counter(2000)
 
   val shapeIn = new vecN(24, 0, false)
-  val shapeOut = new matNxN(3, false)
 
   val tensorLoad1 = Module(new TensorLoad(tensorType = "inp"))
   val readTensorController1 = Module(new ReadTensorController(1, "inp")(shapeIn))
@@ -80,7 +76,6 @@ class DNNCore(implicit val p: Parameters) extends Module {
   val Store = Module(new TStore(NumPredOps = 2, NumSuccOps = 0, NumOuts = 1, ID = 0, RouteID = 0)(shapeIn))
   val macNode = Module(new MacNode(NumOuts = 1, ID = 0, lanes = 4)(shapeIn))
 
-//  val shapeShifter = Module(new ShapeShifter(NumIns = 3, ID = 0)(shapeIn)(shapeOut))
   /* ================================================================== *
      *                      Basic Block signals                         *
      * ================================================================== */
