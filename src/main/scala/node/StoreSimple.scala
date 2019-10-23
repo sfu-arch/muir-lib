@@ -289,10 +289,14 @@ class DebugBufferNode(
 
   var (addr_cnt, wrap) = Counter(st_node.io.InData.fire, 4096)
 
-  addr_cnt = node_cnt * 20.U
+  //  addr_cnt = node_cnt * 20.U
+
+  val addr_offset = node_cnt * 20.U
+  val addr = addr_offset + (addr_cnt << 2.U).asUInt()
 
 
-  st_node.io.GepAddr.bits := DataBundle((addr_cnt << 2.U).asUInt())
+
+  st_node.io.GepAddr.bits := DataBundle(addr)
   st_node.io.GepAddr.valid := true.B
 
 
