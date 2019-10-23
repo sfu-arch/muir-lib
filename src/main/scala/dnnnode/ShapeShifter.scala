@@ -67,7 +67,7 @@ class ShapeShifter[L <: vecN, K <: Shapes](NumIns: Int, NumOuts: Int, ID: Int)(s
   buffer.io.enq.bits <> mux.io.output
   buffer.io.enq.valid := countOn
 
-  val s_idle :: s_BufferWrite :: s_COMPUTE :: Nil = Enum(3)
+  val s_idle :: s_BufferWrite :: s_Transfer :: s_Finish :: Nil = Enum(4)
   val state = RegInit(s_idle)
 
   /*===============================================*
@@ -88,31 +88,42 @@ class ShapeShifter[L <: vecN, K <: Shapes](NumIns: Int, NumOuts: Int, ID: Int)(s
   countOn := (dataIn_valid_R.reduceLeft(_ && _)) && (buffer.io.enq.ready)
 
   for (i <- 0 until NumOuts) {
-    io.Out(i).bits := buffer.io.deq.bits
+    io.Out(i).bits := data_out_R
   }
+
+  buffer.io.deq.ready := false.B
 
   switch(state) {
     is(s_idle) {
-      buffer.io.deq.ready := false.B
       when(dataIn_valid_R.reduceLeft(_ && _)) {
         state := s_BufferWrite
+        countOn := true.B
+      }
+    }
+    is(s_BufferWrite) {
+      when(wrap && buffer.io.deq.valid) {
+        state := s_Transfer
+        data_out_R := buffer.io.deq.bits
         countOn := false.B
       }
     }
-    is (s_BufferWrite) {
-      buffer.io.deq.ready := false.B
-      when (wrap && buffer.io.deq.valid) {
-        state := s_COMPUTE
-        countOn := false.B
-      }
-    }
-    is(s_COMPUTE) {
+    is(s_Transfer) {
       buffer.io.deq.ready := true.B
+      when(buffer.io.deq.fire) {
+        state := s_Finish
+      }
+    }
+    is(s_Finish) {
       when(IsOutReady()) {
-        dataIn_R.foreach(_ := CustomDataBundle.default(0.U(shapeIn.getWidth.W)))
-        dataIn_valid_R.foreach(_ := false.B)
-        Reset()
-        state := s_idle
+        when(buffer.io.deq.valid) {
+          state := s_Finish
+          data_out_R := buffer.io.deq.bits
+        }.otherwise {
+          dataIn_R.foreach(_ := CustomDataBundle.default(0.U(shapeIn.getWidth.W)))
+          dataIn_valid_R.foreach(_ := false.B)
+          Reset()
+          state := s_idle
+        }
       }
     }
   }
