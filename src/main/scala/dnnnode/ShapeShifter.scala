@@ -1,7 +1,7 @@
 package dnnnode
 
 import Chisel.Enum
-import chisel3.util.{Counter, Decoupled, Queue}
+import chisel3.util._
 import chisel3.{Flipped, Module, UInt, _}
 import config.{Parameters, XLEN}
 import dnn.types.{OperatorDot, OperatorReduction}
@@ -27,6 +27,7 @@ class ShapeShifter[L <: vecN, K <: Shapes](NumIns: Int, NumOuts: Int, ID: Int)(s
   val dataIn_R = RegInit(VecInit(Seq.fill(NumIns)(CustomDataBundle.default(0.U(shapeIn.getWidth.W)))))
   val dataIn_valid_R = RegInit(VecInit(Seq.fill(NumIns)(true.B)))
   val dataIn_Wire = Wire(Vec(NumIns, Vec(shapeIn.N, UInt(xlen.W))))
+  val data_out_R = RegInit(CustomDataBundle.default(0.U(shapeIn.getWidth.W)))
 
   val ratio = shapeIn.data.size / NumIns //8
 
@@ -66,7 +67,7 @@ class ShapeShifter[L <: vecN, K <: Shapes](NumIns: Int, NumOuts: Int, ID: Int)(s
   buffer.io.enq.bits <> mux.io.output
   buffer.io.enq.valid := countOn
 
-  val s_idle :: s_LATCH :: s_ACTIVE :: s_COMPUTE :: Nil = Enum(4)
+  val s_idle :: s_COMPUTE :: Nil = Enum(2)
   val state = RegInit(s_idle)
 
   /*===============================================*
@@ -84,28 +85,41 @@ class ShapeShifter[L <: vecN, K <: Shapes](NumIns: Int, NumOuts: Int, ID: Int)(s
     }
   }
 
-  countOn := (dataIn_valid_R.reduceLeft(_ && _) ) && (buffer.io.enq.ready)
+  countOn := (dataIn_valid_R.reduceLeft(_ && _)) && (buffer.io.enq.ready)
 
   for (i <- 0 until NumOuts) {
-    //    io.Out(i).bits <> buffer.io.deq
     buffer.io.deq.ready := io.Out.map(_.ready).reduceLeft(_ & _)
-    io.Out(i).bits.data := buffer.io.deq.bits.data
-    io.Out(i).bits.valid := buffer.io.deq.valid //true.B
-    io.Out(i).bits.predicate := buffer.io.deq.bits.predicate
-    io.Out(i).bits.taskID := buffer.io.deq.bits.taskID | enable_R.taskID
+    io.Out(i).bits := buffer.io.deq.bits
   }
 
-  when(IsOutReady() && wrap) {
-    for (i <- 0 until NumIns) {
-      dataIn_R(i) := CustomDataBundle.default(0.U(shapeIn.getWidth.W))
+  switch(state) {
+    is(s_idle) {
+      when(dataIn_valid_R.reduceLeft(_ && _)) {
+        ValidOut()
+        state := s_COMPUTE
+      }
     }
-    Reset()
-    countOn := false.B
+    is(s_COMPUTE) {
+      buffer.io.deq.ready := true.B
+      when(IsOutReady() && wrap) {
+        dataIn_R.foreach(_ := CustomDataBundle.default(0.U(shapeIn.getWidth.W)))
+        dataIn_valid_R.foreach(_ := false.B)
+        Reset()
+      }
+    }
   }
-  when(!wrap) {
-    countOn := true.B
-    ValidOut()
-  }
+
+  //  when(IsOutReady() && wrap) {
+  //    for (i <- 0 until NumIns) {
+  //      dataIn_R(i) := CustomDataBundle.default(0.U(shapeIn.getWidth.W))
+  //    }
+  //    Reset()
+  //    countOn := false.B
+  //  }
+  //  when(!wrap) {
+  //    countOn := true.B
+  //    ValidOut()
+  //  }
 
   //  printf(p"\n Left ${io.LeftIO.bits.data} Right: ${io.RightIO.bits.data} Output: ${reduceNode.io.Out(0).bits.data}")
 }
