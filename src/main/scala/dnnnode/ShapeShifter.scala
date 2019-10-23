@@ -62,11 +62,9 @@ class ShapeShifter[L <: vecN, K <: Shapes](NumIns: Int, NumOuts: Int, ID: Int)(s
     mux.io.inputs(i).taskID := dataIn_R.map(_.taskID).reduceLeft(_ | _)
   }
 
-  buffer.io.enq <> mux.io.output
-  buffer.io.enq.bits.data := mux.io.output.data
-  buffer.io.enq.bits.valid := mux.io.output.valid
-  buffer.io.enq.bits.taskID := mux.io.output.taskID
-  buffer.io.enq.bits.predicate := mux.io.output.predicate
+  buffer.io.enq.bits <> mux.io.output
+  buffer.io.enq.valid := countOn
+
 
 
 
