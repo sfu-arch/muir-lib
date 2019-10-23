@@ -67,7 +67,7 @@ class ShapeShifter[L <: vecN, K <: Shapes](NumIns: Int, NumOuts: Int, ID: Int)(s
   buffer.io.enq.bits <> mux.io.output
   buffer.io.enq.valid := countOn
 
-  val s_idle :: s_COMPUTE :: Nil = Enum(2)
+  val s_idle :: s_BufferWrite :: s_COMPUTE :: Nil = Enum(3)
   val state = RegInit(s_idle)
 
   /*===============================================*
@@ -94,17 +94,25 @@ class ShapeShifter[L <: vecN, K <: Shapes](NumIns: Int, NumOuts: Int, ID: Int)(s
 
   switch(state) {
     is(s_idle) {
-      when(dataIn_valid_R.reduceLeft(_ && _)) {
+      buffer.io.deq.ready := false.B
+      when(dataIn_valid_R.reduceLeft(_ && _) & buffer.io.deq.valid) {
         ValidOut()
+        state := s_BufferWrite
+      }
+    }
+    is (s_BufferWrite) {
+      countOn := true.B
+      when (wrap) {
         state := s_COMPUTE
       }
     }
     is(s_COMPUTE) {
       buffer.io.deq.ready := true.B
-      when(IsOutReady() && wrap) {
+      when(IsOutReady()) {
         dataIn_R.foreach(_ := CustomDataBundle.default(0.U(shapeIn.getWidth.W)))
         dataIn_valid_R.foreach(_ := false.B)
         Reset()
+        state := s_idle
       }
     }
   }
