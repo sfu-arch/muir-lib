@@ -65,13 +65,13 @@ class DotNode[L <: Shapes : OperatorDot](NumOuts: Int, ID: Int, lanes: Int, opCo
 
   io.LeftIO.ready := ~left_valid_R
   when(io.LeftIO.fire()) {
-    left_R.data := io.LeftIO.bits.data
+    left_R := io.LeftIO.bits
     left_valid_R := true.B
   }
 
   io.RightIO.ready := ~right_valid_R
   when(io.RightIO.fire()) {
-    right_R.data := io.RightIO.bits.data
+    right_R := io.RightIO.bits
     right_valid_R := true.B
   }
 

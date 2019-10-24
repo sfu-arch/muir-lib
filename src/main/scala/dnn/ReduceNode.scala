@@ -59,7 +59,7 @@ class ReduceNode[L <: Shapes : OperatorReduction](NumOuts: Int, ID: Int, pipelin
 
   io.LeftIO.ready := ~left_valid_R
   when(io.LeftIO.fire()) {
-    left_R.data := io.LeftIO.bits.data
+    left_R := io.LeftIO.bits
     left_valid_R := true.B
   }
 
