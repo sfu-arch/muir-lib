@@ -111,7 +111,7 @@ class DotNode[L <: Shapes : OperatorDot](NumOuts: Int, ID: Int, lanes: Int, opCo
   FU.io.b.valid := false.B
   //  This is written like this to enable FUs that are dangerous in the future.
   // If you don't start up then no value passed into function
-  when(start & state === s_idle) {
+  when(start & state === s_idle) {  //0
     when(predicate) {
       FU.io.a.valid := true.B
       FU.io.b.valid := true.B
@@ -122,7 +122,7 @@ class DotNode[L <: Shapes : OperatorDot](NumOuts: Int, ID: Int, lanes: Int, opCo
     }
   }
 
-  when(state === s_ACTIVE) {
+  when(state === s_ACTIVE) {  //2
     when(FU.io.o.valid) {
       ValidOut( )
       data_R.data := (FU.io.o.bits).asTypeOf(UInt(left.getWidth.W))

@@ -89,14 +89,20 @@ class ShapeShifter[L <: vecN, K <: Shapes](NumIns: Int, NumOuts: Int, ID: Int)(s
 //  countOn := (dataIn_valid_R.reduceLeft(_ && _)) && (buffer.io.enq.ready)
 
   for (i <- 0 until NumOuts) {
-    io.Out(i).bits := data_out_R
-    io.Out(i).bits.predicate := true.B
+    io.Out(i).valid := buffer.io.deq.valid
+    io.Out(i).bits := buffer.io.deq.bits
+//    io.Out(i).bits.valid := true.B
+    io.Out(i).bits.taskID := enable_R.taskID
+    io.Out(i).bits.predicate := true.B //enable_R.control
   }
 
-  buffer.io.deq.ready := false.B
+//  buffer.io.deq.ready := false.B
+  data_out_R <> buffer.io.deq.bits
+  buffer.io.deq.ready := io.Out.map(_.ready).reduceLeft(_ && _)
+//  out_valid_R.foreach(_ := buffer.io.deq.valid)
 
   switch(state) {
-    is(s_idle) {  //0
+    is(s_idle) { //0
       when(dataIn_valid_R.reduceLeft(_ && _) && buffer.io.enq.ready) {
         state := s_BufferWrite
         countOn := true.B
@@ -104,13 +110,17 @@ class ShapeShifter[L <: vecN, K <: Shapes](NumIns: Int, NumOuts: Int, ID: Int)(s
     }
     is(s_BufferWrite) { //1
       when(wrap) {
-        state := s_Transfer
-        data_out_R := buffer.io.deq.bits
+        state := s_idle
+        //        data_out_R := buffer.io.deq.bits
         countOn := false.B
+        dataIn_R.foreach(_ := CustomDataBundle.default(0.U(shapeIn.getWidth.W)))
+        dataIn_valid_R.foreach(_ := false.B)
       }
     }
-    is(s_Transfer) {  //2
-      buffer.io.deq.ready := true.B
+  }
+
+   /* is(s_Transfer) {  //2
+//      buffer.io.deq.ready := true.B
       when(buffer.io.deq.fire) {
         state := s_Finish
         ValidOut()
@@ -123,15 +133,15 @@ class ShapeShifter[L <: vecN, K <: Shapes](NumIns: Int, NumOuts: Int, ID: Int)(s
           data_out_R := buffer.io.deq.bits
           Reset()
         }.otherwise {
-          dataIn_R.foreach(_ := CustomDataBundle.default(0.U(shapeIn.getWidth.W)))
+//          dataIn_R.foreach(_ := CustomDataBundle.default(0.U(shapeIn.getWidth.W)))
           data_out_R := CustomDataBundle.default(0.U(shapeOut.getWidth.W))
-          dataIn_valid_R.foreach(_ := false.B)
+//          dataIn_valid_R.foreach(_ := false.B)
           Reset()
           state := s_idle
         }
       }
-    }
-  }
+    }*/
+//  }
 
   //  when(IsOutReady() && wrap) {
   //    for (i <- 0 until NumIns) {

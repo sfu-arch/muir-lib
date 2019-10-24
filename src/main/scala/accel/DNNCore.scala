@@ -105,6 +105,10 @@ class DNNCore(implicit val p: Parameters) extends Module {
   // Connect IO to dotNode
   //  macNode.io.LeftIO <> LoadA.io.Out(0)
   macNode.io.LeftIO <> shapeShifter.io.Out(0)
+//  macNode.io.LeftIO.bits.valid := shapeShifter.io.Out(0).bits.valid
+//  macNode.io.LeftIO.bits.data := shapeShifter.io.Out(0).bits.data
+//  macNode.io.LeftIO.bits.taskID := shapeShifter.io.Out(0).bits.taskID
+//  macNode.io.LeftIO.bits.predicate := shapeShifter.io.Out(0).bits.predicate
   macNode.io.RightIO <> LoadB.io.Out(0)
 
 
@@ -213,7 +217,7 @@ class DNNCore(implicit val p: Parameters) extends Module {
 
   val state = RegInit(sIdle)
   switch(state) {
-    is(sIdle) {
+    is(sIdle) { //0
       when(io.vcr.launch) {
         tensorLoad1.io.start := true.B
         indexCnt.value := 0.U
@@ -221,28 +225,28 @@ class DNNCore(implicit val p: Parameters) extends Module {
         state := sReadTensor1
       }
     }
-    is(sReadTensor1) {
+    is(sReadTensor1) {  //1
       when(tensorLoad1.io.done) { // && tensorLoad2.io.done) {
         tensorLoad2.io.start := true.B
         state := sReadTensor2
       }
     }
-    is(sReadTensor2) {
+    is(sReadTensor2) { //2
       when(tensorLoad2.io.done) {
         state := sMacStart
       }
     }
-    is(sMacStart) {
+    is(sMacStart) { //3
       LoadA.io.GepAddr.valid := true.B
       LoadB.io.GepAddr.valid := true.B
       state := sMacWaiting
     }
-    is(sMacWaiting) {
+    is(sMacWaiting) { //4
       when(macNode.io.Out(0).fire()) {
         state := sNextOp
       }
     }
-    is(sNextOp) {
+    is(sNextOp) { //5
       when(indexCnt.value === ts_Inst.xsize) {
         indexCnt.value := 0.U
         state := sWriteTensor
