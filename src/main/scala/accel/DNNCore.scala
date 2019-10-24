@@ -73,9 +73,9 @@ class DNNCore(implicit val p: Parameters) extends Module {
   val storeIndex = RegNext(next = indexCnt.value, init = 0.U)
 
 
-  val conv_bb = Module(new BasicBlockNoMaskNode(NumInputs = 1, NumOuts = 4, BID = 0))
+  val conv_bb = Module(new BasicBlockNoMaskNode(NumInputs = 1, NumOuts = 5  , BID = 0))
 
-  val LoadA = Module(new TLoad(NumPredOps = 0, NumSuccOps = 1, NumOuts = 1, ID = 0, RouteID = 0)(shapeIn))
+  val LoadA = Module(new TLoad(NumPredOps = 0, NumSuccOps = 1, NumOuts = 3, ID = 0, RouteID = 0)(shapeIn))
   val LoadB = Module(new TLoad(NumPredOps = 0, NumSuccOps = 1, NumOuts = 1, ID = 0, RouteID = 0)(shapeIn))
   val Store = Module(new TStore(NumPredOps = 2, NumSuccOps = 0, NumOuts = 1, ID = 0, RouteID = 0)(shapeIn))
   val macNode = Module(new MacNode(NumOuts = 1, ID = 0, lanes = 3)(shapeOut))
@@ -92,13 +92,19 @@ class DNNCore(implicit val p: Parameters) extends Module {
   LoadB.io.enable <> conv_bb.io.Out(1)
   Store.io.enable <> conv_bb.io.Out(2)
   macNode.io.enable <> conv_bb.io.Out(3)
+  shapeShifter.io.enable <> conv_bb.io.Out(4)
 
   /* ================================================================== *
      *                    Dot and Reduce signals                        *
      * ================================================================== */
+  shapeShifter.io.in(0) <> LoadA.io.Out(0)
+  shapeShifter.io.in(1) <> LoadA.io.Out(1)
+  shapeShifter.io.in(2) <> LoadA.io.Out(2)
+
 
   // Connect IO to dotNode
-  macNode.io.LeftIO <> LoadA.io.Out(0)
+  //  macNode.io.LeftIO <> LoadA.io.Out(0)
+  macNode.io.LeftIO <> shapeShifter.io.Out(0)
   macNode.io.RightIO <> LoadB.io.Out(0)
 
 

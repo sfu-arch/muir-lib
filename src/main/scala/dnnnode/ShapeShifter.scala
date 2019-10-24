@@ -25,9 +25,9 @@ class ShapeShifter[L <: vecN, K <: Shapes](NumIns: Int, NumOuts: Int, ID: Int)(s
    *            Registers                      *
    *===========================================*/
   val dataIn_R = RegInit(VecInit(Seq.fill(NumIns)(CustomDataBundle.default(0.U(shapeIn.getWidth.W)))))
-  val dataIn_valid_R = RegInit(VecInit(Seq.fill(NumIns)(true.B)))
+  val dataIn_valid_R = RegInit(VecInit(Seq.fill(NumIns)(false.B)))
   val dataIn_Wire = Wire(Vec(NumIns, Vec(shapeIn.N, UInt(xlen.W))))
-  val data_out_R = RegInit(CustomDataBundle.default(0.U(shapeIn.getWidth.W)))
+  val data_out_R = RegInit(CustomDataBundle.default(0.U(shapeOut.getWidth.W)))
 
   val ratio = shapeIn.data.size / NumIns //8
 
@@ -66,6 +66,7 @@ class ShapeShifter[L <: vecN, K <: Shapes](NumIns: Int, NumOuts: Int, ID: Int)(s
 
   buffer.io.enq.bits <> mux.io.output
   buffer.io.enq.valid := countOn
+  buffer.io.enq.bits.predicate := true.B
 
   val s_idle :: s_BufferWrite :: s_Transfer :: s_Finish :: Nil = Enum(4)
   val state = RegInit(s_idle)
@@ -85,29 +86,30 @@ class ShapeShifter[L <: vecN, K <: Shapes](NumIns: Int, NumOuts: Int, ID: Int)(s
     }
   }
 
-  countOn := (dataIn_valid_R.reduceLeft(_ && _)) && (buffer.io.enq.ready)
+//  countOn := (dataIn_valid_R.reduceLeft(_ && _)) && (buffer.io.enq.ready)
 
   for (i <- 0 until NumOuts) {
     io.Out(i).bits := data_out_R
+    io.Out(i).bits.predicate := true.B
   }
 
   buffer.io.deq.ready := false.B
 
   switch(state) {
-    is(s_idle) {
-      when(dataIn_valid_R.reduceLeft(_ && _)) {
+    is(s_idle) {  //0
+      when(dataIn_valid_R.reduceLeft(_ && _) && buffer.io.enq.ready) {
         state := s_BufferWrite
         countOn := true.B
       }
     }
-    is(s_BufferWrite) {
-      when(wrap && buffer.io.deq.valid) {
+    is(s_BufferWrite) { //1
+      when(wrap) {
         state := s_Transfer
         data_out_R := buffer.io.deq.bits
         countOn := false.B
       }
     }
-    is(s_Transfer) {
+    is(s_Transfer) {  //2
       buffer.io.deq.ready := true.B
       when(buffer.io.deq.fire) {
         state := s_Finish
@@ -117,11 +119,12 @@ class ShapeShifter[L <: vecN, K <: Shapes](NumIns: Int, NumOuts: Int, ID: Int)(s
     is(s_Finish) {
       when(IsOutReady()) {
         when(buffer.io.deq.valid) {
-          state := s_Finish
+          state := s_Transfer
           data_out_R := buffer.io.deq.bits
           Reset()
         }.otherwise {
           dataIn_R.foreach(_ := CustomDataBundle.default(0.U(shapeIn.getWidth.W)))
+          data_out_R := CustomDataBundle.default(0.U(shapeOut.getWidth.W))
           dataIn_valid_R.foreach(_ := false.B)
           Reset()
           state := s_idle
