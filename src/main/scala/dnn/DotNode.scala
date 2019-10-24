@@ -80,10 +80,6 @@ class DotNode[L <: Shapes : OperatorDot](NumOuts: Int, ID: Int, lanes: Int, opCo
     io.Out(i).bits := data_R
   }
 
-  /*============================================*
- *            ACTIONS (possibly dangerous)    *
- *============================================*/
-
   val FU = Module(new DotFU(left, lanes, opCode))
   FU.io.a.bits := (left_R.data).asTypeOf(left)
   FU.io.b.bits := (right_R.data).asTypeOf(left)
