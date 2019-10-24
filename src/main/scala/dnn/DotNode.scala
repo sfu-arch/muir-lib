@@ -1,7 +1,7 @@
 package dnn
 
 import chisel3._
-import chisel3.util.{Decoupled, Enum, Valid}
+import chisel3.util._
 import chisel3.{Bundle, Flipped, Module, Output, RegInit, UInt, assert, printf, when}
 import config.{Parameters, XLEN}
 import config._
@@ -19,10 +19,10 @@ class DotFU[gen <: Shapes : OperatorDot](left: => gen, lanes: Int, opCode: Strin
 
 
   val start = io.a.valid && io.b.valid
-  val FU    = OperatorDot.magic(io.a.bits, io.b.bits, start, lanes, opCode)
+  val FU = OperatorDot.magic(io.a.bits, io.b.bits, start, lanes, opCode)
   io.o.bits := FU._1
   val latency = FU._2
-  val latCnt  = Module(new SatCounterModule(latency))
+  val latCnt = Module(new SatCounterModule(latency))
   latCnt.io.start := start
   io.o.valid := latCnt.io.wrap
 }
@@ -47,54 +47,37 @@ class DotNode[L <: Shapes : OperatorDot](NumOuts: Int, ID: Int, lanes: Int, opCo
  *===========================================*/
   // OP Inputs
   val left_R = RegInit(CustomDataBundle.default(0.U((left.getWidth).W)))
+  val left_valid_R = RegInit(false.B)
 
   // Memory Response
   val right_R = RegInit(CustomDataBundle.default(0.U((left.getWidth).W)))
+  val right_valid_R = RegInit(false.B)
 
   // Output register
   val data_R = RegInit(CustomDataBundle.default(0.U((left.getWidth).W)))
 
-  val s_idle :: s_LATCH :: s_ACTIVE :: s_COMPUTE :: Nil = Enum(4)
-  val state                                             = RegInit(s_idle)
-
-  /*==========================================*
-   *           Predicate Evaluation           *
-   *==========================================*/
-
-  val predicate = left_R.predicate & right_R.predicate & IsEnable( )
-  val start     = left_R.valid & right_R.valid & IsEnableValid( )
+  val s_idle :: s_compute :: s_finish :: Nil = Enum(3)
+  val state = RegInit(s_idle)
 
   /*===============================================*
    *            Latch inputs. Wire up left       *
    *===============================================*/
 
-  // Predicate register
-  val pred_R = RegInit(init = false.B)
-
-  //printfInfo("start: %x\n", start)
-
-  io.LeftIO.ready := ~left_R.valid
-  when(io.LeftIO.fire( )) {
-    //printfInfo("Latch left data\n")
+  io.LeftIO.ready := ~left_valid_R
+  when(io.LeftIO.fire()) {
     left_R.data := io.LeftIO.bits.data
-    left_R.valid := true.B
-    left_R.predicate := io.LeftIO.bits.predicate
+    left_valid_R := true.B
   }
 
-  io.RightIO.ready := ~right_R.valid
-  when(io.RightIO.fire( )) {
-    //printfInfo("Latch right data\n")
+  io.RightIO.ready := ~right_valid_R
+  when(io.RightIO.fire()) {
     right_R.data := io.RightIO.bits.data
-    right_R.valid := true.B
-    right_R.predicate := io.RightIO.bits.predicate
+    right_valid_R := true.B
   }
 
   // Wire up Outputs
   for (i <- 0 until NumOuts) {
-    io.Out(i).bits.data := data_R.data
-    io.Out(i).bits.valid := true.B
-    io.Out(i).bits.predicate := predicate
-    io.Out(i).bits.taskID := left_R.taskID | right_R.taskID | enable_R.taskID
+    io.Out(i).bits := data_R
   }
 
   /*============================================*
@@ -105,41 +88,37 @@ class DotNode[L <: Shapes : OperatorDot](NumOuts: Int, ID: Int, lanes: Int, opCo
   FU.io.a.bits := (left_R.data).asTypeOf(left)
   FU.io.b.bits := (right_R.data).asTypeOf(left)
 
-  data_R.predicate := predicate
-  pred_R := predicate
-  FU.io.a.valid := false.B
-  FU.io.b.valid := false.B
+  FU.io.a.valid := true.B
+  FU.io.b.valid := true.B
+
   //  This is written like this to enable FUs that are dangerous in the future.
   // If you don't start up then no value passed into function
-  when(start & state === s_idle) {  //0
-    when(predicate) {
-      FU.io.a.valid := true.B
-      FU.io.b.valid := true.B
-      state := s_ACTIVE
-    }.otherwise {
-      state := s_COMPUTE
-      ValidOut( )
+  switch(state){
+    is(s_idle){
+      when(left_valid_R && right_valid_R){
+        state := s_compute
+      }
+    }
+    is(s_compute){
+      when(FU.io.o.valid){
+        ValidOut()
+        data_R.data := (FU.io.o.bits).asTypeOf(UInt(left.getWidth.W))
+        state := s_finish
+      }
+    }
+    is(s_finish){
+      when(IsOutReady()){
+        left_R := CustomDataBundle.default(0.U((left.getWidth).W))
+        left_valid_R := false.B
+
+        right_R := CustomDataBundle.default(0.U((left.getWidth).W))
+        right_valid_R := false.B
+
+        data_R := CustomDataBundle.default(0.U((left.getWidth).W))
+        Reset()
+      }
     }
   }
-
-  when(state === s_ACTIVE) {  //2
-    when(FU.io.o.valid) {
-      ValidOut( )
-      data_R.data := (FU.io.o.bits).asTypeOf(UInt(left.getWidth.W))
-      data_R.valid := FU.io.o.valid
-      state := s_COMPUTE
-    }.otherwise {
-      state := s_ACTIVE
-    }
-  }
-  when(IsOutReady( ) && state === s_COMPUTE) {
-    left_R := CustomDataBundle.default(0.U((left.getWidth).W))
-    right_R := CustomDataBundle.default(0.U((left.getWidth).W))
-    data_R := CustomDataBundle.default(0.U((left.getWidth).W))
-    Reset( )
-    state := s_idle
-  }
-
 
   /**
     * Cant print value with more than 64bits.
@@ -148,7 +127,7 @@ class DotNode[L <: Shapes : OperatorDot](NumOuts: Int, ID: Int, lanes: Int, opCo
   //printf(p"\n State : ${state} Predicate ${predicate} Left ${left_R} Right ${right_R} Output: ${data_R}")
 
   var classname: String = (left.getClass).toString
-  var signed            = "S"
+  var signed = "S"
   override val printfSigil =
     opCode + "[" + classname.replaceAll("class node.", "") + "]_" + ID + ":"
 
@@ -164,7 +143,7 @@ class DotNode[L <: Shapes : OperatorDot](NumOuts: Int, ID: Int, lanes: Int, opCo
       case "low" => {
         printfInfo("Cycle %d : { \"Inputs\": {\"Left\": %x, \"Right\": %x},", x, (left_R.valid), (right_R.valid))
         printf("\"State\": {\"State\": \"%x\", \"(L,R)\": \"%x,%x\",  \"O(V,D,P)\": \"%x,%x,%x\" },", state, left_R.data, right_R.data, io.Out(0).valid, data_R.data, io.Out(0).bits.predicate)
-        printf("\"Outputs\": {\"Out\": %x}", io.Out(0).fire( ))
+        printf("\"Outputs\": {\"Out\": %x}", io.Out(0).fire())
         printf("}")
       }
       case everythingElse => {
