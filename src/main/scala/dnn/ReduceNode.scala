@@ -44,35 +44,23 @@ class ReduceNode[L <: Shapes : OperatorReduction](NumOuts: Int, ID: Int, pipelin
  *===========================================*/
   // OP Inputs
   val left_R = RegInit(CustomDataBundle.default(0.U((left.getWidth).W)))
+  val left_valid_R = RegInit(false.B)
 
   // Output register
   val data_R = RegInit(CustomDataBundle.default(0.U((xlen).W)))
 
-  val s_idle :: s_LATCH :: s_ACTIVE :: s_COMPUTE :: Nil = Enum(4)
-  val state                                             = RegInit(s_idle)
 
-  /*==========================================*
-   *           Predicate Evaluation           *
-   *==========================================*/
-
-  val predicate = left_R.predicate & IsEnable( )
-  val start     = left_R.valid & IsEnableValid( )
+  val s_idle :: s_compute :: s_finish :: Nil = Enum(3)
+  val state = RegInit(s_idle)
 
   /*===============================================*
    *            Latch inputs. Wire up left       *
    *===============================================*/
 
-  // Predicate register
-  val pred_R = RegInit(init = false.B)
-
-  //printfInfo("start: %x\n", start)
-
-  io.LeftIO.ready := ~left_R.valid
+  io.LeftIO.ready := ~left_valid_R
   when(io.LeftIO.fire( )) {
-    //printfInfo("Latch left data\n")
     left_R.data := io.LeftIO.bits.data
-    left_R.valid := true.B
-    left_R.predicate := io.LeftIO.bits.predicate
+    left_valid_R := true.B
   }
 
   // Wire up Outputs
