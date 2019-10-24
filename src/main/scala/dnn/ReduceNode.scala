@@ -1,7 +1,7 @@
 package dnn
 
 import chisel3._
-import chisel3.util.{Decoupled, Enum, Valid}
+import chisel3.util._
 import chisel3.{Bundle, Flipped, Module, Output, RegInit, UInt, assert, printf, when}
 import config.{Parameters, XLEN}
 import config._
@@ -58,17 +58,14 @@ class ReduceNode[L <: Shapes : OperatorReduction](NumOuts: Int, ID: Int, pipelin
    *===============================================*/
 
   io.LeftIO.ready := ~left_valid_R
-  when(io.LeftIO.fire( )) {
+  when(io.LeftIO.fire()) {
     left_R.data := io.LeftIO.bits.data
     left_valid_R := true.B
   }
 
   // Wire up Outputs
   for (i <- 0 until NumOuts) {
-    io.Out(i).bits.data := data_R.data
-    io.Out(i).bits.valid := true.B
-    io.Out(i).bits.predicate := predicate
-    io.Out(i).bits.taskID := left_R.taskID | enable_R.taskID
+    io.Out(i).bits := data_R
   }
 
   /*============================================*
@@ -78,38 +75,33 @@ class ReduceNode[L <: Shapes : OperatorReduction](NumOuts: Int, ID: Int, pipelin
   val FU = Module(new ReduceFU(left, pipelined, opCode))
   FU.io.a.bits := (left_R.data).asTypeOf(left)
 
-  data_R.predicate := predicate
-  pred_R := predicate
   FU.io.a.valid := false.B
+
   //  This is written like this to enable FUs that are dangerous in the future.
   // If you don't start up then no value passed into function
-  when(start & state === s_idle) {
-    when(predicate) {
-      FU.io.a.valid := true.B
-      state := s_ACTIVE
-    }.otherwise {
-      state := s_COMPUTE
-      ValidOut( )
+  switch(state){
+    is(s_idle){
+      when(left_valid_R){
+        state := s_compute
+      }
+    }
+    is(s_compute){
+      when(FU.io.o.valid){
+        ValidOut()
+        data_R.data := (FU.io.o.bits).asTypeOf(UInt(left.getWidth.W))
+        state := s_finish
+      }
+    }
+    is(s_finish){
+      when(IsOutReady()){
+        left_R := CustomDataBundle.default(0.U((left.getWidth).W))
+        left_valid_R := false.B
+
+        data_R := CustomDataBundle.default(0.U((left.getWidth).W))
+        Reset()
+      }
     }
   }
-
-  when(state === s_ACTIVE) {
-    when(FU.io.o.valid) {
-      ValidOut( )
-      data_R.data := (FU.io.o.bits).asTypeOf(UInt(left.getWidth.W))
-      data_R.valid := FU.io.o.valid
-      state := s_COMPUTE
-    }.otherwise {
-      state := s_ACTIVE
-    }
-  }
-  when(IsOutReady( ) && state === s_COMPUTE) {
-    left_R := CustomDataBundle.default(0.U((left.getWidth).W))
-    data_R := CustomDataBundle.default(0.U((left.getWidth).W))
-    Reset( )
-    state := s_idle
-  }
-
 
   /**
     * Cant print value with more than 64bits.
