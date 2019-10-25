@@ -99,6 +99,8 @@ class ReduceNode[L <: Shapes : OperatorReduction](NumOuts: Int, ID: Int, pipelin
 
         data_R := CustomDataBundle.default(0.U((left.getWidth).W))
         Reset()
+
+        state := s_idle
       }
     }
   }

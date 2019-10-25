@@ -112,6 +112,8 @@ class DotNode[L <: Shapes : OperatorDot](NumOuts: Int, ID: Int, lanes: Int, opCo
 
         data_R := CustomDataBundle.default(0.U((left.getWidth).W))
         Reset()
+
+        state := s_idle
       }
     }
   }

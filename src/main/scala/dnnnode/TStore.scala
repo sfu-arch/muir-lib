@@ -44,9 +44,9 @@ class TStore[L <: Shapes](NumPredOps: Int,
 
   // OP Inputs
   val addr_R = RegInit(DataBundle.default)
-  //  val data_R = RegInit(DataBundle.default)
-  val data_R = RegInit(CustomDataBundle.default(0.U(shape.getWidth.W)))
   val addr_valid_R = RegInit(false.B)
+
+  val data_R = RegInit(CustomDataBundle.default(0.U(shape.getWidth.W)))
   val data_valid_R = RegInit(false.B)
 
   // State machine
@@ -59,16 +59,11 @@ class TStore[L <: Shapes](NumPredOps: Int,
   =            Predicate Evaluation            =
   ============================================*/
 
-  //  val predicate = IsEnable()
-  //  val start = addr_valid_R & data_valid_R & IsPredValid() & IsEnableValid()
-
   /*================================================
   =            Latch inputs. Set output            =
   ================================================*/
 
   //Initialization READY-VALIDs for GepAddr and Predecessor memory ops
-  io.GepAddr.ready := ~addr_valid_R
-  io.inData.ready := ~data_valid_R
 
   // ACTION: GepAddr
   io.GepAddr.ready := ~addr_valid_R
@@ -76,12 +71,9 @@ class TStore[L <: Shapes](NumPredOps: Int,
     addr_R := io.GepAddr.bits
     addr_valid_R := true.B
   }
-  when(io.enable.fire()) {
-    succ_bundle_R.foreach(_ := io.enable.bits)
-  }
-  // ACTION: inData
+
+  io.inData.ready := ~data_valid_R
   when(io.inData.fire()) {
-    // Latch the data
     data_R := io.inData.bits
     data_valid_R := true.B
   }
@@ -89,44 +81,33 @@ class TStore[L <: Shapes](NumPredOps: Int,
   // Wire up Outputs
   for (i <- 0 until NumOuts) {
     io.Out(i).bits := data_R
-    io.Out(i).bits.taskID := data_R.taskID | addr_R.taskID | enable_R.taskID
+
   }
   // Outgoing Address Req ->
   io.tensorReq.bits.index := addr_R.data
   io.tensorReq.bits.data := data_R.data
-  //  io.tensorReq.bits.Typ := Typ
   io.tensorReq.bits.RouteID := RouteID.U
-  io.tensorReq.bits.taskID := data_R.taskID | addr_R.taskID | enable_R.taskID
+  io.tensorReq.bits.taskID := 0.U
   io.tensorReq.bits.mask := 15.U
   io.tensorReq.valid := false.B
 
   /*=============================================
   =            ACTIONS (possibly dangerous)     =
   =============================================*/
-  val mem_req_fire = addr_valid_R & IsPredValid() & data_valid_R
-  val complete = IsSuccReady() & IsOutReady()
+  val mem_req_fire = addr_valid_R && data_valid_R
+  val complete = IsOutReady()
 
   switch(state) {
     is(s_idle) {
-      when(enable_valid_R) {
-        when(data_valid_R && addr_valid_R) {
-          when(enable_R.control && mem_req_fire) {
-            io.tensorReq.valid := true.B
-            when(io.tensorReq.ready) {
-              state := s_RECEIVING
-            }
-          }.otherwise {
-            ValidSucc()
-            ValidOut()
-            data_R.predicate := false.B
-            state := s_Done
-          }
+      when(data_valid_R && addr_valid_R) {
+        io.tensorReq.valid := true.B
+        when(io.tensorReq.fire) {
+          state := s_RECEIVING
         }
       }
     }
     is(s_RECEIVING) {
       when(io.tensorResp.valid) {
-        ValidSucc()
         ValidOut()
         state := s_Done
       }
