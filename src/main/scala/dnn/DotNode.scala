@@ -84,8 +84,8 @@ class DotNode[L <: Shapes : OperatorDot](NumOuts: Int, ID: Int, lanes: Int, opCo
   FU.io.a.bits := (left_R.data).asTypeOf(left)
   FU.io.b.bits := (right_R.data).asTypeOf(left)
 
-  FU.io.a.valid := true.B
-  FU.io.b.valid := true.B
+  FU.io.a.valid := false.B //true.B
+  FU.io.b.valid := false.B //true.B
 
   //  This is written like this to enable FUs that are dangerous in the future.
   // If you don't start up then no value passed into function
@@ -93,6 +93,8 @@ class DotNode[L <: Shapes : OperatorDot](NumOuts: Int, ID: Int, lanes: Int, opCo
     is(s_idle){
       when(left_valid_R && right_valid_R){
         state := s_compute
+        FU.io.a.valid := true.B
+        FU.io.b.valid := true.B
       }
     }
     is(s_compute){
