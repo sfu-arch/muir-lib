@@ -77,7 +77,6 @@ class ShapeShifter[L <: vecN, K <: Shapes](NumIns: Int, NumOuts: Int, ID: Int)(s
   // Predicate register
   val pred_R = RegInit(init = false.B)
 
-  //printfInfo("start: %x\n", start)
   for (i <- 0 until NumIns) {
     io.in(i).ready := ~dataIn_valid_R(i)
     when(io.in(i).fire()) {
@@ -86,7 +85,6 @@ class ShapeShifter[L <: vecN, K <: Shapes](NumIns: Int, NumOuts: Int, ID: Int)(s
     }
   }
 
-//  countOn := (dataIn_valid_R.reduceLeft(_ && _)) && (buffer.io.enq.ready)
 
   for (i <- 0 until NumOuts) {
     io.Out(i).valid := buffer.io.deq.valid
@@ -95,10 +93,8 @@ class ShapeShifter[L <: vecN, K <: Shapes](NumIns: Int, NumOuts: Int, ID: Int)(s
     io.Out(i).bits.predicate := true.B //enable_R.control
   }
 
-//  buffer.io.deq.ready := false.B
   data_out_R <> buffer.io.deq.bits
   buffer.io.deq.ready := io.Out.map(_.ready).reduceLeft(_ && _)
-//  out_valid_R.foreach(_ := buffer.io.deq.valid)
 
   switch(state) {
     is(s_idle) { //0
@@ -117,42 +113,6 @@ class ShapeShifter[L <: vecN, K <: Shapes](NumIns: Int, NumOuts: Int, ID: Int)(s
       }
     }
   }
-
-   /* is(s_Transfer) {  //2
-//      buffer.io.deq.ready := true.B
-      when(buffer.io.deq.fire) {
-        state := s_Finish
-        ValidOut()
-      }
-    }
-    is(s_Finish) {
-      when(IsOutReady()) {
-        when(buffer.io.deq.valid) {
-          state := s_Transfer
-          data_out_R := buffer.io.deq.bits
-          Reset()
-        }.otherwise {
-//          dataIn_R.foreach(_ := CustomDataBundle.default(0.U(shapeIn.getWidth.W)))
-          data_out_R := CustomDataBundle.default(0.U(shapeOut.getWidth.W))
-//          dataIn_valid_R.foreach(_ := false.B)
-          Reset()
-          state := s_idle
-        }
-      }
-    }*/
-//  }
-
-  //  when(IsOutReady() && wrap) {
-  //    for (i <- 0 until NumIns) {
-  //      dataIn_R(i) := CustomDataBundle.default(0.U(shapeIn.getWidth.W))
-  //    }
-  //    Reset()
-  //    countOn := false.B
-  //  }
-  //  when(!wrap) {
-  //    countOn := true.B
-  //    ValidOut()
-  //  }
 
   //  printf(p"\n Left ${io.LeftIO.bits.data} Right: ${io.RightIO.bits.data} Output: ${reduceNode.io.Out(0).bits.data}")
 }
