@@ -73,7 +73,7 @@ class DNNCore(implicit val p: Parameters) extends Module {
   val storeIndex = RegNext(next = indexCnt.value, init = 0.U)
 
 
-  val conv_bb = Module(new BasicBlockNoMaskNode(NumInputs = 1, NumOuts = 5  , BID = 0))
+  val conv_bb = Module(new BasicBlockNoMaskNode(NumInputs = 1, NumOuts = 3  , BID = 0))
 
   val LoadA = Module(new TLoad(NumPredOps = 0, NumSuccOps = 1, NumOuts = 3, ID = 0, RouteID = 0)(shapeIn))
   val LoadB = Module(new TLoad(NumPredOps = 0, NumSuccOps = 1, NumOuts = 1, ID = 0, RouteID = 0)(shapeIn))
@@ -91,8 +91,12 @@ class DNNCore(implicit val p: Parameters) extends Module {
   LoadA.io.enable <> conv_bb.io.Out(0)
   LoadB.io.enable <> conv_bb.io.Out(1)
   Store.io.enable <> conv_bb.io.Out(2)
-  macNode.io.enable <> conv_bb.io.Out(3)
-  shapeShifter.io.enable <> conv_bb.io.Out(4)
+  
+  macNode.io.enable.bits <> ControlBundle.active()
+  macNode.io.enable.valid := true.B
+
+  shapeShifter.io.enable.bits := ControlBundle.active()
+  shapeShifter.io.enable.valid := true.B
 
   /* ================================================================== *
      *                    Dot and Reduce signals                        *

@@ -91,8 +91,7 @@ class ShapeShifter[L <: vecN, K <: Shapes](NumIns: Int, NumOuts: Int, ID: Int)(s
   for (i <- 0 until NumOuts) {
     io.Out(i).valid := buffer.io.deq.valid
     io.Out(i).bits := buffer.io.deq.bits
-//    io.Out(i).bits.valid := true.B
-    io.Out(i).bits.taskID := enable_R.taskID
+    io.Out(i).bits.taskID := 0.U
     io.Out(i).bits.predicate := true.B //enable_R.control
   }
 
