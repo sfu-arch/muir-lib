@@ -75,7 +75,7 @@ class ReduceNode[L <: Shapes : OperatorReduction](NumOuts: Int, ID: Int, pipelin
   val FU = Module(new ReduceFU(left, pipelined, opCode))
   FU.io.a.bits := (left_R.data).asTypeOf(left)
 
-  FU.io.a.valid := false.B
+  FU.io.a.valid := true.B
 
   //  This is written like this to enable FUs that are dangerous in the future.
   // If you don't start up then no value passed into function
