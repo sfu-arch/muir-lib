@@ -28,20 +28,19 @@ import dnn.memory.{ReadTensorController, TensorLoad, TensorMaster, TensorStore, 
 import dnn.{DotNode, MacNode, ReduceNode}
 import interfaces.{ControlBundle, DataBundle}
 import junctions.SplitCallNew
-import memory.{ReadTypMemoryController, WriteTypMemoryController}
 import node.{FXmatNxN, UnTypStore, matNxN, vecN}
 import shell._
 import dnn.memory.ISA._
-import dnnnode.{ShapeShifter, TLoad, TStore}
+import dnnnode.{ShapeTransformer, TLoad, TStore}
 
 /** Core.
   *
-  * The core defines the current VTA architecture by connecting memory and
+  * The DNNcore defines the current DNN accelerator by connecting memory and
   * compute modules together such as load/store and compute. Most of the
   * connections in the core are bulk (<>), and we should try to keep it this
   * way, because it is easier to understand what is going on.
   *
-  * Also, the core must be instantiated by a shell using the
+  * Also, the DNNcore must be instantiated by a shell using the
   * VTA Control Register (VCR) and the VTA Memory Engine (VME) interfaces.
   * More info about these interfaces and modules can be found in the shell
   * directory.
@@ -80,7 +79,7 @@ class DNNCore(implicit val p: Parameters) extends Module {
   val Store = Module(new TStore(NumPredOps = 0, NumSuccOps = 0, NumOuts = 1, ID = 0, RouteID = 0)(shapeIn))
   val macNode = Module(new MacNode(NumOuts = 1, ID = 0, lanes = 3)(shapeOut))
 
-  val shapeShifter = Module(new ShapeShifter(NumIns = 3, NumOuts = 1, ID = 0)(shapeIn)(shapeOut))
+  val shapeTransformer = Module(new ShapeTransformer(NumIns = 3, NumOuts = 1, ID = 0)(shapeIn)(shapeOut))
   /* ================================================================== *
      *                      Basic Block signals                         *
      * ================================================================== */
@@ -97,26 +96,18 @@ class DNNCore(implicit val p: Parameters) extends Module {
   macNode.io.enable.bits <> ControlBundle.active()
   macNode.io.enable.valid := true.B
 
-  shapeShifter.io.enable.bits := ControlBundle.active()
-  shapeShifter.io.enable.valid := true.B
+  shapeTransformer.io.enable.bits := ControlBundle.active()
+  shapeTransformer.io.enable.valid := true.B
 
   /* ================================================================== *
      *                    Dot and Reduce signals                        *
      * ================================================================== */
-  shapeShifter.io.in(0) <> LoadA.io.Out(0)
-  shapeShifter.io.in(1) <> LoadA.io.Out(1)
-  shapeShifter.io.in(2) <> LoadA.io.Out(2)
+  shapeTransformer.io.in(0) <> LoadA.io.Out(0)
+  shapeTransformer.io.in(1) <> LoadA.io.Out(1)
+  shapeTransformer.io.in(2) <> LoadA.io.Out(2)
 
-
-  // Connect IO to dotNode
-  //  macNode.io.LeftIO <> LoadA.io.Out(0)
-  macNode.io.LeftIO <> shapeShifter.io.Out(0)
-//  macNode.io.LeftIO.bits.valid := shapeShifter.io.Out(0).bits.valid
-//  macNode.io.LeftIO.bits.data := shapeShifter.io.Out(0).bits.data
-//  macNode.io.LeftIO.bits.taskID := shapeShifter.io.Out(0).bits.taskID
-//  macNode.io.LeftIO.bits.predicate := shapeShifter.io.Out(0).bits.predicate
+  macNode.io.LeftIO <> shapeTransformer.io.Out(0)
   macNode.io.RightIO <> LoadB.io.Out(0)
-
 
   // Wire up ReduceNode Outputs
   for (i <- 0 until macNode.NumOuts) {
@@ -157,12 +148,7 @@ class DNNCore(implicit val p: Parameters) extends Module {
   Store.io.GepAddr.bits.data := storeIndex
   Store.io.GepAddr.bits.predicate := true.B
 
-//  Store.io.GepAddr.bits := DataBundle(storeIndex)
-
-//  Store.io.PredOp(0) <> LoadA.io.SuccOp(0)
-//  Store.io.PredOp(1) <> LoadB.io.SuccOp(0)
   Store.io.Out(0).ready := true.B
-
 
 
   io.vcr.ecnt(0).bits := cycle_count.value
@@ -182,7 +168,6 @@ class DNNCore(implicit val p: Parameters) extends Module {
   tensorStore.io.start := false.B
   tensorStore.io.baddr := io.vcr.ptrs(2)
   tensorStore.io.inst := ts_Inst.asTypeOf(UInt(INST_BITS.W))
-
 
 
   tl_Inst.xpad_0 := 0.U
@@ -232,7 +217,7 @@ class DNNCore(implicit val p: Parameters) extends Module {
       }
     }
     is(sReadTensor1) {  //1
-      when(tensorLoad1.io.done) { // && tensorLoad2.io.done) {
+      when(tensorLoad1.io.done) {
         tensorLoad2.io.start := true.B
         state := sReadTensor2
       }
