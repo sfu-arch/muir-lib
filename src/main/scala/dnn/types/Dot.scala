@@ -1,9 +1,8 @@
 package dnn.types
 
 import FPU.{FPMAC, FType, FloatingPoint}
-import chisel3._
+import chisel3.{Module, when, _}
 import chisel3.iotesters.{ChiselFlatSpec, Driver, OrderedDecoupledHWIOTester, PeekPokeTester}
-import chisel3.Module
 import chisel3.experimental.FixedPoint
 import chisel3.testers._
 import chisel3.util._
@@ -40,6 +39,9 @@ object OperatorDot {
           data(i.U + current) := FU.io.output(i)
         }
       }
+      when (FU.io.activate) {
+        current := 0.U
+      }
       x.fromVecUInt(data)
       // Lane wise operations require 1 extra cycle.
       // 1 cycle required for registering the output.
@@ -63,6 +65,9 @@ object OperatorDot {
         for (i <- 0 until lanes) {
           data(i.U + current) := FU.io.output(i)
         }
+      }
+      when (FU.io.activate) {
+        current := 0.U
       }
       x.fromVecUInt(data)
       // Lane wise operations require 1 extra cycle.
@@ -93,6 +98,9 @@ object OperatorDot {
         }
       }
       x.fromVecUInt(data)
+      when (FU.io.activate) {
+        current := 0.U
+      }
       // Lane wise operations require 1 extra cycle.
       // 1 cycle required for registering the output.
       (x, FU.latency( ) + 1)
@@ -120,6 +128,9 @@ object OperatorDot {
           data(i.U + current) := FU.io.output(i)
         }
       }
+      when (FU.io.activate) {
+        current := 0.U
+      }
       x.fromVecUInt(data)
       // Lane wise operations require 1 extra cycle.
       // 1 cycle required for registering the output.
@@ -145,6 +156,9 @@ object OperatorDot {
         }
       }
       printf(p"Data = $data $current")
+      when (FU.io.activate) {
+        current := 0.U
+      }
       x.fromVecUInt(data)
       // Lane wise operations require 1 extra cycle.
       // 1 cycle required for registering the output.
@@ -168,6 +182,9 @@ object OperatorDot {
         for (i <- 0 until lanes) {
           data(i.U + current) := FU.io.output(i)
         }
+      }
+      when (FU.io.activate) {
+        current := 0.U
       }
       x.fromVecUInt(data)
       // Lane wise operations require 1 extra cycle.

@@ -116,6 +116,7 @@ class DotNode[L <: Shapes : OperatorDot](NumOuts: Int, ID: Int, lanes: Int, opCo
         Reset()
 
         state := s_idle
+
       }
     }
   }
