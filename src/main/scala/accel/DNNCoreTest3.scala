@@ -26,7 +26,7 @@ import control.BasicBlockNoMaskNode
 import dnn.MacNode
 import dnn.memory.ISA._
 import dnn.memory.{ReadTensorController, TensorLoad, TensorStore, WriteTensorController}
-import dnnnode.{ShapeTransformer, TLoad, TStore}
+import dnnnode.{CustomQueue, TLoad, TStore}
 import interfaces.ControlBundle
 import node.{matNxN, vecN}
 import shell._

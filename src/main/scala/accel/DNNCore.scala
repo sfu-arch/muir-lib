@@ -68,7 +68,6 @@ class DNNCore(implicit val p: Parameters) extends Module {
   val tl_Inst = Wire(new MemDecode)
   val ts_Inst = Wire(new MemDecode)
   val indexCnt = Counter(100)
-  val MacLatency = Counter(200)
   val storeIndex = RegNext(next = indexCnt.value, init = 0.U)
 
 
@@ -105,6 +104,8 @@ class DNNCore(implicit val p: Parameters) extends Module {
   shapeTransformer.io.in(0) <> LoadA.io.Out(0)
   shapeTransformer.io.in(1) <> LoadA.io.Out(1)
   shapeTransformer.io.in(2) <> LoadA.io.Out(2)
+
+  dontTouch(shapeTransformer.io.Out)
 
   macNode.io.LeftIO <> shapeTransformer.io.Out(0)
   macNode.io.RightIO <> LoadB.io.Out(0)
@@ -208,11 +209,10 @@ class DNNCore(implicit val p: Parameters) extends Module {
 
   val state = RegInit(sIdle)
   switch(state) {
-    is(sIdle) { //0
+    is(sIdle) { //state: 0
       when(io.vcr.launch) {
         tensorLoad1.io.start := true.B
         indexCnt.value := 0.U
-        MacLatency.value := 0.U
         state := sReadTensor1
       }
     }
