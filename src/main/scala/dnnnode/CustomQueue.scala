@@ -79,13 +79,18 @@ class CustomQueue[T <: Data](gen: T,
   io.deq.bits := ram(deq_ptr.value)
 
   val ptr_diff = enq_ptr.value - deq_ptr.value
+  val bufCount = io.count
 
-  printf(p"PtrDiff: ${ptr_diff}\n")
 
-//  io.Out.valid := (enq_ptr.value - deq_ptr.value >= (NumOuts - 1).U)
-  io.Out.valid := !empty //(ptr_diff >= 0.U)
+//  io.Out.valid := !empty //(ptr_diff >= 0.U)
+  when (bufCount > (NumOuts - 1).U) {
+    io.Out.valid := true.B
+  }.otherwise {
+    io.Out.valid := false.B
+  }
   for (i <- 0 until NumOuts) {
-    io.Out.bits(i) := Mux(ptr_diff > (NumOuts - 1).U, ram(deq_ptr.value + i.U), 0.U.asTypeOf(genType))
+    io.Out.bits(i) := Mux(bufCount > (NumOuts - 1).U, ram(deq_ptr.value + i.U), 0.U.asTypeOf(genType))
+//    io.Out.bits(i) := ram(deq_ptr.value + i.U)
   }
 
   if (flow) {
