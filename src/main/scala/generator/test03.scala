@@ -222,9 +222,9 @@ class test03DF(implicit p: Parameters) extends test03DFIO()(p) {
 
   same C */
 
-  binaryOp_2.io.DebugEnable.get <> bb_0.io.DebugEnable
-  binaryOp_4.io.DebugEnable.get <> bb_0.io.DebugEnable
-  binaryOp_5.io.DebugEnable.get <> bb_0.io.DebugEnable
+//  binaryOp_2.io.DebugEnable.get <> io.Enable
+//  binaryOp_4.io.DebugEnable.get <> io.Enable
+//  binaryOp_5.io.DebugEnable.get <> io.Enable
 
   //-----------------------------------------------v
 

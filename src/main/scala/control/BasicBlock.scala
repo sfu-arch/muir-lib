@@ -568,7 +568,7 @@ class BasicBlockNoMaskFastNode3(BID: Int, val NumOuts: Int)
    *============================================*/
   val s_idle :: s_fire :: Nil = Enum(2)
   val state = RegInit(s_idle)
-
+  val test = Cat(state, cycleCount)
   //Value initilization
   io.Out.map(_.bits.control).foreach(_ := predicate_input)
   io.Out.map(_.bits.taskID).foreach(_ := task_input)
@@ -596,8 +596,8 @@ class BasicBlockNoMaskFastNode3(BID: Int, val NumOuts: Int)
         }
 
         if (log) {
-          printf("[LOG] " + "[" + module_name + "] [TID->%d] "
-            + node_name + ": Output [T] fired @ %d\n", task_input, cycleCount)
+          printf("[CMPLOG] " + "[" + module_name + "] [TID->%d] "
+            + node_name + ": Output [T] fired @ %d, test is %d\n", task_input, cycleCount, test)
         }
       }
 
@@ -947,8 +947,6 @@ class BasicBlockNoMaskFastVecIO(val NumInputs: Int, val NumOuts: Int)(implicit p
   val predicateIn = Vec(NumInputs, Flipped(Decoupled(new ControlBundle())))
   val Out = Vec(NumOuts, Decoupled(new ControlBundle))
   //-------------------------------------------------------------
-  val DebugEnable = new Bool
-  //-------------------------------------------------------------
   override def cloneType = new BasicBlockNoMaskFastVecIO(NumInputs, NumOuts).asInstanceOf[this.type]
 }
 
@@ -978,7 +976,7 @@ class BasicBlockNoMaskFastNode(BID: Int, val NumInputs: Int = 1, val NumOuts: In
 
   val io = IO(new BasicBlockNoMaskFastVecIO(NumInputs, NumOuts)(p))
   //------------
-  io.DebugEnable := true.B
+//  io.DebugEnable := true.B
 
   // Printf debugging
   val node_name = name.value
@@ -1037,8 +1035,9 @@ class BasicBlockNoMaskFastNode(BID: Int, val NumInputs: Int = 1, val NumOuts: In
   } reduce (_ | _)
 
   val predicate_val = in_data_R.map(_.control).reduce(_ | _)
+  val debug_val = in_data_R.map(_.debug).reduce(_ | _)
 
-  output_R := ControlBundle.default(predicate_val, in_task_ID)
+  output_R := ControlBundle.default(predicate_val, in_task_ID, debug_val)
 
   val s_idle :: s_fire :: Nil = Enum(2)
   val state = RegInit(s_idle)

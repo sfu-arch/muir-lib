@@ -391,6 +391,7 @@ class ControlBundle(implicit p: Parameters) extends CoreBundle()(p) {
   //Control packet
   val taskID = UInt(tlen.W)
   val control = Bool()
+  val debug = Bool()
 
   def asDataBundle(): DataBundle = {
     val wire = Wire(new DataBundle)
@@ -406,6 +407,7 @@ object ControlBundle {
     val wire = Wire(new ControlBundle)
     wire.control := false.B
     wire.taskID := 0.U
+    wire.debug := false.B
     wire
   }
 
@@ -413,6 +415,15 @@ object ControlBundle {
     val wire = Wire(new ControlBundle)
     wire.control := control
     wire.taskID := task
+    wire.debug := false.B
+    wire
+  }
+
+  def default(control: Bool, task: UInt, debug: Bool)(implicit p: Parameters): ControlBundle = {
+    val wire = Wire(new ControlBundle)
+    wire.control := control
+    wire.taskID := task
+    wire.debug := debug
     wire
   }
 
@@ -420,6 +431,7 @@ object ControlBundle {
     val wire = Wire(new ControlBundle)
     wire.control := true.B
     wire.taskID := taskID
+    wire.debug := false.B
     wire
   }
 
@@ -427,14 +439,16 @@ object ControlBundle {
     val wire = Wire(new ControlBundle)
     wire.control := false.B
     wire.taskID := taskID
+    wire.debug := false.B
     wire
   }
 
 
-  def apply(control: Bool = false.B, taskID: UInt = 0.U)(implicit p: Parameters): ControlBundle = {
+  def apply(control: Bool = false.B, taskID: UInt = 0.U, debug: Bool = false.B)(implicit p: Parameters): ControlBundle = {
     val wire = Wire(new ControlBundle)
     wire.control := control
     wire.taskID := taskID
+    wire.debug := debug
     wire
   }
 

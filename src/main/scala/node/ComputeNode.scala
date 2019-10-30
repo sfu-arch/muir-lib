@@ -24,7 +24,7 @@ class ComputeNodeIO(NumOuts: Int, Debug: Boolean)
 
   //p
 
-  val DebugEnable = if (Debug) Some(Flipped(new Bool)) else None
+  //  val DebugEnable = if (Debug) Some(Input(new Bool)) else None
 
   //v
   override def cloneType = new ComputeNodeIO(NumOuts, Debug).asInstanceOf[this.type]
@@ -80,6 +80,8 @@ class ComputeNode(NumOuts: Int, ID: Int, opCode: String)
   val predicate = Mux(enable_valid_R, enable_R.control ,io.enable.bits.control)
   val taskID = Mux(enable_valid_R, enable_R.taskID ,io.enable.bits.taskID)
 
+  val DebugEnable = enable_R.control && enable_R.debug && enable_valid_R
+
 
 
   /*===============================================*
@@ -114,8 +116,20 @@ class ComputeNode(NumOuts: Int, ID: Int, opCode: String)
   }
 
   hs*/
-  val test_value = Wire(UInt(4.W))
-  test_value := ID.U
+  var test_value = Wire(UInt((xlen*4).W))
+  //test_value := ID.U
+  var log_id = Wire(UInt((xlen).W))
+  var log_out = WireInit(0.U((xlen).W))
+  var log_left = WireInit(0.U((xlen).W))
+  var log_right = WireInit(0.U((xlen).W))
+  log_id := ID.U
+//  log_out := 0.U
+//  log_left := 0.U
+//  log_right := 0.U
+  log_left := left_R.data.asUInt()
+  log_out := FU.io.out.asUInt()
+  log_right := right_R.data.asUInt()
+  test_value := Cat(log_id, log_left, log_right, log_out)
 
   if(Debug){
     //val test_value = Wire(UInt(4.W))
@@ -128,9 +142,9 @@ class ComputeNode(NumOuts: Int, ID: Int, opCode: String)
     BoringUtils.addSource(test_value_valid, "valid" + ID)
     BoringUtils.addSink(test_value_ready, "ready" + ID)
 
-    when(io.DebugEnable.get){
-       test_value_valid := true.B
-    }.otherwise{
+    when(DebugEnable) {
+      test_value_valid := true.B
+    }.otherwise {
       test_value_valid := false.B
     }
   }
@@ -156,7 +170,9 @@ class ComputeNode(NumOuts: Int, ID: Int, opCode: String)
         io.Out.foreach(_.valid := true.B)
         ValidOut()
         state := s_COMPUTE
-
+        log_left := left_R.data.asUInt()
+        log_out := FU.io.out.asUInt()
+        log_right := right_R.data.asUInt()
         if (log) {
           printf("[LOG] " + "[" + module_name + "] " + "[TID->%d] [COMPUTE] " +
             node_name + ": Output fired @ %d, Value: %d (%d + %d)\n", taskID, cycleCount, FU.io.out, left_R.data, right_R.data)
@@ -167,6 +183,7 @@ class ComputeNode(NumOuts: Int, ID: Int, opCode: String)
      // test_value := 3.U
       when(IsOutReady()) {
         // Reset data
+
         left_valid_R := false.B
         right_valid_R := false.B
 
@@ -174,6 +191,10 @@ class ComputeNode(NumOuts: Int, ID: Int, opCode: String)
 
         //Reset state
         state := s_IDLE
+//        log_left = left_R.data.asUInt()
+//        log_out = FU.io.out.asUInt()
+//        log_right = right_R.data.asUInt()
+
         Reset()
 
 
