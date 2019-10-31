@@ -12,26 +12,27 @@ import node.vecN
 import shell.ShellKey
 import dnn.memory.ISA._
 
-class WeightShapeTransformerIO[gen <: vecN](tensorType: String = "none")(wgtShape: => gen)(implicit val p: Parameters)
+class WeightShapeTransformerIO[gen <: vecN](wgtTensorType: String = "none", memTensorType: String = "none")(wgtShape: => gen)(implicit val p: Parameters)
   extends Module {
-  val tp = new TensorParams(tensorType)
+  val tpMem = new TensorParams(memTensorType)
+  val tpWgt = new TensorParams(wgtTensorType)
   val io = IO(new Bundle {
     val start = Input(Bool())
     val done = Output(Bool())
     val xsize = Input(UInt(M_SIZE_BITS.W))
-    val tensorMaster = new TensorMaster(tensorType)
-    val tensor = new TensorClient(tensorType)
+    val tensorMaster = new TensorMaster(memTensorType)
+    val tensor = new TensorClient(wgtTensorType)
   })
 }
 
-class WeightShapeTransformer[L <: vecN] (numWeight: Int, tensorType: String = "none")(wgtShape: => L)(implicit p: Parameters)
-  extends WeightShapeTransformerIO(tensorType)(wgtShape)(p) {
+class WeightShapeTransformer[L <: vecN] (numWeight: Int,  wgtTensorType: String = "none", memTensorType: String = "none")(wgtShape: => L)(implicit p: Parameters)
+  extends WeightShapeTransformerIO(wgtTensorType, memTensorType)(wgtShape)(p) {
 
   val buffer = Module(new WeightQueue(UInt(p(XLEN).W), 144, 24, 9))
-  val wgtTensorLength = ceil(numWeight * wgtShape.N / tp.tensorWidth) + 1
+  val wgtTensorDepth = ceil(numWeight * wgtShape.N / tpMem.tensorWidth) + 1
 
   val writeBufCntOn = RegInit(init = false.B)
-  val (writeBufCnt, writeWrap) = Counter(writeBufCntOn, wgtTensorLength)
+  val (writeBufCnt, writeWrap) = Counter(writeBufCntOn, wgtTensorDepth)
 
   val readWgtCnt = Counter(numWeight + 1)
 

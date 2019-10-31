@@ -19,9 +19,9 @@ import dnn.memory.ISA._
   * managed by TensorPadCtrl. The TensorDataCtrl is in charge of
   * handling the way tensors are stored on the scratchpads.
   */
-class WgtTensorLoadIO[gen <: vecN](tensorType: String = "none")(wgtShape: => gen)(implicit val p: Parameters)
+class WgtTensorLoadIO[gen <: vecN](wgtTensorType: String = "none")(wgtShape: => gen)(implicit val p: Parameters)
   extends Module {
-  val tp = new TensorParams(tensorType)
+  val tp = new TensorParams(wgtTensorType)
   val mp = p(ShellKey).memParams
   val io = IO(new Bundle {
     val start = Input(Bool())
@@ -30,16 +30,16 @@ class WgtTensorLoadIO[gen <: vecN](tensorType: String = "none")(wgtShape: => gen
     val xsize = Input(UInt(M_SIZE_BITS.W))
     val baddr = Input(UInt(mp.addrBits.W))
     val vme_rd = new VMEReadMaster
-    val tensor = new TensorClient(tensorType)
+    val tensor = new TensorClient(wgtTensorType)
   })
 }
 
 
-class WgtTensorLoad[L <: vecN](numWeight: Int, tensorType: String = "none")(wgtShape: => L)(implicit p: Parameters)
-  extends WgtTensorLoadIO(tensorType)(wgtShape)(p) {
+class WgtTensorLoad[L <: vecN](numWeight: Int, wgtTensorType: String = "none", memTensorType: String = "none")(wgtShape: => L)(implicit p: Parameters)
+  extends WgtTensorLoadIO(wgtTensorType)(wgtShape)(p) {
 
-  val wgtTransformer = Module(new WeightShapeTransformer(numWeight, tensorType = "inp")(wgtShape))
-  val tensorLoad = Module(new TensorLoad(tensorType))
+  val wgtTransformer = Module(new WeightShapeTransformer(numWeight, wgtTensorType, memTensorType)(wgtShape))
+  val tensorLoad = Module(new TensorLoad(memTensorType))
 
   tensorLoad.io.start := io.start
   tensorLoad.io.inst := io.inst
