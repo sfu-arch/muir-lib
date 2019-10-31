@@ -72,7 +72,7 @@ class DNNCore(implicit val p: Parameters) extends Module {
   val storeIndex = RegNext(next = indexCnt.value, init = 0.U)
 
 
-  val conv_bb = Module(new BasicBlockNoMaskNode(NumInputs = 1, NumOuts = 2  , BID = 0))
+//  val conv_bb = Module(new BasicBlockNoMaskNode(NumInputs = 1, NumOuts = 2  , BID = 0))
 
   val LoadA = Module(new TLoad(NumPredOps = 0, NumSuccOps = 0, NumOuts = 3, ID = 0, RouteID = 0)(shapeIn))
   val LoadB = Module(new TLoad(NumPredOps = 0, NumSuccOps = 0, NumOuts = 1, ID = 0, RouteID = 0)(wgtShape))
@@ -84,11 +84,16 @@ class DNNCore(implicit val p: Parameters) extends Module {
      *                      Basic Block signals                         *
      * ================================================================== */
 
-  conv_bb.io.predicateIn.bits := ControlBundle(io.vcr.launch)
-  conv_bb.io.predicateIn.valid := io.vcr.launch
+//  conv_bb.io.predicateIn.bits := ControlBundle(io.vcr.launch)
+//  conv_bb.io.predicateIn.valid := io.vcr.launch
 
-  LoadA.io.enable <> conv_bb.io.Out(0)
-  LoadB.io.enable <> conv_bb.io.Out(1)
+//  LoadA.io.enable <> conv_bb.io.Out(0)
+//  LoadB.io.enable <> conv_bb.io.Out(1)
+  LoadA.io.enable.bits <> ControlBundle.active()
+  LoadA.io.enable.valid := true.B
+
+  LoadB.io.enable.bits <> ControlBundle.active()
+  LoadB.io.enable.valid := true.B
 
   Store.io.enable.bits <> ControlBundle.active()
   Store.io.enable.valid := true.B
