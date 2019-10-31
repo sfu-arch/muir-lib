@@ -14,6 +14,8 @@ class WeightQueueIO[T <: Data](private val gen: T, val entries: Int, NumIns: Int
   val deq = Flipped(DeqIO(Vec(NumOuts, gen)))
   /** The current amount of data in the queue */
   val count = Output(UInt(log2Ceil(entries + 1).W))
+
+  val clear = Input(Bool())
 }
 
 /** A hardware module implementing a Queue
@@ -68,6 +70,11 @@ class WeightQueue[T <: Data](gen: T,
   val full = entries.U - bufCount <= NumIns.U
   val do_enq = WireDefault(io.enq.fire())
   val do_deq = WireDefault(io.deq.fire())
+
+  when(io.clear) {
+    enq_ptr.value := 0.U
+    deq_ptr.value := 0.U
+  }
 
   when (do_enq) {
     for (i <- 0 until NumIns) {

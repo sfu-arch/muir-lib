@@ -6,9 +6,9 @@ import chisel3._
 import chisel3.util._
 import chisel3.{Module, UInt}
 import config.{Parameters, XLEN}
-import dnn.memory.{TensorMaster, TensorParams}
+import dnn.memory.{TensorClient, TensorMaster, TensorParams}
 import interfaces.CustomDataBundle
-import node.{vecN}
+import node.vecN
 import shell.ShellKey
 import dnn.memory.ISA._
 
@@ -20,20 +20,20 @@ class WeightShapeTransformerIO[gen <: vecN](tensorType: String = "none")(wgtShap
     val done = Output(Bool())
     val xsize = Input(UInt(M_SIZE_BITS.W))
     val tensorMaster = new TensorMaster(tensorType)
-    val tensor = new TensorMaster(tensorType)
+    val tensor = new TensorClient(tensorType)
   })
 }
 
 class WeightShapeTransformer[L <: vecN] (numWeight: Int, tensorType: String = "none")(wgtShape: => L)(implicit p: Parameters)
   extends WeightShapeTransformerIO(tensorType)(wgtShape)(p) {
 
-  val buffer = Module(new WeightQueue(UInt(p(XLEN).W), 144, 16, 9))
-  val wgtTensorLength = ceil(numWeight * wgtShape.N / tp.tensorWidth)
+  val buffer = Module(new WeightQueue(UInt(p(XLEN).W), 144, 24, 9))
+  val wgtTensorLength = ceil(numWeight * wgtShape.N / tp.tensorWidth) + 1
 
   val writeBufCntOn = RegInit(init = false.B)
   val (writeBufCnt, writeWrap) = Counter(writeBufCntOn, wgtTensorLength)
 
-  val readWgtCnt = Counter(numWeight)
+  val readWgtCnt = Counter(numWeight + 1)
 
 
   val s_idle :: s_BufferWrite :: s_Transfer :: s_Finish :: Nil = Enum(4)
@@ -44,19 +44,27 @@ class WeightShapeTransformer[L <: vecN] (numWeight: Int, tensorType: String = "n
   buffer.io.enq.valid := io.tensorMaster.rd.data.valid
   buffer.io.enq.bits := io.tensorMaster.rd.data.bits(0)
   io.tensorMaster.rd.idx.bits := writeBufCnt
-  io.tensorMaster.rd.idx.valid := buffer.io.enq.ready
+  io.tensorMaster.rd.idx.valid := buffer.io.enq.ready & writeBufCntOn
   io.tensorMaster.wr <> DontCare
 
   when (writeWrap) {writeBufCntOn := false.B}
   when (io.start) {writeBufCntOn := true.B}
 
-  when (buffer.io.deq.valid & readWgtCnt.value <= numWeight.U) {
+  when (buffer.io.deq.valid & readWgtCnt.value < numWeight.U) {
     tensorFile.write(readWgtCnt.value, buffer.io.deq.bits.asTypeOf(wgtShape))
+    buffer.io.deq.ready := true.B
     readWgtCnt.inc()
+  }.otherwise {
+    buffer.io.deq.ready := false.B
   }
-  when (readWgtCnt.value === (numWeight - 1).U) {
+
+
+  when (readWgtCnt.value === numWeight.U) {
     io.done := true.B
+    buffer.io.clear := true.B
+    readWgtCnt.inc()
   }.otherwise{
+    buffer.io.clear := false.B
     io.done := false.B
   }
 

@@ -24,14 +24,14 @@ import chisel3.{when, _}
 import chisel3.util._
 import config._
 import control.BasicBlockNoMaskNode
-import dnn.memory.{ReadTensorController, TensorLoad, TensorMaster, TensorStore, WriteTensorController}
+import dnn.memory.{ReadTensorController, TensorLoad, TensorMaster, TensorStore, WgtTensorLoad, WriteTensorController}
 import dnn.{DotNode, MacNode, ReduceNode}
 import interfaces.{ControlBundle, DataBundle}
 import junctions.SplitCallNew
 import node.{FXmatNxN, UnTypStore, matNxN, vecN}
 import shell._
 import dnn.memory.ISA._
-import dnnnode.{ShapeTransformer, TLoad, TStore}
+import dnnnode.{ShapeTransformer, TLoad, TStore, WeightShapeTransformer}
 
 /** Core.
   *
@@ -55,11 +55,12 @@ class DNNCore(implicit val p: Parameters) extends Module {
 
   val shapeIn = new vecN(24, 0, false)
   val shapeOut = new matNxN(3, false)
+  val wgtShape = new vecN(9, 0, false)
 
   val tensorLoad1 = Module(new TensorLoad(tensorType = "inp"))
   val readTensorController1 = Module(new ReadTensorController(1, "inp")(shapeIn))
 
-  val tensorLoad2 = Module(new TensorLoad(tensorType = "inp"))
+//  val tensorLoad2 = Module(new TensorLoad(tensorType = "inp"))
   val readTensorController2 = Module(new ReadTensorController(1, "inp")(shapeIn))
 
   val tensorStore = Module(new TensorStore(tensorType = "inp"))
@@ -82,6 +83,17 @@ class DNNCore(implicit val p: Parameters) extends Module {
   /* ================================================================== *
      *                      Basic Block signals                         *
      * ================================================================== */
+
+//  val wgtTransformer = Module(new WeightShapeTransformer(7, tensorType = "inp")(wgtShape))
+  val wgtTensorLoad = Module(new WgtTensorLoad(7, tensorType = "inp")(wgtShape))
+
+
+
+
+
+  /* ================================================================== *
+      *                      Basic Block signals                         *
+      * ================================================================== */
 
   conv_bb.io.predicateIn.bits := ControlBundle(io.vcr.launch)
   conv_bb.io.predicateIn.valid := io.vcr.launch
@@ -124,7 +136,10 @@ class DNNCore(implicit val p: Parameters) extends Module {
 
   readTensorController2.io.ReadIn(0) <> LoadB.io.tensorReq
   LoadB.io.tensorResp <> readTensorController2.io.ReadOut(0)
-  tensorLoad2.io.tensor <> readTensorController2.io.tensor
+//  tensorLoad2.io.tensor <> wgtTransformer.io.tensorMaster
+//  wgtTransformer.io.tensor <> readTensorController2.io.tensor
+  wgtTensorLoad.io.tensor <> readTensorController2.io.tensor
+//  tensorLoad2.io.tensor <> readTensorController2.io.tensor
 
 
   writeTensorController.io.WriteIn(0) <> Store.io.tensorReq
@@ -155,15 +170,25 @@ class DNNCore(implicit val p: Parameters) extends Module {
   io.vcr.ecnt(0).bits := cycle_count.value
 
   io.vme.rd(0) <> tensorLoad1.io.vme_rd
-  io.vme.rd(1) <> tensorLoad2.io.vme_rd
+//  io.vme.rd(1) <> tensorLoad2.io.vme_rd
+  io.vme.rd(1) <> wgtTensorLoad.io.vme_rd
   io.vme.wr(0) <> tensorStore.io.vme_wr
 
   tensorLoad1.io.start := false.B
   tensorLoad1.io.baddr := io.vcr.ptrs(0)
   tensorLoad1.io.inst := tl_Inst.asTypeOf(UInt(INST_BITS.W))
-  tensorLoad2.io.start := false.B
-  tensorLoad2.io.baddr := io.vcr.ptrs(1)
-  tensorLoad2.io.inst := tl_Inst.asTypeOf(UInt(INST_BITS.W))
+//  tensorLoad2.io.start := false.B
+//  tensorLoad2.io.baddr := io.vcr.ptrs(1)
+//  tensorLoad2.io.inst := tl_Inst.asTypeOf(UInt(INST_BITS.W))
+//  wgtTransformer.io.start := tensorLoad2.io.done
+//  wgtTransformer.io.xsize := tl_Inst.xsize
+
+  wgtTensorLoad.io.start := false.B
+  wgtTensorLoad.io.baddr := io.vcr.ptrs(1)
+  wgtTensorLoad.io.inst := tl_Inst.asTypeOf(UInt(INST_BITS.W))
+  wgtTensorLoad.io.xsize := tl_Inst.xsize
+//  wgtTransformer.io.start := tensorLoad2.io.done
+//  wgtTransformer.io.xsize := tl_Inst.xsize
 
 
   tensorStore.io.start := false.B
@@ -218,12 +243,15 @@ class DNNCore(implicit val p: Parameters) extends Module {
     }
     is(sReadTensor1) {  //1
       when(tensorLoad1.io.done) {
-        tensorLoad2.io.start := true.B
+//        tensorLoad2.io.start := true.B
+        wgtTensorLoad.io.start := true.B
         state := sReadTensor2
       }
     }
     is(sReadTensor2) { //2
-      when(tensorLoad2.io.done) {
+//      when(tensorLoad2.io.done) {
+//      when(wgtTransformer.io.done) {
+      when(wgtTensorLoad.io.done) {
         state := sMacStart
       }
     }
