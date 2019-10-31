@@ -40,7 +40,7 @@ class test03Main(implicit p: Parameters) extends AccelIO(List(32, 32), List(32))
   val test03_debug = Module(new Debug03DF())
 
   //Put an arbiter infront of cache
-  val CacheArbiter = Module(new MemArbiter(5))
+  val CacheArbiter = Module(new MemArbiter(6))
 
   // Connect input signals to cache
   CacheArbiter.io.cpu.MemReq(0) <> test03.io.MemReq
@@ -58,6 +58,9 @@ class test03Main(implicit p: Parameters) extends AccelIO(List(32, 32), List(32))
 
   CacheArbiter.io.cpu.MemReq(4) <> test03_debug.io.MemReq
   test03_debug.io.MemResp <> CacheArbiter.io.cpu.MemResp(4)
+
+  CacheArbiter.io.cpu.MemReq(5) <> test03_debug.io.MemReq
+  test03_debug.io.MemResp <> CacheArbiter.io.cpu.MemResp(5)
 
   //Connect cache to the arbiter
   cache.io.cpu.req <> CacheArbiter.io.cache.MemReq
@@ -111,7 +114,7 @@ class test03Test01[T <: AccelIO](c: T)
 //  initMemory()
   poke(c.io.in.bits.enable.control, false.B)
   poke(c.io.in.bits.enable.taskID, 0.U)
-  poke(c.io.in.bits.enable.debug, false.B)
+  poke(c.io.in.bits.enable.debug, true.B)
   poke(c.io.in.valid, false.B)
   poke(c.io.in.bits.data("field0").data, 0.U)
   poke(c.io.in.bits.data("field0").predicate, false.B)
@@ -134,7 +137,7 @@ class test03Test01[T <: AccelIO](c: T)
   poke(c.io.out.ready, true.B)
   step(1)
   poke(c.io.in.bits.enable.control, false.B)
-  poke(c.io.in.bits.enable.debug, false.B)
+  poke(c.io.in.bits.enable.debug, true.B)
   poke(c.io.in.valid, false.B)
   poke(c.io.in.bits.data("field0").data, 0.U)
   poke(c.io.in.bits.data("field0").predicate, false.B)

@@ -256,7 +256,7 @@ class DebugBufferNode(
   //---------------------------
   // -------
 
-  val LogData = Module(new Queue(UInt((xlen*4).W), 20))
+  val LogData = Module(new Queue(UInt((xlen).W), 20))
 
 
 
@@ -266,7 +266,7 @@ class DebugBufferNode(
   LogData.io.enq.valid := false.B
   LogData.io.deq.ready := false.B
 
-  val queue_data = WireInit(0.U((xlen*4).W))
+  val queue_data = WireInit(0.U((xlen).W))
   val queue_valid = WireInit(false.B)
   val queue_ready = WireInit(false.B)
 

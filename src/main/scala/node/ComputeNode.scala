@@ -116,26 +116,17 @@ class ComputeNode(NumOuts: Int, ID: Int, opCode: String)
   }
 
   hs*/
-  var test_value = Wire(UInt((xlen*4).W))
-  //test_value := ID.U
-  var log_id = Wire(UInt((xlen).W))
-  var log_out = WireInit(0.U((xlen).W))
-  var log_left = WireInit(0.U((xlen).W))
-  var log_right = WireInit(0.U((xlen).W))
+  var test_value = Wire(UInt((xlen).W))
+  var log_id = Wire(UInt((4).W))
+  var log_out = WireInit(0.U((xlen-4).W))
+
   log_id := ID.U
-//  log_out := 0.U
-//  log_left := 0.U
-//  log_right := 0.U
-  log_left := left_R.data.asUInt()
   log_out := FU.io.out.asUInt()
-  log_right := right_R.data.asUInt()
-  test_value := Cat(log_id, log_left, log_right, log_out)
+  test_value := Cat(log_id, log_out)
 
   if(Debug){
-    //val test_value = Wire(UInt(4.W))
     val test_value_valid = Wire(Bool())
     val test_value_ready = Wire(Bool())
-    //test_value := 5.U
     test_value_valid := false.B
     test_value_ready := false.B
     BoringUtils.addSource(test_value, "data" + ID)
@@ -170,9 +161,7 @@ class ComputeNode(NumOuts: Int, ID: Int, opCode: String)
         io.Out.foreach(_.valid := true.B)
         ValidOut()
         state := s_COMPUTE
-        log_left := left_R.data.asUInt()
         log_out := FU.io.out.asUInt()
-        log_right := right_R.data.asUInt()
         if (log) {
           printf("[LOG] " + "[" + module_name + "] " + "[TID->%d] [COMPUTE] " +
             node_name + ": Output fired @ %d, Value: %d (%d + %d)\n", taskID, cycleCount, FU.io.out, left_R.data, right_R.data)
@@ -180,7 +169,6 @@ class ComputeNode(NumOuts: Int, ID: Int, opCode: String)
       }
     }
     is(s_COMPUTE) {
-     // test_value := 3.U
       when(IsOutReady()) {
         // Reset data
 
@@ -191,9 +179,6 @@ class ComputeNode(NumOuts: Int, ID: Int, opCode: String)
 
         //Reset state
         state := s_IDLE
-//        log_left = left_R.data.asUInt()
-//        log_out = FU.io.out.asUInt()
-//        log_right = right_R.data.asUInt()
 
         Reset()
 
