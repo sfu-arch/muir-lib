@@ -24,7 +24,7 @@ import chisel3.{when, _}
 import chisel3.util._
 import config._
 import control.BasicBlockNoMaskNode
-import dnn.memory.{ReadTensorController, TensorLoad, TensorMaster, TensorStore, WgtTensorLoad, WriteTensorController}
+import dnn.memory.{ReadTensorController, TensorLoad, TensorMaster, TensorStore, WgtTensorLoad, WriteTensorController, inDMA_act}
 import dnn.{DotNode, MacNode, ReduceNode}
 import interfaces.{ControlBundle, DataBundle}
 import junctions.SplitCallNew
@@ -59,6 +59,8 @@ class DNNCore(implicit val p: Parameters) extends Module {
 
   val tensorLoad1 = Module(new TensorLoad(tensorType = "inp"))
   val readTensorController1 = Module(new ReadTensorController(1, "inp")(shapeIn))
+
+  val inDMA = Module(new inDMA_act(3, 20, ))
 
   val wgtTensorLoad = Module(new WgtTensorLoad(7, wgtTensorType = "wgt", memTensorType = "inp")(wgtShape))
   val readTensorController2 = Module(new ReadTensorController(1, "wgt")(wgtShape))
