@@ -28,7 +28,7 @@ class ShapeTransformer[L <: vecN, K <: Shapes](NumIns: Int, NumOuts: Int, ID: In
   val dataIn_valid_R = RegInit(VecInit(Seq.fill(NumIns)(false.B)))
   val dataIn_Wire = Wire(Vec(shapeIn.N, Vec (NumIns, UInt(xlen.W))))
 
-  require(shapeIn.data.length % NumIns == 0, "Size of shapeIn should be multiple of NumIns")
+//  require(shapeIn.data.length % NumIns == 0, "Size of shapeIn should be multiple of NumIns")
 
   val input_data = dataIn_R.map(_.data.asUInt())
 
@@ -91,40 +91,18 @@ class ShapeTransformer[L <: vecN, K <: Shapes](NumIns: Int, NumOuts: Int, ID: In
     io.Out(i).bits.predicate := true.B
   }
 
-//  data_out_R <> buffer.io.deq.bits
   buffer.io.deq.ready := io.Out.map(_.ready).reduceLeft(_ && _) & buffer.io.Out.valid
 
   when (dataIn_valid_R.reduceLeft(_ && _) && buffer.io.enq.ready) {
     cnt.inc()
-//    buffer.io.enq.valid := true.B
   }
 
   when (cnt.value === (shapeIn.N - 1).U) {
     dataIn_R.foreach(_ := CustomDataBundle.default(0.U(shapeIn.getWidth.W)))
     dataIn_valid_R.foreach(_ := false.B)
-//    buffer.io.enq.valid := false.B
   }
 
 
-  /*switch(state) {
-    is(s_idle) { //0
-      when(dataIn_valid_R.reduceLeft(_ && _) && buffer.io.enq.ready) {
-        state := s_BufferWrite
-        countOn := true.B
-      }
-    }
-    is(s_BufferWrite) { //1
-      when(wrap) {
-        state := s_idle
-        //        data_out_R := buffer.io.deq.bits
-        countOn := false.B
-        dataIn_R.foreach(_ := CustomDataBundle.default(0.U(shapeIn.getWidth.W)))
-        dataIn_valid_R.foreach(_ := false.B)
-      }
-    }
-  }*/
-
-  //  printf(p"\n Left ${io.LeftIO.bits.data} Right: ${io.RightIO.bits.data} Output: ${reduceNode.io.Out(0).bits.data}")
 }
 
 
