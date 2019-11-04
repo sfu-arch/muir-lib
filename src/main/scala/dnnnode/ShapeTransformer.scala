@@ -28,16 +28,8 @@ class ShapeTransformer[L <: vecN, K <: Shapes](NumIns: Int, NumOuts: Int, ID: In
   val dataIn_valid_R = RegInit(VecInit(Seq.fill(NumIns)(false.B)))
   val dataIn_Wire = Wire(Vec(shapeIn.N, Vec (NumIns, UInt(xlen.W))))
 
-//  require(shapeIn.data.length % NumIns == 0, "Size of shapeIn should be multiple of NumIns")
-
   val input_data = dataIn_R.map(_.data.asUInt())
 
-  /*for (i <- 0 until NumIns) {
-    for (j <- 0 until shapeIn.N) {
-      val index = ((j + 1) * xlen) - 1
-      dataIn_Wire(i)(j) := input_data(i)(index, j * xlen) // 3, 24
-    }
-  }*/
 
   for (i <- 0 until shapeIn.N) {
     for (j <- 0 until NumIns) {
@@ -49,14 +41,12 @@ class ShapeTransformer[L <: vecN, K <: Shapes](NumIns: Int, NumOuts: Int, ID: In
 
   val buffer = Module(new CustomQueue(new CustomDataBundle(UInt((NumIns * xlen).W)), 40, NumIns))
 
-//  val mux = Module(new Mux(new CustomDataBundle(UInt(shapeOut.getWidth.W)), ratio))
   val mux = Module(new Mux(new CustomDataBundle(UInt((NumIns * xlen).W)), shapeIn.N))
   val countOn = RegInit(init = false.B)
-//  val (cnt, wrap) = Counter(countOn, shapeIn.N)
   val cnt = Counter(shapeIn.N)
 
   mux.io.sel := cnt.value
-  mux.io.en := true.B//countOn
+  mux.io.en := true.B
   for (i <- 0 until shapeIn.N) {
     mux.io.inputs(i).data := dataIn_Wire(i).asTypeOf(CustomDataBundle(UInt((NumIns * xlen).W))).data
     mux.io.inputs(i).valid := dataIn_R.map(_.valid).reduceLeft(_ && _)
@@ -65,7 +55,7 @@ class ShapeTransformer[L <: vecN, K <: Shapes](NumIns: Int, NumOuts: Int, ID: In
   }
 
   buffer.io.enq.bits <> mux.io.output
-  buffer.io.enq.valid := dataIn_valid_R.reduceLeft(_ && _)//countOn
+  buffer.io.enq.valid := dataIn_valid_R.reduceLeft(_ && _)
   buffer.io.enq.bits.predicate := true.B
 
   val s_idle :: s_BufferWrite :: s_Transfer :: s_Finish :: Nil = Enum(4)

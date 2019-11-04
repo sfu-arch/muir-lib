@@ -4,7 +4,7 @@ import Chisel.Enum
 import chisel3.experimental.{DataMirror, requireIsChiselType}
 import chisel3.util._
 import chisel3.{Flipped, Module, UInt, _}
-import interfaces.CustomDataBundle
+import config.{Parameters, XLEN}
 
 class CustomQueueIO[T <: Data](private val gen: T, val entries: Int, NumOuts: Int) extends Bundle
 {
@@ -35,7 +35,7 @@ class CustomQueue[T <: Data](gen: T,
                        val entries: Int, NumOuts: Int,
                        pipe: Boolean = false,
                        flow: Boolean = false)
-                      (implicit compileOptions: chisel3.CompileOptions)
+                      (implicit compileOptions: chisel3.CompileOptions , p: Parameters)
   extends Module() {
   require(entries > -1, "Queue must have non-negative number of entries")
   require(entries != 0, "Use companion object Queue.apply for zero entries")
@@ -81,17 +81,32 @@ class CustomQueue[T <: Data](gen: T,
   val ptr_diff = enq_ptr.value - deq_ptr.value
   val bufCount = io.count
 
+  val bufferOut = Wire(Vec(NumOuts, gen))
+  val transposed = Wire(Vec(NumOuts, Vec(NumOuts, UInt(p(XLEN).W))))
 
-//  io.Out.valid := !empty //(ptr_diff >= 0.U)
   when (bufCount > (NumOuts - 1).U) {
     io.Out.valid := true.B
   }.otherwise {
     io.Out.valid := false.B
   }
   for (i <- 0 until NumOuts) {
-    io.Out.bits(i) := Mux(bufCount > (NumOuts - 1).U, ram(deq_ptr.value + i.U), 0.U.asTypeOf(genType))
-//    io.Out.bits(i) := ram(deq_ptr.value + i.U)
+    bufferOut(i) := Mux(bufCount > (NumOuts - 1).U, ram(deq_ptr.value + i.U), 0.U.asTypeOf(genType))
   }
+
+  /*===========================================*
+   *    Transposing the buffer's output        *
+   *===========================================*/
+  for (i <- 0 until NumOuts) {
+    for (j <- 0 until NumOuts) {
+      val index = ((i + 1) * p(XLEN)) - 1
+      transposed(i)(j) := bufferOut(j).asUInt()(index, i * p(XLEN))
+    }
+  }
+
+  for (i <- 0 until NumOuts) {
+    io.Out.bits(i) := transposed(i).asTypeOf(genType)
+  }
+
 
   if (flow) {
     when (io.enq.valid) { io.deq.valid := true.B }
