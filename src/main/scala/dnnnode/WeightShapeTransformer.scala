@@ -28,7 +28,7 @@ class WeightShapeTransformerIO[gen <: vecN](wgtTensorType: String = "none", memT
 class WeightShapeTransformer[L <: vecN] (numWeight: Int,  wgtTensorType: String = "none", memTensorType: String = "none")(wgtShape: => L)(implicit p: Parameters)
   extends WeightShapeTransformerIO(wgtTensorType, memTensorType)(wgtShape)(p) {
 
-  val buffer = Module(new WeightQueue(UInt(p(XLEN).W), 144, tpMem.tensorWidth, wgtShape.N))
+  val buffer = Module(new WeightQueue(UInt(p(XLEN).W), 100, tpMem.tensorWidth, wgtShape.N))
   val wgtTensorDepth = ceil(numWeight * wgtShape.N / tpMem.tensorWidth) + 1
 
   val writeBufCntOn = RegInit(init = false.B)

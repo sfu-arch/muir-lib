@@ -4,18 +4,18 @@ import chisel3.experimental.{DataMirror, requireIsChiselType}
 import chisel3.util._
 import chisel3.{Flipped, Module, UInt, _}
 
-class WeightQueueIO[T <: Data](private val gen: T, val entries: Int, NumIns: Int, NumOuts: Int) extends Bundle
+class StoreQueueIO[T <: Data](private val gen: T, val entries: Int, NumOuts: Int) extends Bundle
 {
   /** I/O to enqueue data (client is producer, and Queue object is consumer), is [[Chisel.DecoupledIO]] flipped. */
-//  val enq = Flipped(EnqIO(gen))
-  val enq = Flipped(EnqIO(Vec(NumIns, gen)))
+  val enq = Flipped(EnqIO(gen))
+//  val enq = Flipped(EnqIO(Vec(NumIns, gen)))
   /** I/O to dequeue data (client is consumer and Queue object is producer), is [[Chisel.DecoupledIO]]*/
 //  val deq = Flipped(DeqIO(gen))
   val deq = Flipped(DeqIO(Vec(NumOuts, gen)))
   /** The current amount of data in the queue */
   val count = Output(UInt(log2Ceil(entries + 1).W))
 
-  val clear = Input(Bool())
+  val last = Input(Bool())
 }
 
 /** A hardware module implementing a Queue
@@ -33,16 +33,14 @@ class WeightQueueIO[T <: Data](private val gen: T, val entries: Int, NumIns: Int
   * }}}
   */
 
-class WeightQueue[T <: Data](gen: T,
-                       val entries: Int, NumIns: Int, NumOuts: Int,
+class StoreQueue[T <: Data](gen: T,
+                       val entries: Int, NumOuts: Int,
                        pipe: Boolean = false,
                        flow: Boolean = false)
                       (implicit compileOptions: chisel3.CompileOptions)
   extends Module() {
   require(entries > -1, "Queue must have non-negative number of entries")
   require(entries != 0, "Use companion object Queue.apply for zero entries")
-//  require(entries % NumIns == 0, "Use companion object Queue.apply for zero entries")
-//  require(entries % NumOuts == 0, "Use companion object Queue.apply for zero entries")
   val genType = if (compileOptions.declaredTypeMustBeUnbound) {
     requireIsChiselType(gen)
     gen
@@ -54,7 +52,7 @@ class WeightQueue[T <: Data](gen: T,
     }
   }
 
-  val io = IO(new WeightQueueIO(genType, entries, NumIns, NumOuts))
+  val io = IO(new StoreQueueIO(genType, entries, NumOuts))
 
   val ram = Mem(entries, genType)
   val enq_ptr = Counter(entries)
@@ -64,44 +62,49 @@ class WeightQueue[T <: Data](gen: T,
   val bufCount = io.count
   val ptr_match = enq_ptr.value === deq_ptr.value
   val empty = ptr_match && !maybe_full
-//  val full = ptr_match && maybe_full
-  val full = entries.U - bufCount <= NumIns.U
+  val full = ptr_match && maybe_full
   val do_enq = WireDefault(io.enq.fire())
   val do_deq = WireDefault(io.deq.fire())
 
-  when(io.clear) {
-    enq_ptr.value := 0.U
-    deq_ptr.value := 0.U
-  }
+  val last = RegInit(init = false.B)
+  when(io.last) {last := true.B}
 
   when (do_enq) {
-    for (i <- 0 until NumIns) {
-      ram(enq_ptr.value + i.U) := io.enq.bits(i)
-    }
-    enq_ptr.value := enq_ptr.value + NumIns.U
+    ram(enq_ptr.value) := io.enq.bits
+    enq_ptr.inc()
   }
   when (do_deq) {
     deq_ptr.value := deq_ptr.value + NumOuts.U
+    when (last) {
+      deq_ptr.value := 0.U
+      enq_ptr.value := 0.U
+      last := false.B
+    }
   }
+
+  when(last) {
+    io.enq.ready := false.B
+  }.otherwise {
+    io.enq.ready := !full
+  }
+
   when (do_enq =/= do_deq) {
     maybe_full := do_enq
   }
 
-//  io.deq.valid := !empty
-  io.enq.ready := !full
-//  io.deq.bits := ram(deq_ptr.value)
+//  io.enq.ready := !full
 
   val ptr_diff = enq_ptr.value - deq_ptr.value
 
 
-//  io.Out.valid := !empty //(ptr_diff >= 0.U)
-  when (bufCount > (NumOuts - 1).U) {
+  when (bufCount > (NumOuts - 1).U | last) {
     io.deq.valid := true.B
   }.otherwise {
     io.deq.valid := false.B
   }
   for (i <- 0 until NumOuts) {
-    io.deq.bits(i) := Mux(bufCount > (NumOuts - 1).U, ram(deq_ptr.value + i.U), 0.U.asTypeOf(genType))
+    io.deq.bits(i) := Mux(bufCount > (NumOuts - 1).U, ram(deq_ptr.value + i.U),
+                          Mux(i.U >= bufCount, 0.U.asTypeOf(genType), ram(deq_ptr.value + i.U)))
   }
 
   if (flow) {

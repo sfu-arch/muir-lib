@@ -26,12 +26,13 @@ import config._
 import control.BasicBlockNoMaskNode
 import dnn.memory.{ReadTensorController, TensorLoad, TensorMaster, TensorStore, WgtTensorLoad, WriteTensorController, inDMA_act}
 import dnn.{DotNode, MacNode, ReduceNode}
-import interfaces.{ControlBundle, DataBundle}
+import interfaces.{ControlBundle, CustomDataBundle, DataBundle}
 import junctions.SplitCallNew
 import node.{FXmatNxN, UnTypStore, matNxN, vecN}
 import shell._
 import dnn.memory.ISA._
-import dnnnode.{ShapeTransformer, TLoad, TStore, WeightShapeTransformer}
+import dnnnode.{ShapeTransformer, StoreQueue, TLoad, TStore, WeightShapeTransformer}
+import firrtl.transforms.DontTouchAnnotation
 
 /** Core.
   *
@@ -57,8 +58,6 @@ class DNNCore(implicit val p: Parameters) extends Module {
   val shapeOut = new matNxN(3, false)
   val wgtShape = new vecN(9, 0, false)
 
-//  val tensorLoad1 = Module(new TensorLoad(tensorType = "inp"))
-//  val readTensorController1 = Module(new ReadTensorController(1, "inp")(memShape))
 
   val inDMA_act = Module(new inDMA_act(3, 1, "inp")(memShape))
 
@@ -74,7 +73,6 @@ class DNNCore(implicit val p: Parameters) extends Module {
   val storeIndex = RegNext(next = indexCnt.value, init = 0.U)
 
 
-//  val conv_bb = Module(new BasicBlockNoMaskNode(NumInputs = 1, NumOuts = 2  , BID = 0))
 
   val Load1 = Module(new TLoad(NumPredOps = 0, NumSuccOps = 0, NumOuts = 1, ID = 0, RouteID = 0)(memShape))
   val Load2 = Module(new TLoad(NumPredOps = 0, NumSuccOps = 0, NumOuts = 1, ID = 0, RouteID = 0)(memShape))
@@ -84,16 +82,14 @@ class DNNCore(implicit val p: Parameters) extends Module {
   val Store = Module(new TStore(NumPredOps = 0, NumSuccOps = 0, NumOuts = 1, ID = 0, RouteID = 0)(memShape))
   val macNode = Module(new MacNode(NumOuts = 1, ID = 0, lanes = 3)(shapeOut))
 
+  val storeBuffer = Module(new StoreQueue(new CustomDataBundle(UInt(p(XLEN).W)), 12, memShape.N))
+  storeBuffer.io.last := false.B
+
   val shapeTransformer = Module(new ShapeTransformer(NumIns = 3, NumOuts = 1, ID = 0)(memShape)(shapeOut))
   /* ================================================================== *
      *                      Basic Block signals                         *
      * ================================================================== */
 
-//  conv_bb.io.predicateIn.bits := ControlBundle(io.vcr.launch)
-//  conv_bb.io.predicateIn.valid := io.vcr.launch
-
-//  LoadA.io.enable <> conv_bb.io.Out(0)
-//  LoadB.io.enable <> conv_bb.io.Out(1)
   Load1.io.enable.bits <> ControlBundle.active()
   Load1.io.enable.valid := true.B
 
@@ -130,7 +126,15 @@ class DNNCore(implicit val p: Parameters) extends Module {
 
   // Wire up ReduceNode Outputs
   for (i <- 0 until macNode.NumOuts) {
-    Store.io.inData <> macNode.io.Out(i)
+    storeBuffer.io.enq <> macNode.io.Out(i)
+
+    Store.io.inData.bits.data := VecInit(storeBuffer.io.deq.bits.map(_.data.asUInt())).asUInt()
+
+    Store.io.inData.bits.valid := storeBuffer.io.deq.valid
+    Store.io.inData.bits.taskID := 0.U
+    Store.io.inData.bits.predicate := true.B
+    Store.io.inData.valid := storeBuffer.io.deq.valid
+    storeBuffer.io.deq.ready := Store.io.inData.ready
   }
 
   /* ================================================================== *
@@ -183,7 +187,7 @@ class DNNCore(implicit val p: Parameters) extends Module {
   LoadB.io.GepAddr.bits.predicate := true.B
   LoadB.io.GepAddr.bits.data := indexCnt.value
 
-  Store.io.GepAddr.valid := macNode.io.Out(0).valid
+  Store.io.GepAddr.valid := true.B//macNode.io.Out(0).valid
   Store.io.GepAddr.bits.taskID := 0.U
   Store.io.GepAddr.bits.data := storeIndex
   Store.io.GepAddr.bits.predicate := true.B
@@ -239,8 +243,8 @@ class DNNCore(implicit val p: Parameters) extends Module {
   ts_Inst.xpad_1 := 0.U
   ts_Inst.ypad_0 := 0.U
   ts_Inst.ypad_1 := 0.U
-  ts_Inst.xstride := 4.U
-  ts_Inst.xsize := 4.U
+  ts_Inst.xstride := 8.U
+  ts_Inst.xsize := 8.U
   ts_Inst.ysize := 1.U
   ts_Inst.empty_0 := 0.U
   ts_Inst.dram_offset := 0.U
@@ -290,6 +294,7 @@ class DNNCore(implicit val p: Parameters) extends Module {
       when(indexCnt.value === ts_Inst.xsize) {
         indexCnt.value := 0.U
         state := sWriteTensor
+        storeBuffer.io.last := true.B
       }.otherwise {
         state := sMacStart
         indexCnt.inc()
