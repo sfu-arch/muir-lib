@@ -19,7 +19,7 @@ import dnn.memory.ISA._
   * managed by TensorPadCtrl. The TensorDataCtrl is in charge of
   * handling the way tensors are stored on the scratchpads.
   */
-class WgtTensorLoadIO[gen <: vecN](wgtTensorType: String = "none")(wgtShape: => gen)(implicit val p: Parameters)
+class inDMA_wgtIO[gen <: vecN](wgtTensorType: String = "none")(wgtShape: => gen)(implicit val p: Parameters)
   extends Module {
   val tp = new TensorParams(wgtTensorType)
   val mp = p(ShellKey).memParams
@@ -35,8 +35,8 @@ class WgtTensorLoadIO[gen <: vecN](wgtTensorType: String = "none")(wgtShape: => 
 }
 
 
-class WgtTensorLoad[L <: vecN](numWeight: Int, wgtTensorType: String = "none", memTensorType: String = "none")(wgtShape: => L)(implicit p: Parameters)
-  extends WgtTensorLoadIO(wgtTensorType)(wgtShape)(p) {
+class inDMA_wgt[L <: vecN](numWeight: Int, wgtTensorType: String = "none", memTensorType: String = "none")(wgtShape: => L)(implicit p: Parameters)
+  extends inDMA_wgtIO(wgtTensorType)(wgtShape)(p) {
 
   val wgtTransformer = Module(new WeightShapeTransformer(numWeight, wgtTensorType, memTensorType)(wgtShape))
   val tensorLoad = Module(new TensorLoad(memTensorType))

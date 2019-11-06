@@ -89,7 +89,6 @@ class inDMA_act[L <: Shapes](NumRows: Int, NumOuts: Int, memTensorType: String =
     tensorLoad(i).io.inst := tl_Inst.asTypeOf(UInt(INST_BITS.W))
     tensorLoad(i).io.baddr := io.baddr + (i.U * io.rowWidth)
     tensorLoad(i).io.tensor <> readTensorCtrl(i).io.tensor
-//    tensorLoad(i).io.vme_rd <> io.vme_rd(i)
     io.vme_rd(i) <> tensorLoad(i).io.vme_rd
   }
 

@@ -24,7 +24,7 @@ import chisel3.{when, _}
 import chisel3.util._
 import config._
 import control.BasicBlockNoMaskNode
-import dnn.memory.{ReadTensorController, TensorLoad, TensorMaster, TensorStore, WgtTensorLoad, WriteTensorController, inDMA_act, outDMA_act}
+import dnn.memory.{ReadTensorController, TensorLoad, TensorMaster, TensorStore, inDMA_wgt, WriteTensorController, inDMA_act, outDMA_act}
 import dnn.{DotNode, MacNode, ReduceNode}
 import interfaces.{ControlBundle, CustomDataBundle, DataBundle}
 import junctions.SplitCallNew
@@ -61,13 +61,11 @@ class DNNCore(implicit val p: Parameters) extends Module {
 
   val inDMA_act = Module(new inDMA_act(3, 1, "inp")(memShape))
 
-  val wgtTensorLoad = Module(new WgtTensorLoad(7, wgtTensorType = "wgt", memTensorType = "inp")(wgtShape))
+  val inDMA_wgt = Module(new inDMA_wgt(7, wgtTensorType = "wgt", memTensorType = "inp")(wgtShape))
   val readTensorController2 = Module(new ReadTensorController(1, "wgt")(wgtShape))
 
   val outDMA_act = Module(new outDMA_act(1, 20, "inp"))
 
-//  val tensorStore = Module(new TensorStore(tensorType = "inp"))
-//  val writeTensorController = Module(new WriteTensorController(1, "inp")(memShape))
 
   val tl_Inst = Wire(new MemDecode)
   val indexCnt = Counter(100)
@@ -80,11 +78,7 @@ class DNNCore(implicit val p: Parameters) extends Module {
   val Load3 = Module(new TLoad(NumPredOps = 0, NumSuccOps = 0, NumOuts = 1, ID = 0, RouteID = 0)(memShape))
 
   val LoadB = Module(new TLoad(NumPredOps = 0, NumSuccOps = 0, NumOuts = 1, ID = 0, RouteID = 0)(wgtShape))
-//  val Store = Module(new TStore(NumPredOps = 0, NumSuccOps = 0, NumOuts = 1, ID = 0, RouteID = 0)(memShape))
   val macNode = Module(new MacNode(NumOuts = 1, ID = 0, lanes = 3)(shapeOut))
-
-//  val storeBuffer = Module(new StoreQueue(new CustomDataBundle(UInt(p(XLEN).W)), 12, memShape.N))
-//  storeBuffer.io.last := false.B
 
   val shapeTransformer = Module(new ShapeTransformer(NumIns = 3, NumOuts = 1, ID = 0)(memShape)(shapeOut))
   /* ================================================================== *
@@ -146,7 +140,7 @@ class DNNCore(implicit val p: Parameters) extends Module {
 
   readTensorController2.io.ReadIn(0) <> LoadB.io.tensorReq
   LoadB.io.tensorResp <> readTensorController2.io.ReadOut(0)
-  wgtTensorLoad.io.tensor <> readTensorController2.io.tensor
+  inDMA_wgt.io.tensor <> readTensorController2.io.tensor
 
   /* ================================================================== *
     *                       Load Store signals                          *
@@ -178,7 +172,7 @@ class DNNCore(implicit val p: Parameters) extends Module {
   io.vme.rd(1) <> inDMA_act.io.vme_rd(1)
   io.vme.rd(2) <> inDMA_act.io.vme_rd(2)
 
-  io.vme.rd(3) <> wgtTensorLoad.io.vme_rd
+  io.vme.rd(3) <> inDMA_wgt.io.vme_rd
 
   io.vme.wr(0) <> outDMA_act.io.vme_wr(0)
 
@@ -186,10 +180,10 @@ class DNNCore(implicit val p: Parameters) extends Module {
   inDMA_act.io.baddr := io.vcr.ptrs(0)
   inDMA_act.io.rowWidth := 20.U
 
-  wgtTensorLoad.io.start := false.B
-  wgtTensorLoad.io.baddr := io.vcr.ptrs(1)
-  wgtTensorLoad.io.inst := tl_Inst.asTypeOf(UInt(INST_BITS.W))
-  wgtTensorLoad.io.xsize := tl_Inst.xsize
+  inDMA_wgt.io.start := false.B
+  inDMA_wgt.io.baddr := io.vcr.ptrs(1)
+  inDMA_wgt.io.inst := tl_Inst.asTypeOf(UInt(INST_BITS.W))
+  inDMA_wgt.io.xsize := tl_Inst.xsize
 
   outDMA_act.io.start := false.B
   outDMA_act.io.baddr := io.vcr.ptrs(2)
@@ -227,12 +221,12 @@ class DNNCore(implicit val p: Parameters) extends Module {
     }
     is(sReadTensor1) {  //1
       when(inDMA_act.io.done) {
-        wgtTensorLoad.io.start := true.B
+        inDMA_wgt.io.start := true.B
         state := sReadTensor2
       }
     }
     is(sReadTensor2) { //2
-      when(wgtTensorLoad.io.done) {
+      when(inDMA_wgt.io.done) {
         state := sMacStart
       }
     }
