@@ -1,7 +1,6 @@
 package dnnnode
 
 import Chisel.Enum
-import breeze.numerics.ceil
 import chisel3._
 import chisel3.util._
 import chisel3.{Module, UInt}
@@ -19,29 +18,32 @@ class WeightShapeTransformerIO[gen <: vecN](wgtTensorType: String = "none", memT
   val io = IO(new Bundle {
     val start = Input(Bool())
     val done = Output(Bool())
-    val xsize = Input(UInt(M_SIZE_BITS.W))
+    val numWeight = Input(UInt(tpWgt.memAddrBits.W))
     val tensorMaster = new TensorMaster(memTensorType)
     val tensor = new TensorClient(wgtTensorType)
   })
 }
 
-class WeightShapeTransformer[L <: vecN] (numWeight: Int,  wgtTensorType: String = "none", memTensorType: String = "none")(wgtShape: => L)
-                                        (implicit p: Parameters)
+class WeightShapeTransformer[L <: vecN](wgtTFDepth: Int, bufSize: Int, wgtTensorType: String = "none", memTensorType: String = "none")(wgtShape: => L)
+                                       (implicit p: Parameters)
   extends WeightShapeTransformerIO(wgtTensorType, memTensorType)(wgtShape)(p) {
 
-  val buffer = Module(new WeightQueue(UInt(p(XLEN).W), 100, tpMem.tensorWidth, wgtShape.N))
-  val wgtTensorDepth = ceil(numWeight * wgtShape.N / tpMem.tensorWidth) + 1
+  val buffer = Module(new WeightQueue(UInt(p(XLEN).W), bufSize, tpMem.tensorWidth, wgtShape.N))
+  require(bufSize >= tpMem.tensorWidth, "bufSize should be greater than memTensorWidth")
+
+  val wgtTensorDepth = Mux(io.numWeight * wgtShape.N.U % tpMem.tensorWidth.U === 0.U,
+        io.numWeight * wgtShape.N.U / tpMem.tensorWidth.U, (io.numWeight * wgtShape.N.U / tpMem.tensorWidth.U) + 1.U)
 
   val writeBufCntOn = RegInit(init = false.B)
-  val (writeBufCnt, writeWrap) = Counter(writeBufCntOn, wgtTensorDepth)
+  val (writeBufCnt, writeWrap) = Counter(writeBufCntOn, wgtTFDepth)
 
-  val readWgtCnt = Counter(numWeight + 1)
+  val readWgtCnt = Counter(wgtTFDepth + 1)
 
 
   val s_idle :: s_BufferWrite :: s_Transfer :: s_Finish :: Nil = Enum(4)
   val state = RegInit(s_idle)
 
-  val tensorFile = SyncReadMem(numWeight, wgtShape)
+  val tensorFile = SyncReadMem(wgtTFDepth, wgtShape)
 
   buffer.io.enq.valid := io.tensorMaster.rd.data.valid
   buffer.io.enq.bits := io.tensorMaster.rd.data.bits(0)
@@ -49,10 +51,13 @@ class WeightShapeTransformer[L <: vecN] (numWeight: Int,  wgtTensorType: String 
   io.tensorMaster.rd.idx.valid := buffer.io.enq.ready & writeBufCntOn
   io.tensorMaster.wr <> DontCare
 
-  when (writeWrap) {writeBufCntOn := false.B}
+  when (writeBufCnt === wgtTensorDepth - 1.U) {
+    writeBufCntOn := false.B
+    writeBufCnt := 0.U
+  }
   when (io.start) {writeBufCntOn := true.B}
 
-  when (buffer.io.deq.valid & readWgtCnt.value < numWeight.U) {
+  when (buffer.io.deq.valid & readWgtCnt.value < io.numWeight) {
     tensorFile.write(readWgtCnt.value, buffer.io.deq.bits.asTypeOf(wgtShape))
     buffer.io.deq.ready := true.B
     readWgtCnt.inc()
@@ -61,10 +66,11 @@ class WeightShapeTransformer[L <: vecN] (numWeight: Int,  wgtTensorType: String 
   }
 
 
-  when (readWgtCnt.value === numWeight.U) {
+  when (readWgtCnt.value === io.numWeight) {
     io.done := true.B
     buffer.io.clear := true.B
-    readWgtCnt.inc()
+//    readWgtCnt.inc()
+    readWgtCnt.value := 0.U
   }.otherwise{
     buffer.io.clear := false.B
     io.done := false.B

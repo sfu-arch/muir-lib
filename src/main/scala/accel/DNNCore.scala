@@ -61,17 +61,13 @@ class DNNCore(implicit val p: Parameters) extends Module {
 
   val inDMA_act = Module(new inDMA_act(3, 1, "inp")(memShape))
 
-  val inDMA_wgt = Module(new inDMA_wgt(7, wgtTensorType = "wgt", memTensorType = "inp")(wgtShape))
+  val inDMA_wgt = Module(new inDMA_wgt(20, 100, wgtTensorType = "wgt", memTensorType = "inp")(wgtShape))
   val readTensorController2 = Module(new ReadTensorController(1, "wgt")(wgtShape))
 
   val outDMA_act = Module(new outDMA_act(1, 20, "inp"))
 
 
-  val tl_Inst = Wire(new MemDecode)
   val indexCnt = Counter(100)
-  val storeIndex = RegNext(next = indexCnt.value, init = 0.U)
-
-
 
   val Load1 = Module(new TLoad(NumPredOps = 0, NumSuccOps = 0, NumOuts = 1, ID = 0, RouteID = 0)(memShape))
   val Load2 = Module(new TLoad(NumPredOps = 0, NumSuccOps = 0, NumOuts = 1, ID = 0, RouteID = 0)(memShape))
@@ -97,9 +93,6 @@ class DNNCore(implicit val p: Parameters) extends Module {
 
   LoadB.io.enable.bits <> ControlBundle.active()
   LoadB.io.enable.valid := true.B
-
-//  Store.io.enable.bits <> ControlBundle.active()
-//  Store.io.enable.valid := true.B
 
   macNode.io.enable.bits <> ControlBundle.active()
   macNode.io.enable.valid := true.B
@@ -182,30 +175,12 @@ class DNNCore(implicit val p: Parameters) extends Module {
 
   inDMA_wgt.io.start := false.B
   inDMA_wgt.io.baddr := io.vcr.ptrs(1)
-  inDMA_wgt.io.inst := tl_Inst.asTypeOf(UInt(INST_BITS.W))
-  inDMA_wgt.io.xsize := tl_Inst.xsize
+  inDMA_wgt.io.numWeight := 7.U
 
   outDMA_act.io.start := false.B
   outDMA_act.io.baddr := io.vcr.ptrs(2)
   outDMA_act.io.rowWidth := 18.U
   outDMA_act.io.last.foreach(a => a := false.B)
-
-  tl_Inst.xpad_0 := 0.U
-  tl_Inst.xpad_1 := 0.U
-  tl_Inst.ypad_0 := 0.U
-  tl_Inst.ypad_1 := 0.U
-  tl_Inst.xstride := 7.U
-  tl_Inst.xsize := 7.U
-  tl_Inst.ysize := 1.U
-  tl_Inst.empty_0 := 0.U
-  tl_Inst.dram_offset := 0.U
-  tl_Inst.sram_offset := 0.U
-  tl_Inst.id := 3.U
-  tl_Inst.push_next := 0.U
-  tl_Inst.push_prev := 0.U
-  tl_Inst.pop_next := 0.U
-  tl_Inst.pop_prev := 0.U
-  tl_Inst.op := 0.U
 
 
   val sIdle :: sReadTensor1 :: sReadTensor2 :: sMacStart :: sMacWaiting :: sNextOp :: sWriteTensor :: sFinish :: Nil = Enum(8)
