@@ -18,7 +18,7 @@ class MacNode[L <: Shapes : OperatorDot : OperatorReduction](NumOuts: Int, ID: I
   extends HandShakingNPS(NumOuts, ID)(new CustomDataBundle(UInt(p(XLEN).W)))(p) {
   override lazy val io = IO(new MacIO(NumOuts)(left))
 
-  val dotNode = Module(new DotNode(NumOuts = 1, ID = ID, lanes, "Mul")(left))
+  val dotNode = Module(new DotNode(NumOuts = 1, ID = ID, left.getLength(), "Mul")(left))
   val reduceNode = Module(new ReduceNode(NumOuts = 1, ID = ID, false, "Add")(left))
 
   // Connect IO to dotNode

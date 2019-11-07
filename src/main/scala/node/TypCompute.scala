@@ -33,6 +33,8 @@ abstract class Shapes(implicit p: Parameters) extends CoreBundle( )(p) {
 
   def getWidthData(): Int
 
+  def getLength(): Int
+
 }
 
 
@@ -76,6 +78,10 @@ class vecN(val N: Int, val isCol: Int = 0, val issign: Boolean = false)(implicit
 
   def getWidthData(): Int = {
     return data.getWidth
+  }
+
+  def getLength(): Int = {
+    return data.length
   }
 
   override def cloneType = new vecN(N, isCol, issign).asInstanceOf[this.type]
@@ -123,6 +129,10 @@ class matNxN(val N: Int = 0, val issign: Boolean = false)(implicit p: Parameters
     return data.getWidth
   }
 
+  def getLength(): Int = {
+    return data.length
+  }
+
   override def cloneType = new matNxN(N, issign).asInstanceOf[this.type]
 }
 
@@ -158,6 +168,10 @@ class FXmatNxN(val N: Int, val fraction: Int)(implicit p: Parameters) extends Sh
 
   def getWidthData(): Int = {
     return data.getWidth
+  }
+
+  def getLength(): Int = {
+    return data.length
   }
 
   override def cloneType = new FXmatNxN(N, fraction).asInstanceOf[this.type]
@@ -196,6 +210,10 @@ class FXvecN(val N: Int, val fraction: Int, val isCol: Int = 0)(implicit p: Para
     return data.getWidth
   }
 
+  def getLength(): Int = {
+    return data.length
+  }
+
   override def cloneType = new FXvecN(N, fraction).asInstanceOf[this.type]
 }
 
@@ -231,6 +249,10 @@ class FPmatNxN(val N: Int, val t: FType)(implicit p: Parameters) extends Shapes 
     return data.getWidth
   }
 
+  def getLength(): Int = {
+    return data.length
+  }
+
   override def cloneType = new FPmatNxN(N, t).asInstanceOf[this.type]
 }
 
@@ -263,6 +285,10 @@ class FPvecN(val N: Int, val t: FType, val isCol: Int = 0)(implicit p: Parameter
 
   def getWidthData(): Int = {
     return data.getWidth
+  }
+
+  def getLength(): Int = {
+    return data.length
   }
 
   override def cloneType = new FPmatNxN(N, t).asInstanceOf[this.type]

@@ -74,7 +74,7 @@ class DNNCore(implicit val p: Parameters) extends Module {
   val Load3 = Module(new TLoad(NumPredOps = 0, NumSuccOps = 0, NumOuts = 1, ID = 0, RouteID = 0)(memShape))
 
   val LoadB = Module(new TLoad(NumPredOps = 0, NumSuccOps = 0, NumOuts = 1, ID = 0, RouteID = 0)(wgtShape))
-  val macNode = Module(new MacNode(NumOuts = 1, ID = 0, lanes = 3)(shapeOut))
+  val macNode = Module(new MacNode(NumOuts = 1, ID = 0, lanes = shapeOut.N)(shapeOut))
 
   val shapeTransformer = Module(new ShapeTransformer(NumIns = 3, NumOuts = 1, ID = 0)(memShape)(shapeOut))
   /* ================================================================== *
@@ -107,7 +107,7 @@ class DNNCore(implicit val p: Parameters) extends Module {
   shapeTransformer.io.in(1) <> Load2.io.Out(0)
   shapeTransformer.io.in(2) <> Load3.io.Out(0)
 
-  dontTouch(shapeTransformer.io.Out)
+//  dontTouch(shapeTransformer.io.Out)
 
   macNode.io.LeftIO <> shapeTransformer.io.Out(0)
   macNode.io.RightIO <> LoadB.io.Out(0)
