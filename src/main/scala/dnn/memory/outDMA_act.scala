@@ -67,7 +67,7 @@ class outDMA_act(NumRows: Int, bufSize: Int, memTensorType: String = "none")(imp
   for (i <-0 until NumRows) {
 
     storeBuffer(i).io.last := io.last(i)
-    storeBuffer(i).io.enq <> io.in(0)
+    storeBuffer(i).io.enq <> io.in(i)
 
     storeBuffer(i).io.deq.ready := true.B
     tensorStore(i).io.tensor.wr.valid := storeBuffer(i).io.deq.valid
