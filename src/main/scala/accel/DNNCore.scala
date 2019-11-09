@@ -25,12 +25,12 @@ import chisel3.util._
 import config._
 import control.BasicBlockNoMaskNode
 import dnn.memory.{ReadTensorController, TensorLoad, TensorMaster, TensorStore, WriteTensorController, inDMA_act, inDMA_wgt, outDMA_act}
-import dnn.{DotNode, MacNode, ReduceNode}
 import interfaces.{ControlBundle, CustomDataBundle, DataBundle}
 import junctions.SplitCallNew
 import node.{FXmatNxN, UnTypStore, matNxN, vecN}
 import shell._
 import dnn.memory.ISA._
+import dnn_layers.DW_Block
 import dnnnode.{Mac2dTensor, ShapeTransformer, StoreQueue, TLoad, TStore, WeightShapeTransformer}
 import firrtl.transforms.DontTouchAnnotation
 
@@ -58,47 +58,23 @@ class DNNCore(implicit val p: Parameters) extends Module {
   val macShape = new matNxN(3, false)
   val wgtShape = new vecN(9, 0, false)
 
-  val inDMA_act = Module(new inDMA_act(4, 1, "inp")(memShape))
-
   val inDMA_wgt = Module(new inDMA_wgt(20, 100, wgtTensorType = "wgt", memTensorType = "inp")(wgtShape))
   val readTensorController2 = Module(new ReadTensorController(1, "wgt")(wgtShape))
 
-  val outDMA_act = Module(new outDMA_act(2, 20, "inp"))
-
-  val mac2dTensor = Module(new Mac2dTensor(2, "wgt", "inp")(memShape)(wgtShape)(macShape))
+  val DW_B1 = Module(new DW_Block(3, "wgt", "inp")(memShape)(wgtShape)(macShape))
 
   /* ================================================================== *
      *                      Basic Block signals                         *
      * ================================================================== */
-  mac2dTensor.io.enable.bits <> ControlBundle.active()
-  mac2dTensor.io.enable.valid := true.B
-
-  mac2dTensor.io.wgtIndex := 0.U
-  mac2dTensor.io.rowWidth := 18.U
-
-  inDMA_act.io.rowWidth := 20.U
   inDMA_wgt.io.numWeight := 7.U
-  outDMA_act.io.rowWidth := 18.U
+  DW_B1.io.wgtIndex := 1.U
+  DW_B1.io.rowWidth := 15.U
   /* ================================================================== *
      *                           Connections                            *
      * ================================================================== */
-  outDMA_act.io.in(0) <> mac2dTensor.io.Out(0)
-  outDMA_act.io.in(1) <> mac2dTensor.io.Out(1)
 
-  outDMA_act.io.last.foreach(a => a := mac2dTensor.io.last)
-
-  inDMA_act.io.ReadIn(0)(0) <> mac2dTensor.io.tensorReq(0)
-  inDMA_act.io.ReadIn(1)(0) <> mac2dTensor.io.tensorReq(1)
-  inDMA_act.io.ReadIn(2)(0) <> mac2dTensor.io.tensorReq(2)
-  inDMA_act.io.ReadIn(3)(0) <> mac2dTensor.io.tensorReq(3)
-
-  mac2dTensor.io.tensorResp(0) <> inDMA_act.io.ReadOut(0)(0)
-  mac2dTensor.io.tensorResp(1) <> inDMA_act.io.ReadOut(1)(0)
-  mac2dTensor.io.tensorResp(2) <> inDMA_act.io.ReadOut(2)(0)
-  mac2dTensor.io.tensorResp(3) <> inDMA_act.io.ReadOut(3)(0)
-
-  readTensorController2.io.ReadIn(0) <> mac2dTensor.io.wgtTensorReq
-  mac2dTensor.io.wgtTensorResp <> readTensorController2.io.ReadOut(0)
+  readTensorController2.io.ReadIn(0) <> DW_B1.io.wgtTensorReq
+  DW_B1.io.wgtTensorResp <> readTensorController2.io.ReadOut(0)
   inDMA_wgt.io.tensor <> readTensorController2.io.tensor
 
   /* ================================================================== *
@@ -106,69 +82,45 @@ class DNNCore(implicit val p: Parameters) extends Module {
     * ================================================================== */
   io.vcr.ecnt(0).bits := cycle_count.value
 
-  io.vme.rd(0) <> inDMA_act.io.vme_rd(0)
-  io.vme.rd(1) <> inDMA_act.io.vme_rd(1)
-  io.vme.rd(2) <> inDMA_act.io.vme_rd(2)
-  io.vme.rd(3) <> inDMA_act.io.vme_rd(3)
+  io.vme.rd(0) <> DW_B1.io.vme_rd(0)
+  io.vme.rd(1) <> DW_B1.io.vme_rd(1)
+  io.vme.rd(2) <> DW_B1.io.vme_rd(2)
+  io.vme.rd(3) <> DW_B1.io.vme_rd(3)
+  io.vme.rd(4) <> DW_B1.io.vme_rd(4)
 
-  io.vme.rd(4) <> inDMA_wgt.io.vme_rd
+  io.vme.rd(5) <> inDMA_wgt.io.vme_rd
 
-  io.vme.wr(0) <> outDMA_act.io.vme_wr(0)
-  io.vme.wr(1) <> outDMA_act.io.vme_wr(1)
+  io.vme.wr(0) <> DW_B1.io.vme_wr(0)
+  io.vme.wr(1) <> DW_B1.io.vme_wr(1)
+  io.vme.wr(2) <> DW_B1.io.vme_wr(2)
 
-  mac2dTensor.io.start := false.B
+  DW_B1.io.start := false.B
 
-  inDMA_act.io.start := false.B
-  inDMA_act.io.baddr := io.vcr.ptrs(0)
+  DW_B1.io.inBaseAddr := io.vcr.ptrs(0)
+  DW_B1.io.outBaseAddr := io.vcr.ptrs(2)
 
   inDMA_wgt.io.start := false.B
   inDMA_wgt.io.baddr := io.vcr.ptrs(1)
 
-  outDMA_act.io.start := false.B
-  outDMA_act.io.baddr := io.vcr.ptrs(2)
-
-  val sIdle :: sReadTensor1 :: sReadTensor2 :: sMacStart :: sMacWaiting :: sWriteTensor :: sFinish :: Nil = Enum(7)
+  val sIdle :: sExec :: sFinish :: Nil = Enum(3)
 
   val state = RegInit(sIdle)
   switch(state) {
     is(sIdle) {
       when(io.vcr.launch) {
-        inDMA_act.io.start := true.B
-        state := sReadTensor1
-      }
-    }
-    is(sReadTensor1) {
-      when(inDMA_act.io.done) {
         inDMA_wgt.io.start := true.B
-        state := sReadTensor2
+        state := sExec
       }
     }
-    is(sReadTensor2) {
+    is(sExec) {
       when(inDMA_wgt.io.done) {
-        state := sMacStart
-      }
-    }
-    is(sMacStart) {
-      mac2dTensor.io.start := true.B
-      state := sMacWaiting
-    }
-    is(sMacWaiting) { //4
-      when(mac2dTensor.io.done) {
-        state := sWriteTensor
-      }
-    }
-    is(sWriteTensor) {
-      outDMA_act.io.start := true.B
-      state := sFinish
-    }
-    is(sFinish) { //7
-      when(outDMA_act.io.done) {
-        state := sIdle
+        DW_B1.io.start := true.B
+        state := sFinish
       }
     }
   }
 
-  val last = state === sFinish && outDMA_act.io.done
+  val last = state === sFinish && DW_B1.io.done
   io.vcr.finish := last
   io.vcr.ecnt(0).valid := last
 

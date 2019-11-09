@@ -30,8 +30,8 @@ import memory._
   * These parameters are used on VME interfaces and modules.
   */
 case class VMEParams() {
-  val nReadClients: Int = 5
-  val nWriteClients: Int = 2
+  val nReadClients: Int = 6
+  val nWriteClients: Int = 3
   require (nReadClients > 0, s"\n\n[VTA] [VMEParams] nReadClients must be larger than 0\n\n")
 //  require (nWriteClients == 1, s"\n\n[VTA] [VMEParams] nWriteClients must be 1, only one-write-client support atm\n\n")
 }
@@ -132,7 +132,7 @@ class VMEClient(implicit p: Parameters) extends Bundle {
 /** VTA Memory Engine (VME).
   *
   * This unit multiplexes the memory controller interface for the Core. Currently,
-  * it supports single-writer and multiple-reader mode and it is also based on AXI.
+  * it supports multiple-writer and multiple-reader mode and it is also based on AXI.
   */
 class VME(implicit p: Parameters) extends Module {
   val io = IO(new Bundle {
