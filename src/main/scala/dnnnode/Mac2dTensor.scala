@@ -52,6 +52,9 @@ class Mac2dTensor[L <: vecN, K <: Shapes : OperatorDot : OperatorReduction](NumM
   io.last := false.B
 
   val loadWeight = Module(new TLoad(NumPredOps = 0, NumSuccOps = 0, NumOuts = 1, ID = 0, RouteID = 0)(wgtShape))
+  val weight = RegInit(CustomDataBundle.default(0.U(wgtShape.getWidth.W)))
+  val weight_valid = RegInit(false.B)
+
   loadWeight.io.enable.bits <> ControlBundle.active()
   loadWeight.io.enable.valid := true.B
   io.wgtTensorReq <> loadWeight.io.tensorReq
@@ -60,6 +63,12 @@ class Mac2dTensor[L <: vecN, K <: Shapes : OperatorDot : OperatorReduction](NumM
   loadWeight.io.GepAddr.bits.taskID := 0.U
   loadWeight.io.GepAddr.bits.predicate := true.B
   loadWeight.io.GepAddr.bits.data := io.wgtIndex
+
+  loadWeight.io.Out(0).ready := ~weight_valid
+  when(loadWeight.io.Out(0).fire()) {
+    weight := loadWeight.io.Out(0).bits
+    weight_valid := true.B
+  }
 
 
   val load = for (i <- 0 until NumMac + macShape.getLength() - 1) yield {
@@ -115,17 +124,17 @@ class Mac2dTensor[L <: vecN, K <: Shapes : OperatorDot : OperatorReduction](NumM
     shapeTransformer(i).io.enable.valid := true.B
 
     mac(i).io.enable.bits <> ControlBundle.active()
-    mac(i).io.enable.valid := true.B
+    mac(i).io.enable.valid := state === sExec
 
     mac(i).io.LeftIO <> shapeTransformer(i).io.Out(0)
-    mac(i).io.RightIO <> loadWeight.io.Out(0)
+    mac(i).io.RightIO.bits := weight
+    mac(i).io.RightIO.valid := weight_valid
     io.Out(i) <> mac(i).io.Out(0)
   }
 
 
   when (mac.map(_.io.Out(0).fire()).reduceLeft(_ && _) & state === sExec){
     indexCnt.inc()
-    loadWeight.io.GepAddr.valid := true.B
   }
 
   switch(state) {
@@ -137,12 +146,13 @@ class Mac2dTensor[L <: vecN, K <: Shapes : OperatorDot : OperatorReduction](NumM
       }
     }
     is (sExec) {
-      when (indexCnt.value === io.rowWidth) {
+        when (indexCnt.value === io.rowWidth) {
         state := sFinish
         indexCnt.value := 0.U
       }
     }
     is (sFinish){
+      weight_valid := false.B
       io.done := true.B
       io.last := true.B
       state := sIdle
