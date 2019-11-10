@@ -47,7 +47,8 @@ class Mac2dTensor[L <: vecN, K <: Shapes : OperatorDot : OperatorReduction](NumM
   extends HandShakingNPS(NumMac, 0)(new CustomDataBundle(UInt(p(XLEN).W)))(p) {
   override lazy val io = IO(new Mac2dTensorIO(NumMac, wgtTensorType, memTensorType)(memShape)(macShape))
 
-  val indexCnt = Counter(io.tpWgt.memDepth)
+  val readCnt = Counter(io.tpWgt.memDepth)
+  val outCnt = Counter(io.tpWgt.memDepth)
   io.done := false.B
   io.last := false.B
 
@@ -124,17 +125,25 @@ class Mac2dTensor[L <: vecN, K <: Shapes : OperatorDot : OperatorReduction](NumM
     shapeTransformer(i).io.enable.valid := true.B
 
     mac(i).io.enable.bits <> ControlBundle.active()
-    mac(i).io.enable.valid := state === sExec
+    mac(i).io.enable.valid := true.B
 
-    mac(i).io.LeftIO <> shapeTransformer(i).io.Out(0)
+//    mac(i).io.LeftIO <> shapeTransformer(i).io.Out(0)
+    shapeTransformer(i).io.Out(0).ready := mac(i).io.LeftIO.ready & state === sExec
+    mac(i).io.LeftIO.valid := shapeTransformer(i).io.Out(0).valid
+    mac(i).io.LeftIO.bits := shapeTransformer(i).io.Out(0).bits
+
     mac(i).io.RightIO.bits := weight
-    mac(i).io.RightIO.valid := weight_valid
+    mac(i).io.RightIO.valid := weight_valid & state === sExec
     io.Out(i) <> mac(i).io.Out(0)
   }
 
 
-  when (mac.map(_.io.Out(0).fire()).reduceLeft(_ && _) & state === sExec){
-    indexCnt.inc()
+  when (mac.map(_.io.Out(0).fire()).reduceLeft(_ && _)){
+    outCnt.inc()
+  }
+
+  when (mac.map(_.io.LeftIO.fire()).reduceLeft(_ && _) & state === sExec){
+    readCnt.inc()
   }
 
   switch(state) {
@@ -146,16 +155,20 @@ class Mac2dTensor[L <: vecN, K <: Shapes : OperatorDot : OperatorReduction](NumM
       }
     }
     is (sExec) {
-        when (indexCnt.value === io.rowWidth) {
+        when (readCnt.value === io.rowWidth) {
         state := sFinish
-        indexCnt.value := 0.U
+        readCnt.value := 0.U
       }
     }
     is (sFinish){
-      weight_valid := false.B
-      io.done := true.B
-      io.last := true.B
-      state := sIdle
+      when(outCnt.value === io.rowWidth) {
+        outCnt.value := 0.U
+        weight_valid := false.B
+        io.done := true.B
+        io.last := true.B
+        state := sIdle
+      }
+
     }
   }
 
