@@ -23,7 +23,7 @@ import dnn.memory.ISA._
   * handling the way tensors are stored on the scratchpads.
   */
 class Mac2dTensorIO[gen <: vecN, gen2 <: Shapes](NumMac: Int, wgtTensorType: String = "none", memTensorType: String = "none")
-                                                (memShape: => gen)(macShape: => gen2)(implicit p: Parameters)
+                                                (memShape: => gen)(wgtShape: => gen)(macShape: => gen2)(implicit p: Parameters)
   extends HandShakingIONPS(NumMac)(new CustomDataBundle(UInt(p(XLEN).W))) {
   val tpWgt = new TensorParams(wgtTensorType)
   val tpMem = new TensorParams(memTensorType)
@@ -31,21 +31,21 @@ class Mac2dTensorIO[gen <: vecN, gen2 <: Shapes](NumMac: Int, wgtTensorType: Str
     val tensorReq = Vec(NumMac + macShape.getLength() - 1, Decoupled(new TensorReadReq()))
     val tensorResp = Vec(NumMac + macShape.getLength() - 1, Input(Flipped(new TensorReadResp(memShape.getWidth))))
     val wgtTensorReq = Decoupled(new TensorReadReq())
-    val wgtTensorResp = Input(Flipped(new TensorReadResp(memShape.getWidth)))
+    val wgtTensorResp = Input(Flipped(new TensorReadResp(wgtShape.getWidth)))
     val wgtIndex = Input(UInt(tpWgt.memAddrBits.W))
     val rowWidth = Input(UInt(mp.addrBits.W))
     val last = Output(Bool())
     val start = Input(Bool())
     val done = Output(Bool())
 
-  override def cloneType = new Mac2dTensorIO(NumMac, wgtTensorType, memTensorType)(memShape)(macShape).asInstanceOf[this.type]
+  override def cloneType = new Mac2dTensorIO(NumMac, wgtTensorType, memTensorType)(memShape)(wgtShape)(macShape).asInstanceOf[this.type]
 }
 
 class Mac2dTensor[L <: vecN, K <: Shapes : OperatorDot : OperatorReduction](NumMac: Int, wgtTensorType: String = "none", memTensorType: String = "none")
                                                                            (memShape: => L)(wgtShape: => L)(macShape: => K)
                                                                            (implicit p: Parameters)
   extends HandShakingNPS(NumMac, 0)(new CustomDataBundle(UInt(p(XLEN).W)))(p) {
-  override lazy val io = IO(new Mac2dTensorIO(NumMac, wgtTensorType, memTensorType)(memShape)(macShape))
+  override lazy val io = IO(new Mac2dTensorIO(NumMac, wgtTensorType, memTensorType)(memShape)(wgtShape)(macShape))
 
   val readCnt = Counter(io.tpWgt.memDepth)
   val outCnt = Counter(io.tpWgt.memDepth)

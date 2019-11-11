@@ -36,7 +36,7 @@ class TensorParams(tensorType: String = "none")(implicit p: Parameters)
   val errorMsg =
     s"\n\n[VTA] [TensorParams] only inp, wgt, acc, and out supported\n\n"
 
-  require(tensorType == "inp" || tensorType == "wgt"
+  require(tensorType == "inp" || tensorType == "wgt" || tensorType == "wgtPW"
             || tensorType == "acc" || tensorType == "out",
           errorMsg)
 
@@ -46,7 +46,9 @@ class TensorParams(tensorType: String = "none")(implicit p: Parameters)
     else if (tensorType == "wgt")
 //      (p(CoreKey).blockOut, p(CoreKey).blockIn, p(CoreKey).wgtBits)
       (p(CoreKey).batch, p(CoreKey).kernelSize, p(CoreKey).wgtBits)
-  else if (tensorType == "acc")
+    else if (tensorType == "wgtPW")
+      (p(CoreKey).batch, p(CoreKey).PWkernelSize, p(CoreKey).wgtBits)
+    else if (tensorType == "acc")
       (p(CoreKey).batch, p(CoreKey).blockOut, p(CoreKey).accBits)
     else
       (p(CoreKey).batch, p(CoreKey).blockOut, p(CoreKey).outBits)
@@ -58,6 +60,8 @@ class TensorParams(tensorType: String = "none")(implicit p: Parameters)
     if (tensorType == "inp")
       p(CoreKey).inpMemDepth
     else if (tensorType == "wgt")
+      p(CoreKey).wgtMemDepth
+    else if (tensorType == "wgtPW")
       p(CoreKey).wgtMemDepth
     else if (tensorType == "acc")
       p(CoreKey).accMemDepth
@@ -351,7 +355,10 @@ class TensorDataCtrl(tensorType: String = "none",
     if (tensorType == "inp") {
       (p(CoreKey).batch * p(CoreKey).blockIn * p(CoreKey).inpBits) / 8
     } else if (tensorType == "wgt") {
-      (p(CoreKey).blockOut * p(CoreKey).blockIn * p(CoreKey).wgtBits) / 8
+      //      (p(CoreKey).blockOut * p(CoreKey).blockIn * p(CoreKey).wgtBits) / 8
+      (p(CoreKey).batch * p(CoreKey).kernelSize * p(CoreKey).wgtBits) / 8
+    } else if (tensorType == "wgtPW") {
+      (p(CoreKey).batch * p(CoreKey).PWkernelSize * p(CoreKey).wgtBits) / 8
     } else {
       (p(CoreKey).batch * p(CoreKey).blockOut * p(CoreKey).accBits) / 8
     }
