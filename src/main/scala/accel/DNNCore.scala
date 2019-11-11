@@ -54,16 +54,17 @@ class DNNCore(implicit val p: Parameters) extends Module {
 
   val cycle_count = new Counter(2000)
 
+  val NumChannel = 3
+  val MACperCH = 2
+  val NumPWFilter = 2
+
   val memShape = new vecN(16, 0, false)
   val macDWShape = new matNxN(3, false)
-  val macPWShape = new vecN(2, 0, false)
+  val macPWShape = new vecN(NumChannel, 0, false)
 
   val wgtDWShape = new vecN(9, 0, false)
-  val wgtPWShape = new vecN(1, 0, false)
+  val wgtPWShape = new vecN(NumChannel, 0, false)
 
-  val NumChannel = 2
-  val MACperCH = 2
-  val NumPWFilter = 1
 
 //  val DW_B1 = Module(new DW_Block(3, "wgt", "inp")(memShape)(wgtDWShape)(macDWShape))
 
@@ -74,7 +75,7 @@ class DNNCore(implicit val p: Parameters) extends Module {
      *                      Basic Block signals                         *
      * ================================================================== */
   conv.io.wgtDWIndex := 0.U
-  conv.io.wgtPWIndex := 0.U
+  conv.io.wgtPWIndex := 3.U
 
   conv.io.wgtPW_baddr := 1.U
 
@@ -94,8 +95,8 @@ class DNNCore(implicit val p: Parameters) extends Module {
     io.vme.wr(i) <> conv.io.vme_wr(i)
   }
 
-  io.vme.rd(8) <> conv.io.vme_wgtDW_rd
-  io.vme.rd(9) <> conv.io.vme_wgtPW_rd
+  io.vme.rd(12) <> conv.io.vme_wgtDW_rd
+  io.vme.rd(13) <> conv.io.vme_wgtPW_rd
 
   conv.io.start := false.B
 

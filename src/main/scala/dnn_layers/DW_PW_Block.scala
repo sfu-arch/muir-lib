@@ -38,7 +38,6 @@ class DW_PW_BlockIO[gen <: vecN, gen2 <: Shapes]
     val vme_rd = Vec(NumChannel * (MACperCH + macDWShape.getLength() - 1), new VMEReadMaster)
     val vme_wr = Vec(NumPWFilter * MACperCH, new VMEWriteMaster)
 
-
     val wgtDWIndex = Input(UInt(tpWgtDW.memAddrBits.W))
     val wgtPWIndex = Input(UInt(tpWgtPW.memAddrBits.W))
     val vme_wgtDW_rd = new VMEReadMaster
@@ -163,7 +162,7 @@ class DW_PW_Block[L <: vecN, K <: Shapes : OperatorDot : OperatorReduction, M <:
       outDMA_act(i).io.in(j) <> macPW(i).io.Out(j)
       io.vme_wr(i * MACperCH + j) <> outDMA_act(i).io.vme_wr(j)
 
-      macPW(i).io.in(j).bits.data := VecInit(mac2dDW.map(_.io.Out(j).bits.data)).asUInt()
+      macPW(i).io.in(j).bits.data := VecInit(mac2dDW.map(_.io.Out(j).bits.data.asUInt())).asUInt()
       macPW(i).io.in(j).bits.taskID := 0.U
       macPW(i).io.in(j).bits.predicate := true.B
       macPW(i).io.in(j).bits.valid := true.B
@@ -176,7 +175,6 @@ class DW_PW_Block[L <: vecN, K <: Shapes : OperatorDot : OperatorReduction, M <:
       doneR(i) := true.B
     }
   }
-
 
  /* ================================================================== *
      *                        Done Signal                              *
