@@ -33,7 +33,7 @@ class Mac2dTensorIO[gen <: vecN, gen2 <: Shapes](NumMac: Int, wgtTensorType: Str
     val wgtTensorReq = Decoupled(new TensorReadReq())
     val wgtTensorResp = Input(Flipped(new TensorReadResp(wgtShape.getWidth)))
     val wgtIndex = Input(UInt(tpWgt.memAddrBits.W))
-    val rowWidth = Input(UInt(mp.addrBits.W))
+    val outRowWidth = Input(UInt(mp.addrBits.W))
     val last = Output(Bool())
     val start = Input(Bool())
     val done = Output(Bool())
@@ -90,9 +90,9 @@ class Mac2dTensor[L <: vecN, K <: Shapes : OperatorDot : OperatorReduction](NumM
   val sIdle :: sExec :: sFinish :: Nil = Enum(3)
   val state = RegInit(sIdle)
 
-  val memTensorRows = Mux(io.rowWidth + macShape.getLength().U - 1.U % io.tpMem.tensorWidth.U === 0.U,
-    (io.rowWidth + macShape.getLength().U - 1.U) / io.tpMem.tensorWidth.U,
-    ((io.rowWidth + macShape.getLength().U - 1.U) /io.tpMem.tensorWidth.U) + 1.U)
+  val memTensorRows = Mux(io.outRowWidth + macShape.getLength().U - 1.U % io.tpMem.tensorWidth.U === 0.U,
+    (io.outRowWidth + macShape.getLength().U - 1.U) / io.tpMem.tensorWidth.U,
+    ((io.outRowWidth + macShape.getLength().U - 1.U) /io.tpMem.tensorWidth.U) + 1.U)
 
   val readTensorCnt = Counter(io.tpWgt.memDepth)
 
@@ -155,13 +155,13 @@ class Mac2dTensor[L <: vecN, K <: Shapes : OperatorDot : OperatorReduction](NumM
       }
     }
     is (sExec) {
-        when (readCnt.value === io.rowWidth) {
+        when (readCnt.value === io.outRowWidth) {
         state := sFinish
         readCnt.value := 0.U
       }
     }
     is (sFinish){
-      when(outCnt.value === io.rowWidth) {
+      when(outCnt.value === io.outRowWidth) {
         outCnt.value := 0.U
         weight_valid := false.B
         io.done := true.B

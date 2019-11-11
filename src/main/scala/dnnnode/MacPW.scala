@@ -29,7 +29,7 @@ class MacPWIO[gen <: vecN](NumMac: Int, wgtTensorType: String = "none")
     val wgtTensorReq = Decoupled(new TensorReadReq())
     val wgtTensorResp = Input(Flipped(new TensorReadResp(wgtShape.getWidth)))
     val wgtIndex = Input(UInt(tpWgt.memAddrBits.W))
-    val rowWidth = Input(UInt(mp.addrBits.W))
+    val outRowWidth = Input(UInt(mp.addrBits.W))
     val last = Output(Bool())
     val start = Input(Bool())
     val done = Output(Bool())
@@ -101,7 +101,7 @@ class MacPW[L <: vecN, K <: Shapes : OperatorDot : OperatorReduction](NumMac: In
       }
     }
     is (sExec) {
-        when (outCnt.value === io.rowWidth) {
+        when (outCnt.value === io.outRowWidth) {
         state := sFinish
         outCnt.value := 0.U
       }

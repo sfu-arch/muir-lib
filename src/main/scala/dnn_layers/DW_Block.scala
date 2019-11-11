@@ -58,7 +58,7 @@ class DW_Block[L <: vecN, K <: Shapes : OperatorDot : OperatorReduction]
   mac2dTensor.io.enable.valid := true.B
 
   mac2dTensor.io.wgtIndex := io.wgtIndex
-  mac2dTensor.io.rowWidth := io.rowWidth
+  mac2dTensor.io.outRowWidth := io.rowWidth
 
   inDMA_act.io.rowWidth := io.rowWidth + macShape.getLength().U - 1.U
   inDMA_act.io.baddr := io.inBaseAddr
