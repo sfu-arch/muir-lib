@@ -28,7 +28,7 @@ class WeightShapeTransformer[L <: vecN](wgtTFDepth: Int, bufSize: Int, wgtTensor
                                        (implicit p: Parameters)
   extends WeightShapeTransformerIO(wgtTensorType, memTensorType)(wgtShape)(p) {
 
-  val buffer = Module(new WeightQueue(UInt(p(XLEN).W), bufSize, tpMem.tensorWidth, wgtShape.N))
+  val buffer = Module(new MIMOQueue(UInt(p(XLEN).W), bufSize, tpMem.tensorWidth, wgtShape.N))
   require(bufSize >= tpMem.tensorWidth, "bufSize should be greater than memTensorWidth")
 
   val wgtTensorDepth = Mux(io.numWeight * wgtShape.N.U % tpMem.tensorWidth.U === 0.U,

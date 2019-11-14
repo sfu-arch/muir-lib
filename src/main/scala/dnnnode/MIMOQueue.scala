@@ -4,7 +4,7 @@ import chisel3.experimental.{DataMirror, requireIsChiselType}
 import chisel3.util._
 import chisel3.{Flipped, Module, UInt, _}
 
-class WeightQueueIO[T <: Data](private val gen: T, val entries: Int, NumIns: Int, NumOuts: Int) extends Bundle
+class MIMOQueueIO[T <: Data](private val gen: T, val entries: Int, NumIns: Int, NumOuts: Int) extends Bundle
 {
   /** I/O to enqueue data (client is producer, and Queue object is consumer), is [[Chisel.DecoupledIO]] flipped. */
 //  val enq = Flipped(EnqIO(gen))
@@ -33,11 +33,11 @@ class WeightQueueIO[T <: Data](private val gen: T, val entries: Int, NumIns: Int
   * }}}
   */
 
-class WeightQueue[T <: Data](gen: T,
-                       val entries: Int, NumIns: Int, NumOuts: Int,
-                       pipe: Boolean = false,
-                       flow: Boolean = false)
-                      (implicit compileOptions: chisel3.CompileOptions)
+class MIMOQueue[T <: Data](gen: T,
+                           val entries: Int, NumIns: Int, NumOuts: Int,
+                           pipe: Boolean = false,
+                           flow: Boolean = false)
+                          (implicit compileOptions: chisel3.CompileOptions)
   extends Module() {
   require(entries > -1, "Queue must have non-negative number of entries")
   require(entries != 0, "Use companion object Queue.apply for zero entries")
@@ -54,7 +54,7 @@ class WeightQueue[T <: Data](gen: T,
     }
   }
 
-  val io = IO(new WeightQueueIO(genType, entries, NumIns, NumOuts))
+  val io = IO(new MIMOQueueIO(genType, entries, NumIns, NumOuts))
 
   val ram = Mem(entries, genType)
   val enq_ptr = Counter(entries)
