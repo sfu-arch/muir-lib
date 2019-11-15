@@ -28,7 +28,6 @@ class Mac1DIO[gen <: vecN, gen2 <: Shapes](NumMac: Int, wgtTensorType: String = 
   val mp = p(ShellKey).memParams
 
     val in = Vec(NumMac ,Flipped(Decoupled(new CustomDataBundle(UInt(memShape.getWidth.W)))))
-    val c_Batch = Input(mp.addrBits.W)
     val wgtTensorReq = Decoupled(new TensorReadReq())
     val wgtTensorResp = Input(Flipped(new TensorReadResp(wgtShape.getWidth)))
     val wgtIndex = Input(UInt(tpWgt.memAddrBits.W))
@@ -41,7 +40,7 @@ class Mac1DIO[gen <: vecN, gen2 <: Shapes](NumMac: Int, wgtTensorType: String = 
 }
 
 class Mac1D[L <: vecN, K <: Shapes : OperatorDot : OperatorReduction]
-              (NumMac: Int, bufSize: Int, wgtTensorType: String = "none", memTensorType: String = "none")
+              (NumMac: Int, ChBatch: Int, bufSize: Int, wgtTensorType: String = "none", memTensorType: String = "none")
               (memShape: => L)(wgtShape: => L)(macShape: => K)
                                                                            (implicit p: Parameters)
   extends HandShakingNPS(NumMac, 0)(new CustomDataBundle(UInt(p(XLEN).W)))(p) {
@@ -49,7 +48,7 @@ class Mac1D[L <: vecN, K <: Shapes : OperatorDot : OperatorReduction]
 
   val tpMem = new TensorParams(memTensorType)
 
-  val readCnt = Counter(io.tpWgt.memDepth)
+  val readWgtCnt = Counter(ChBatch)
   val outCnt = Counter(io.tpWgt.memDepth)
   io.done := false.B
   io.last := false.B
@@ -74,9 +73,28 @@ class Mac1D[L <: vecN, K <: Shapes : OperatorDot : OperatorReduction]
   }
 
 
+//  val weightBuf = SyncReadMem(ChBatch, wgtShape)
+
+  val weightQ = Module( new Queue(CustomDataBundle(UInt(wgtShape.getWidth.W)), ChBatch))
+  weightQ.io.enq.bits := Mux(state === sReadWeight, weight, weightQ.io.deq.bits)
+  weightQ.io.enq.valid := Mux(state === sReadWeight, weight_valid, weightQ.io.deq.valid)
+  when(weightQ.io.enq.fire()) {
+    weight_valid := false.B
+  }
+
   val mac = for (i <- 0 until NumMac) yield {
     val macNode = Module(new MacNode(NumOuts = 1, ID = 0, lanes = macShape.getLength())(macShape))
     macNode
+  }
+
+  val accData = for (i <- 0 until NumMac) yield {
+    val accD = RegInit(CustomDataBundle.default(0.U(UInt(xlen.W))))
+    accD
+  }
+
+  val accValid = for (i <- 0 until NumMac) yield {
+    val accV = RegInit(false.B)
+    accV
   }
 
   val inQueue = for (i <- 0 until NumMac) yield {
@@ -84,92 +102,106 @@ class Mac1D[L <: vecN, K <: Shapes : OperatorDot : OperatorReduction]
     buffer
   }
 
+  val dataIn_R = RegInit(VecInit(Seq.fill(NumMac)(CustomDataBundle.default(0.U(memShape.getWidth.W)))))
+  val dataIn_validR = RegInit(VecInit(Seq.fill(NumMac)(false.B)))
+
   for (i <- 0 until NumMac) {
-    inQueue(i).io.deq.bits.
+    io.in(i).ready := ~dataIn_validR(i)
+    when(io.in(i).fire()) {
+      dataIn_R(i).data := io.in(i).bits.data
+      dataIn_validR(i) := true.B
+    }
   }
 
 
-  val sIdle :: sExec :: sFinish :: Nil = Enum(3)
-  val state = RegInit(sIdle)
-
-  val memTensorRows = Mux(io.outRowWidth + macShape.getLength().U - 1.U % io.tpMem.tensorWidth.U === 0.U,
-    (io.outRowWidth + macShape.getLength().U - 1.U) / io.tpMem.tensorWidth.U,
-    ((io.outRowWidth + macShape.getLength().U - 1.U) /io.tpMem.tensorWidth.U) + 1.U)
-
-  val readTensorCnt = Counter(io.tpWgt.memDepth)
-
-
-  for (i <- 0 until NumMac + macShape.getLength() - 1)  {
-    load(i).io.enable.bits <> ControlBundle.active()
-    load(i).io.enable.valid := true.B
-    io.tensorReq(i) <> load(i).io.tensorReq
-    load(i).io.tensorResp <> io.tensorResp(i)
-    load(i).io.GepAddr.valid := false.B
-    load(i).io.GepAddr.bits.taskID := 0.U
-    load(i).io.GepAddr.bits.predicate := true.B
-    load(i).io.GepAddr.bits.data := readTensorCnt.value
+  val batchCnt = for (i <- 0 until NumMac) yield {
+    val batchCounter = Counter(ChBatch)
+    batchCounter
   }
 
 
   for (i <- 0 until NumMac) {
-    for (j <- 0 until macShape.getLength()) {
-      shapeTransformer(i).io.in(j) <> load(i + j).io.Out(0)
-    }
-
-    val shapeTransformerReady = shapeTransformer.map(_.io.in.map(_.ready).reduceLeft(_ && _)).reduceLeft(_ && _)
-    when (shapeTransformerReady && state === sExec && (readTensorCnt.value < memTensorRows) && load.map(_.io.GepAddr.ready).reduceLeft(_ && _)) {
-      load.foreach(a => a.io.GepAddr.valid := true.B)
-      readTensorCnt.inc()
-    }
-    when(readTensorCnt.value === memTensorRows && state === sFinish) {readTensorCnt.value := 0.U}
-
-    shapeTransformer(i).io.enable.bits := ControlBundle.active()
-    shapeTransformer(i).io.enable.valid := true.B
+    inQueue(i).io.enq.bits := VecInit(dataIn_R(i).data).asUInt()
+    inQueue(i).io.enq.valid := dataIn_validR(i)
 
     mac(i).io.enable.bits <> ControlBundle.active()
     mac(i).io.enable.valid := true.B
 
-//    mac(i).io.LeftIO <> shapeTransformer(i).io.Out(0)
-    shapeTransformer(i).io.Out(0).ready := mac(i).io.LeftIO.ready & state === sExec
-    mac(i).io.LeftIO.valid := shapeTransformer(i).io.Out(0).valid
-    mac(i).io.LeftIO.bits := shapeTransformer(i).io.Out(0).bits
+    mac(i).io.LeftIO.bits := inQueue(i).io.deq.bits.asTypeOf(macShape)
+    mac(i).io.LeftIO.valid := inQueue(i).io.deq.valid
+    inQueue(i).io.deq.ready := mac(i).io.LeftIO.ready
 
-    mac(i).io.RightIO.bits := weight
-    mac(i).io.RightIO.valid := weight_valid & state === sExec
-    io.Out(i) <> mac(i).io.Out(0)
+    mac(i).io.RightIO <> weightQ.io.deq
+
+    mac(i).io.Out(0).ready := ~accValid(i) & (batchCnt(i).value < ChBatch.U)
+    when(mac(i).io.Out(0).fire()) {
+      accData(i).data := mac(i).io.Out(0).bits.data.asUInt() + accData(i).data
+      accData(i).valid := mac(i).io.Out(0).bits.valid
+      accData(i).taskID := mac(i).io.Out(0).bits.taskID
+      accData(i).predicate := mac(i).io.Out(0).bits.predicate
+      accValid(i) := true.B
+    }
+
+    when(mac(i).io.Out(0).fire()) {
+      batchCnt(i).inc()
+    }
+    io.Out(i).valid := false.B
+    when(batchCnt(i).value === ChBatch.U) {
+      io.Out(i).bits := accData(i)
+      io.Out(i).valid := true.B
+    }
+    when(io.Out(i).fire()) {
+      batchCnt(i).value := 0.U
+      accData(i) := CustomDataBundle.default(0.U(UInt(xlen.W)))
+    }
   }
 
 
-  when (mac.map(_.io.Out(0).fire()).reduceLeft(_ && _)){
+  val sIdle :: sReadWeight :: sExec :: sFinish :: Nil = Enum(4)
+  val state = RegInit(sIdle)
+
+  /*val memTensorRows = Mux(io.rowWidth * ChBatch.U * macShape.getLength().U  % tpMem.tensorWidth.U === 0.U,
+    io.rowWidth * ChBatch.U * macShape.getLength().U / tpMem.tensorWidth.U,
+    (io.rowWidth * ChBatch.U * macShape.getLength().U /tpMem.tensorWidth.U) + 1.U)
+
+  val readTensorCnt = Counter(io.tpWgt.memDepth)
+  when (dataIn_validR.reduceLeft(_ && _) && inQueue.map(_.io.enq.ready).reduceLeft(_ && _)) {
+    readTensorCnt.inc()
+  }*/
+
+
+  when (io.Out.map(_.fire()).reduceLeft(_ && _)){
     outCnt.inc()
   }
 
-  when (mac.map(_.io.LeftIO.fire()).reduceLeft(_ && _) & state === sExec){
-    readCnt.inc()
+  when (loadWeight.io.Out(0).fire()){
+    readWgtCnt.inc()
   }
 
   switch(state) {
     is (sIdle) {
       when(io.start) {
-        readTensorCnt.value := 0.U
-        loadWeight.io.GepAddr.valid := true.B
+        state := sReadWeight
+      }
+    }
+    is (sReadWeight) {
+      loadWeight.io.GepAddr.valid := true.B
+      when(readWgtCnt.value === ChBatch.U){
+        readWgtCnt.value := 0.U
         state := sExec
       }
     }
+
     is (sExec) {
-        when (readCnt.value === io.outRowWidth) {
+        when (outCnt.value === io.rowWidth) {
         state := sFinish
-        readCnt.value := 0.U
+        outCnt.value := 0.U
       }
     }
     is (sFinish){
-      when(outCnt.value === io.outRowWidth) {
-        outCnt.value := 0.U
-        weight_valid := false.B
         io.done := true.B
         io.last := true.B
         state := sIdle
-      }
 
     }
   }
