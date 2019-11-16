@@ -13,7 +13,7 @@ import util._
 import utility.UniformPrintfs
 
 
-class ComputeNodeIO(NumOuts: Int, Debug: Boolean)
+class ComputeNodeIO(NumOuts: Int, Debug: Boolean, GuardVal: UInt = 0.U)
                    (implicit p: Parameters)
   extends HandShakingIONPS(NumOuts, Debug)(new DataBundle) {
   // LeftIO: Left input data for computation
@@ -27,17 +27,17 @@ class ComputeNodeIO(NumOuts: Int, Debug: Boolean)
   //  val DebugEnable = if (Debug) Some(Input(new Bool)) else None
 
   //v
-  override def cloneType = new ComputeNodeIO(NumOuts, Debug).asInstanceOf[this.type]
+  override def cloneType = new ComputeNodeIO(NumOuts, Debug, GuardVal).asInstanceOf[this.type]
 
 }
 
 class ComputeNode(NumOuts: Int, ID: Int, opCode: String)
-                 (sign: Boolean, Debug: Boolean = false)
+                 (sign: Boolean, Debug: Boolean = false, GuardVal: UInt = 0.U)
                  (implicit p: Parameters,
                   name: sourcecode.Name,
                   file: sourcecode.File)
   extends HandShakingNPS(NumOuts, ID, Debug)(new DataBundle())(p) {
-  override lazy val io = IO(new ComputeNodeIO(NumOuts, Debug))
+  override lazy val io = IO(new ComputeNodeIO(NumOuts, Debug, GuardVal))
 
   // Printf debugging
   val node_name = name.value
@@ -81,7 +81,7 @@ class ComputeNode(NumOuts: Int, ID: Int, opCode: String)
   val taskID = Mux(enable_valid_R, enable_R.taskID ,io.enable.bits.taskID)
 
   val DebugEnable = enable_R.control && enable_R.debug && enable_valid_R
-
+ss
 
 
   /*===============================================*
@@ -118,11 +118,13 @@ class ComputeNode(NumOuts: Int, ID: Int, opCode: String)
   hs*/
   var test_value = Wire(UInt((xlen).W))
   var log_id = Wire(UInt((4).W))
-  var log_out = WireInit(0.U((xlen-4).W))
+  var log_out = WireInit(0.U((xlen-5).W))
+  var GuardFlag = Wire(UInt(1.W))
 
   log_id := ID.U
+  GuardFlag := 0.U
   log_out := FU.io.out.asUInt()
-  test_value := Cat(log_id, log_out)
+  test_value := Cat(GuardFlag,log_id, log_out)
 
   if(Debug){
     val test_value_valid = Wire(Bool())
@@ -157,9 +159,18 @@ class ComputeNode(NumOuts: Int, ID: Int, opCode: String)
   switch(state) {
     is(s_IDLE) {
       when(enable_valid_R && left_valid_R && right_valid_R) {
-        io.Out.foreach(_.bits := DataBundle(FU.io.out, taskID, predicate))
-        io.Out.foreach(_.valid := true.B)
-        ValidOut()
+        if (Debug && FU.io.out != GuardVal){
+          //make flag true
+          GuardFlag =  1.U
+          io.Out.foreach(_.bits := DataBundle(FU.io.out, taskID, predicate))
+          io.Out.foreach(_.valid := true.B)
+          ValidOut()
+          }
+        else{
+          io.Out.foreach(_.bits := DataBundle(FU.io.out, taskID, predicate))
+          io.Out.foreach(_.valid := true.B)
+          ValidOut()
+        }
         state := s_COMPUTE
         log_out := FU.io.out.asUInt()
         if (log) {
