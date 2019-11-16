@@ -5,7 +5,7 @@ import chisel3._
 import chisel3.util._
 import config._
 import dnnnode.WeightShapeTransformer
-import node.vecN
+import node.{Shapes, vecN}
 import shell._
 //import vta.util.config._
 import dnn.memory.ISA._
@@ -19,7 +19,7 @@ import dnn.memory.ISA._
   * managed by TensorPadCtrl. The TensorDataCtrl is in charge of
   * handling the way tensors are stored on the scratchpads.
   */
-class inDMA_wgtIO[gen <: vecN](wgtTensorType: String = "none")(wgtShape: => gen)(implicit val p: Parameters)
+class inDMA_wgtIO[gen <: Shapes](wgtTensorType: String = "none")(wgtShape: => gen)(implicit val p: Parameters)
   extends Module {
   val tpWgt = new TensorParams(wgtTensorType)
   val mp = p(ShellKey).memParams
@@ -34,7 +34,7 @@ class inDMA_wgtIO[gen <: vecN](wgtTensorType: String = "none")(wgtShape: => gen)
 }
 
 
-class inDMA_wgt[L <: vecN](wgtTFDepth: Int, bufSize: Int, wgtTensorType: String = "none", memTensorType: String = "none")(wgtShape: => L)
+class inDMA_wgt[L <: Shapes](wgtTFDepth: Int, bufSize: Int, wgtTensorType: String = "none", memTensorType: String = "none")(wgtShape: => L)
                           (implicit p: Parameters)
   extends inDMA_wgtIO(wgtTensorType)(wgtShape)(p) {
 
@@ -43,8 +43,8 @@ class inDMA_wgt[L <: vecN](wgtTFDepth: Int, bufSize: Int, wgtTensorType: String 
   val tensorLoad = Module(new TensorLoad(memTensorType))
 
   val tl_Inst = Wire(new MemDecode)
-  val memTensorRows = Mux(io.numWeight * wgtShape.N.U % tpMem.tensorWidth.U === 0.U,
-    io.numWeight * wgtShape.N.U / tpMem.tensorWidth.U, (io.numWeight * wgtShape.N.U / tpMem.tensorWidth.U) + 1.U)
+  val memTensorRows = Mux(io.numWeight * wgtShape.getLength().U % tpMem.tensorWidth.U === 0.U,
+    io.numWeight * wgtShape.getLength().U / tpMem.tensorWidth.U, (io.numWeight * wgtShape.getLength().U / tpMem.tensorWidth.U) + 1.U)
 
 
 

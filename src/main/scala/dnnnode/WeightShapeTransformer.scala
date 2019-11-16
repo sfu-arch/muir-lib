@@ -7,11 +7,11 @@ import chisel3.{Module, UInt}
 import config.{Parameters, XLEN}
 import dnn.memory.{TensorClient, TensorMaster, TensorParams}
 import interfaces.CustomDataBundle
-import node.vecN
+import node.{Shapes, vecN}
 import shell.ShellKey
 import dnn.memory.ISA._
 
-class WeightShapeTransformerIO[gen <: vecN](wgtTensorType: String = "none", memTensorType: String = "none")(wgtShape: => gen)(implicit val p: Parameters)
+class WeightShapeTransformerIO[gen <: Shapes](wgtTensorType: String = "none", memTensorType: String = "none")(wgtShape: => gen)(implicit val p: Parameters)
   extends Module {
   val tpMem = new TensorParams(memTensorType)
   val tpWgt = new TensorParams(wgtTensorType)
@@ -24,15 +24,15 @@ class WeightShapeTransformerIO[gen <: vecN](wgtTensorType: String = "none", memT
   })
 }
 
-class WeightShapeTransformer[L <: vecN](wgtTFDepth: Int, bufSize: Int, wgtTensorType: String = "none", memTensorType: String = "none")(wgtShape: => L)
-                                       (implicit p: Parameters)
+class WeightShapeTransformer[L <: Shapes](wgtTFDepth: Int, bufSize: Int, wgtTensorType: String = "none", memTensorType: String = "none")(wgtShape: => L)
+                                         (implicit p: Parameters)
   extends WeightShapeTransformerIO(wgtTensorType, memTensorType)(wgtShape)(p) {
 
-  val buffer = Module(new MIMOQueue(UInt(p(XLEN).W), bufSize, tpMem.tensorWidth, wgtShape.N))
+  val buffer = Module(new MIMOQueue(UInt(p(XLEN).W), bufSize, tpMem.tensorWidth, wgtShape.getLength()))
   require(bufSize >= tpMem.tensorWidth, "bufSize should be greater than memTensorWidth")
 
-  val wgtTensorDepth = Mux(io.numWeight * wgtShape.N.U % tpMem.tensorWidth.U === 0.U,
-        io.numWeight * wgtShape.N.U / tpMem.tensorWidth.U, (io.numWeight * wgtShape.N.U / tpMem.tensorWidth.U) + 1.U)
+  val wgtTensorDepth = Mux(io.numWeight * wgtShape.getLength().U % tpMem.tensorWidth.U === 0.U,
+        io.numWeight * wgtShape.getLength().U / tpMem.tensorWidth.U, (io.numWeight * wgtShape.getLength().U / tpMem.tensorWidth.U) + 1.U)
 
   val writeBufCntOn = RegInit(init = false.B)
   val (writeBufCnt, writeWrap) = Counter(writeBufCntOn, wgtTFDepth)

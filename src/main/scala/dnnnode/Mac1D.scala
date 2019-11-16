@@ -22,39 +22,41 @@ import shell._
   * handling the way tensors are stored on the scratchpads.
   */
 class Mac1DIO[gen <: vecN, gen2 <: Shapes](NumMac: Int, wgtTensorType: String = "none", memTensorType: String = "none")
-                                                (memShape: => gen)(wgtShape: => gen)(macShape: => gen2)(implicit p: Parameters)
+                                                (memShape: => gen)(macShape: => gen2)(implicit p: Parameters)
   extends HandShakingIONPS(NumMac)(new CustomDataBundle(UInt(p(XLEN).W))) {
   val tpWgt = new TensorParams(wgtTensorType)
   val mp = p(ShellKey).memParams
 
     val in = Vec(NumMac ,Flipped(Decoupled(new CustomDataBundle(UInt(memShape.getWidth.W)))))
     val wgtTensorReq = Decoupled(new TensorReadReq())
-    val wgtTensorResp = Input(Flipped(new TensorReadResp(wgtShape.getWidth)))
+    val wgtTensorResp = Input(Flipped(new TensorReadResp(macShape.getWidth)))
     val wgtIndex = Input(UInt(tpWgt.memAddrBits.W))
     val rowWidth = Input(UInt(mp.addrBits.W))
     val last = Output(Bool())
     val start = Input(Bool())
     val done = Output(Bool())
 
-  override def cloneType = new Mac1DIO(NumMac, wgtTensorType, memTensorType)(memShape)(wgtShape)(macShape).asInstanceOf[this.type]
+  override def cloneType = new Mac1DIO(NumMac, wgtTensorType, memTensorType)(memShape)(macShape).asInstanceOf[this.type]
 }
 
 class Mac1D[L <: vecN, K <: Shapes : OperatorDot : OperatorReduction]
               (NumMac: Int, ChBatch: Int, bufSize: Int, wgtTensorType: String = "none", memTensorType: String = "none")
-              (memShape: => L)(wgtShape: => L)(macShape: => K)
-                                                                           (implicit p: Parameters)
+              (memShape: => L)(macShape: => K)
+              (implicit p: Parameters)
   extends HandShakingNPS(NumMac, 0)(new CustomDataBundle(UInt(p(XLEN).W)))(p) {
-  override lazy val io = IO(new Mac1DIO(NumMac, wgtTensorType, memTensorType)(memShape)(wgtShape)(macShape))
+  override lazy val io = IO(new Mac1DIO(NumMac, wgtTensorType, memTensorType)(memShape)(macShape))
 
   val tpMem = new TensorParams(memTensorType)
+  val sIdle :: sReadWeight :: sExec :: sFinish :: Nil = Enum(4)
+  val state = RegInit(sIdle)
 
   val readWgtCnt = Counter(ChBatch)
   val outCnt = Counter(io.tpWgt.memDepth)
   io.done := false.B
   io.last := false.B
 
-  val loadWeight = Module(new TLoad(NumPredOps = 0, NumSuccOps = 0, NumOuts = 1, ID = 0, RouteID = 0)(wgtShape))
-  val weight = RegInit(CustomDataBundle.default(0.U(wgtShape.getWidth.W)))
+  val loadWeight = Module(new TLoad(NumPredOps = 0, NumSuccOps = 0, NumOuts = 1, ID = 0, RouteID = 0)(macShape))
+  val weight = RegInit(CustomDataBundle.default(0.U(macShape.getWidth.W)))
   val weight_valid = RegInit(false.B)
 
   loadWeight.io.enable.bits <> ControlBundle.active()
@@ -75,7 +77,7 @@ class Mac1D[L <: vecN, K <: Shapes : OperatorDot : OperatorReduction]
 
 //  val weightBuf = SyncReadMem(ChBatch, wgtShape)
 
-  val weightQ = Module( new Queue(CustomDataBundle(UInt(wgtShape.getWidth.W)), ChBatch))
+  val weightQ = Module( new Queue(CustomDataBundle(UInt(macShape.getWidth.W)), ChBatch))
   weightQ.io.enq.bits := Mux(state === sReadWeight, weight, weightQ.io.deq.bits)
   weightQ.io.enq.valid := Mux(state === sReadWeight, weight_valid, weightQ.io.deq.valid)
   when(weightQ.io.enq.fire()) {
@@ -88,7 +90,7 @@ class Mac1D[L <: vecN, K <: Shapes : OperatorDot : OperatorReduction]
   }
 
   val accData = for (i <- 0 until NumMac) yield {
-    val accD = RegInit(CustomDataBundle.default(0.U(UInt(xlen.W))))
+    val accD = RegInit(CustomDataBundle.default(0.U(UInt(p(XLEN).W))))
     accD
   }
 
@@ -157,8 +159,6 @@ class Mac1D[L <: vecN, K <: Shapes : OperatorDot : OperatorReduction]
   }
 
 
-  val sIdle :: sReadWeight :: sExec :: sFinish :: Nil = Enum(4)
-  val state = RegInit(sIdle)
 
   /*val memTensorRows = Mux(io.rowWidth * ChBatch.U * macShape.getLength().U  % tpMem.tensorWidth.U === 0.U,
     io.rowWidth * ChBatch.U * macShape.getLength().U / tpMem.tensorWidth.U,

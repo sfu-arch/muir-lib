@@ -19,20 +19,12 @@ package accel
  * under the License.
  */
 
-import arbiters.TypeStackFile
-import chisel3.{when, _}
 import chisel3.util._
+import chisel3.{when, _}
 import config._
-import control.BasicBlockNoMaskNode
-import dnn.memory.{ReadTensorController, TensorLoad, TensorMaster, TensorStore, WriteTensorController, inDMA_act, inDMA_wgt, outDMA_act}
-import interfaces.{ControlBundle, CustomDataBundle, DataBundle}
-import junctions.SplitCallNew
-import node.{FXmatNxN, UnTypStore, matNxN, vecN}
+import dnn_layers.DW_PW_Block
+import node.{matNxN, vecN}
 import shell._
-import dnn.memory.ISA._
-import dnn_layers.{DW_Block, DW_PW_Block, PDP_Block}
-import dnnnode.{Mac2dTensor, ShapeTransformer, StoreQueue, TLoad, TStore, WeightShapeTransformer}
-import firrtl.transforms.DontTouchAnnotation
 
 /** Core.
   *
@@ -46,7 +38,7 @@ import firrtl.transforms.DontTouchAnnotation
   * More info about these interfaces and modules can be found in the shell
   * directory.
   */
-class DNNCore(implicit val p: Parameters) extends Module {
+class DNNCoreDwPw(implicit val p: Parameters) extends Module {
   val io = IO(new Bundle {
     val vcr = new VCRClient
     val vme = new VMEMaster
@@ -55,10 +47,7 @@ class DNNCore(implicit val p: Parameters) extends Module {
   val cycle_count = new Counter(2000)
 
   val NumChannel = 3
-
-  val MACperCH = 4
-  val Fx = 1
-
+  val MACperCH = 2
   val NumPWFilter = 2
 
   val memShape = new vecN(16, 0, false)
@@ -68,23 +57,21 @@ class DNNCore(implicit val p: Parameters) extends Module {
   val wgtDWShape = new vecN(9, 0, false)
   val wgtPWShape = new vecN(NumChannel, 0, false)
 
-  val CxShape = new vecN(5, 0, false)
 
 //  val DW_B1 = Module(new DW_Block(3, "wgt", "inp")(memShape)(wgtDWShape)(macDWShape))
 
-//  val conv = Module(new DW_PW_Block(NumChannel, MACperCH, NumPWFilter, "wgt", "wgtPW", "inp")
-//                   (memShape)(wgtDWShape)(wgtPWShape)(macDWShape)(macPWShape))
-
-  val conv = Module(new PDP_Block(MACperCH, Fx, 5, "wgtPW", "inp")(memShape)(CxShape))
+  val conv = Module(new DW_PW_Block(NumChannel, MACperCH, NumPWFilter, "wgt", "wgtPW", "inp")
+                   (memShape)(wgtDWShape)(wgtPWShape)(macDWShape)(macPWShape))
 
   /* ================================================================== *
      *                      Basic Block signals                         *
      * ================================================================== */
-  conv.io.wgtIndex := 0.U
+  conv.io.wgtDWIndex := 0.U
+  conv.io.wgtPWIndex := 3.U
 
-  conv.io.rowWidth := 3.U
+  conv.io.wgtPW_baddr := 1.U
 
-
+  conv.io.outRowWidth := 18.U
 
   /* ================================================================== *
      *                           Connections                            *
@@ -92,21 +79,22 @@ class DNNCore(implicit val p: Parameters) extends Module {
 
   io.vcr.ecnt(0).bits := cycle_count.value
 
-  for (i <- 0 until MACperCH) {
+  for (i <- 0 until NumChannel * (MACperCH + macDWShape.getLength() - 1)) {
     io.vme.rd(i) <> conv.io.vme_rd(i)
   }
 
-  for (i <- 0 until Fx * MACperCH) {
+  for (i <- 0 until NumPWFilter * MACperCH) {
     io.vme.wr(i) <> conv.io.vme_wr(i)
   }
 
-  io.vme.rd(4) <> conv.io.vme_wgt_rd
-//  io.vme.rd(13) <> conv.io.vme_wgtPW_rd
+  io.vme.rd(12) <> conv.io.vme_wgtDW_rd
+  io.vme.rd(13) <> conv.io.vme_wgtPW_rd
 
   conv.io.start := false.B
 
   conv.io.inBaseAddr := io.vcr.ptrs(0)
-  conv.io.wgt_baddr := io.vcr.ptrs(1)
+  conv.io.wgtDW_baddr := io.vcr.ptrs(1)
+  conv.io.wgtPW_baddr := io.vcr.ptrs(1)
 
   conv.io.outBaseAddr := io.vcr.ptrs(2)
 

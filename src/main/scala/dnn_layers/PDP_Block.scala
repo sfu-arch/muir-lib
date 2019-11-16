@@ -2,10 +2,11 @@
 package dnn_layers
 
 import chisel3._
+import chisel3.util._
 import config._
 import dnn.memory._
 import dnn.types.{OperatorDot, OperatorReduction}
-import dnnnode.{Mac2dTensor, MacPW, TLoad}
+import dnnnode.{Mac1D, Mac2dTensor, MacPW, TLoad}
 import interfaces.ControlBundle
 import node.{Shapes, vecN}
 import shell._
@@ -21,61 +22,57 @@ import shell._
   * handling the way tensors are stored on the scratchpads.
   */
 class PDP_BlockIO[gen <: vecN, gen2 <: Shapes]
-(NumChannel: Int, MACperCH: Int, NumPWFilter: Int, wgtDWType: String = "none", wgtPWType: String = "none", memTensorType: String = "none")
-(memShape: => gen)(wgtDWShape: => gen)(macDWShape: => gen2)(implicit val p: Parameters)
+(MACperCH: Int, Fx: Int, wgtType: String = "none", memTensorType: String = "none")
+(memShape: => gen)(CxShape: => gen2)(implicit val p: Parameters)
   extends Module {
-  val tpWgtDW = new TensorParams(wgtDWType)
-  val tpWgtPW = new TensorParams(wgtPWType)
+  val tpMem = new TensorParams(memTensorType)
+  val tpWgt = new TensorParams(wgtType)
+
   val mp = p(ShellKey).memParams
   val io = IO(new Bundle {
     val start = Input(Bool())
     val done = Output(Bool())
     val inBaseAddr = Input(UInt(mp.addrBits.W))
     val outBaseAddr = Input(UInt(mp.addrBits.W))
-    val outRowWidth = Input(UInt(mp.addrBits.W))
 
-    val vme_rd = Vec(NumChannel * (MACperCH + macDWShape.getLength() - 1), new VMEReadMaster)
-    val vme_wr = Vec(NumPWFilter * MACperCH, new VMEWriteMaster)
 
-    val wgtDWIndex = Input(UInt(tpWgtDW.memAddrBits.W))
-    val wgtPWIndex = Input(UInt(tpWgtPW.memAddrBits.W))
-    val vme_wgtDW_rd = new VMEReadMaster
-    val vme_wgtPW_rd = new VMEReadMaster
-    val wgtDW_baddr = Input(UInt(mp.addrBits.W))
-    val wgtPW_baddr = Input(UInt(mp.addrBits.W))
+    val rowWidth = Input(UInt(mp.addrBits.W))
+
+    val vme_rd = Vec(MACperCH, new VMEReadMaster)
+    val vme_wr = Vec(Fx * MACperCH, new VMEWriteMaster)
+
+    val wgtIndex = Input(UInt(tpWgt.memAddrBits.W))
+    val vme_wgt_rd = new VMEReadMaster
+
+    val wgt_baddr = Input(UInt(mp.addrBits.W))
   })
 }
 
-class PDP_Block[L <: vecN, K <: Shapes : OperatorDot : OperatorReduction, M <: Shapes : OperatorDot : OperatorReduction]
-(NumChannel: Int, MACperCH_DW: Int, NumPWFilter: Int, Fx: Int, wgtDWType: String = "none", wgtPWType: String = "none", memTensorType: String = "none")
-(memShape: => L)(wgtDWShape: => L)(wgtPWShape: => L)(macDWShape: => K)(macPWShape: => M)(implicit p: Parameters)
-  extends PDP_BlockIO(NumChannel, MACperCH_DW, NumPWFilter, wgtDWType, wgtPWType, memTensorType)(memShape)(wgtDWShape)(macDWShape)(p) {
+class PDP_Block[L <: vecN, K <: Shapes : OperatorDot : OperatorReduction]
+(MACperCH: Int, Fx: Int, ChBatch: Int, wgtType: String = "none", memTensorType: String = "none")
+(memShape: => L)(CxShape: => K)(implicit p: Parameters)
+  extends PDP_BlockIO(MACperCH, Fx, wgtType, memTensorType)(memShape)(CxShape)(p) {
 
 
-  val inDMA_act =  Module(new inDMA_act(MACperCH_DW + macDWShape.getLength() - 1, 1, memTensorType)(memShape))
+  val inDMA_act =  Module(new inDMA_act_HWC(MACperCH, 1, memTensorType)(memShape))
 
-  val load = for (i <- 0 until MACperCH_DW + macDWShape.getLength() -1) yield {
+  val load = for (i <- 0 until MACperCH) yield {
     val loadNode = Module(new TLoad(NumPredOps = 0, NumSuccOps = 0, NumOuts = Fx, ID = 0, RouteID = 0)(memShape))
     loadNode
   }
 
 
-  val mac2dDW = for (i <- 0 until NumChannel) yield {
-    val mac2d = Module(new Mac2dTensor(MACperCH_DW, wgtDWType, memTensorType)(memShape)(wgtDWShape)(macDWShape))
-    mac2d
+  val mac1D = for (i <- 0 until Fx) yield {
+    val mac1d = Module(new Mac1D(MACperCH, ChBatch, 20,  wgtType, memTensorType)(memShape)(CxShape))
+    mac1d
   }
 
-  val macPW = for (i <- 0 until NumPWFilter) yield {
-    val mac2dPW = Module(new MacPW(MACperCH_DW, wgtPWType)(wgtPWShape)(macPWShape))
-    mac2dPW
-  }
-
-  val outDMA_act = for (i <- 0 until NumPWFilter) yield {
-    val outDMA = Module(new outDMA_act(MACperCH_DW, 20, memTensorType))
+  val outDMA_act = for (i <- 0 until Fx) yield {
+    val outDMA = Module(new outDMA_act(MACperCH, 20, memTensorType))
     outDMA
   }
 
-  val doneR = for (i <- 0 until NumPWFilter) yield {
+  val doneR = for (i <- 0 until Fx) yield {
     val doneReg = RegInit(init = false.B)
     doneReg
   }
@@ -84,95 +81,60 @@ class PDP_Block[L <: vecN, K <: Shapes : OperatorDot : OperatorReduction, M <: S
    *                     Depth-wise - inDMA_weight                      *
    * ================================================================== */
 
-  val inDMA_wgtDW = Module(new inDMA_wgt(20, 100, wgtDWType, memTensorType = "inp")(wgtDWShape))
-  val wgtCtrlDW = Module(new ReadTensorController(NumChannel, wgtDWType)(wgtDWShape))
-  inDMA_wgtDW.io.tensor <> wgtCtrlDW.io.tensor
-  io.vme_wgtDW_rd <> inDMA_wgtDW.io.vme_rd
+  val inDMA_wgt = Module(new inDMA_wgt(20, 100, wgtType, memTensorType)(CxShape))
+  val wgtCtrl = Module(new ReadTensorController(Fx, wgtType)(CxShape))
+  inDMA_wgt.io.tensor <> wgtCtrl.io.tensor
+  io.vme_wgt_rd <> inDMA_wgt.io.vme_rd
 
-  inDMA_wgtDW.io.numWeight := 7.U
-  inDMA_wgtDW.io.start := false.B
-  inDMA_wgtDW.io.baddr := io.wgtDW_baddr
-  inDMA_wgtDW.io.start := io.start
+  inDMA_wgt.io.numWeight := 50.U
+  inDMA_wgt.io.start := false.B
+  inDMA_wgt.io.baddr := io.wgt_baddr
+  inDMA_wgt.io.start := io.start
 
-  for (i <- 0 until NumChannel) {
-    wgtCtrlDW.io.ReadIn(i) <> mac2dDW(i).io.wgtTensorReq
-    mac2dDW(i).io.wgtTensorResp <> wgtCtrlDW.io.ReadOut(i)
+  for (i <- 0 until Fx) {
+    wgtCtrl.io.ReadIn(i) <> mac1D(i).io.wgtTensorReq
+    mac1D(i).io.wgtTensorResp <> wgtCtrl.io.ReadOut(i)
   }
 
   /* ================================================================== *
-     *                     Point-wise - inDMA_weight                    *
-     * ================================================================== */
-  val inDMA_wgtPW = Module(new inDMA_wgt(20, 100, wgtPWType, memTensorType)(wgtPWShape))
-  val wgtCtrlPW = Module(new ReadTensorController(NumPWFilter, wgtPWType)(wgtPWShape))
-  inDMA_wgtPW.io.tensor <> wgtCtrlPW.io.tensor
-  io.vme_wgtPW_rd <> inDMA_wgtPW.io.vme_rd
-
-  inDMA_wgtPW.io.numWeight := 7.U
-  inDMA_wgtPW.io.start := false.B
-  inDMA_wgtPW.io.baddr := io.wgtPW_baddr
-  inDMA_wgtPW.io.start := inDMA_wgtDW.io.done
-
-  for (i <- 0 until NumPWFilter) {
-    wgtCtrlPW.io.ReadIn(i) <> macPW(i).io.wgtTensorReq
-    macPW(i).io.wgtTensorResp <> wgtCtrlPW.io.ReadOut(i)
-  }
-
-  /* ================================================================== *
-    *                  Depth-wise MACs & inDMA_acts                     *
+    *                      inDMA_acts & loadNodes                       *
     * ================================================================== */
-  val inROWperCH =  MACperCH_DW + macDWShape.getLength() - 1
-  for (i <- 0 until NumChannel) {
-    mac2dDW(i).io.enable.bits <> ControlBundle.active()
-    mac2dDW(i).io.enable.valid := true.B
-    mac2dDW(i).io.wgtIndex := io.wgtDWIndex + i.U
-    mac2dDW(i).io.outRowWidth := io.outRowWidth
 
-    inDMA_act(i).io.rowWidth := io.outRowWidth + macDWShape.getLength().U - 1.U
-    inDMA_act(i).io.baddr := io.inBaseAddr + (i.U * ((io.outRowWidth + macDWShape.getLength().U - 1.U) * inROWperCH.U))
-
-    for (j <- 0 until inROWperCH) {
-      inDMA_act(i).io.ReadIn(j)(0) <> mac2dDW(i).io.tensorReq(j)
-      mac2dDW(i).io.tensorResp(j) <> inDMA_act(i).io.ReadOut(j)(0)
-
-      io.vme_rd(i * inROWperCH + j) <> inDMA_act(i).io.vme_rd(j)
-    }
-
-    inDMA_act(i).io.start := inDMA_wgtPW.io.done
-    mac2dDW(i).io.start := inDMA_act(NumChannel - 1).io.done // after last inDMA_act
-
-    for (j <- 0 until MACperCH_DW) {
-      mac2dDW(i).io.Out(j).ready := macPW.map(_.io.in(j).ready).reduceLeft(_ && _)
-    }
-
+  inDMA_act.io.start := io.start
+  inDMA_act.io.rowWidth := io.rowWidth
+  inDMA_act.io.depth := CxShape.getLength().U * ChBatch.U
+  inDMA_act.io.baddr := io.inBaseAddr
+  for (i <- 0 until MACperCH) {
+    load(i).io.enable.bits <> ControlBundle.active()
+    load(i).io.enable.valid := true.B
+    load(i).io.GepAddr.valid := false.B
+    load(i).io.GepAddr.bits.taskID := 0.U
+    load(i).io.GepAddr.bits.predicate := true.B
+    load(i).io.GepAddr.bits.data := readTensorCnt.value
+    io.vme_rd(i) <> inDMA_act.io.vme_rd(i)
+    inDMA_act.io.ReadIn(i)(0) <> load(i).io.tensorReq
+    load(i).io.tensorResp <> inDMA_act.io.ReadOut(i)(0)
   }
-
-
   /* ================================================================== *
-     *                   Point-wise MACs & outDMA_acts                  *
-     * ================================================================== */
-  for (i <- 0 until NumPWFilter) {
-    macPW(i).io.enable.bits <> ControlBundle.active()
-    macPW(i).io.enable.valid := true.B
-    macPW(i).io.wgtIndex := io.wgtPWIndex + i.U
-    macPW(i).io.outRowWidth := io.outRowWidth
-    macPW(i).io.start := inDMA_wgtPW.io.done
+    *                        loadNodes & mac1Ds                         *
+    * ================================================================== */
 
-    outDMA_act(i).io.rowWidth := io.outRowWidth
-    outDMA_act(i).io.baddr := io.outBaseAddr + (i.U * (MACperCH_DW.U * io.outRowWidth))
+  for (i <- 0 until Fx) {
+    mac1D(i).io.enable.bits <> ControlBundle.active()
+    mac1D(i).io.enable.valid := true.B
+    mac1D(i).io.wgtIndex := io.wgtIndex + (i * ChBatch).U
+    mac1D(i).io.rowWidth := io.rowWidth
 
-    for (j <- 0 until MACperCH_DW) {
-      outDMA_act(i).io.in(j) <> macPW(i).io.Out(j)
-      io.vme_wr(i * MACperCH_DW + j) <> outDMA_act(i).io.vme_wr(j)
-
-      macPW(i).io.in(j).bits.data := VecInit(mac2dDW.map(_.io.Out(j).bits.data.asUInt())).asUInt()
-      macPW(i).io.in(j).bits.taskID := 0.U
-      macPW(i).io.in(j).bits.predicate := true.B
-      macPW(i).io.in(j).bits.valid := true.B
-      macPW(i).io.in(j).valid := mac2dDW.map(_.io.Out(j).valid).reduceLeft(_ && _)
-
+    for (j <- 0 until MACperCH) {
+      mac1D(i).io.in(j) <> load(j).io.Out(i)
+      outDMA_act(i).io.in(j) <> mac1D(i).io.Out(j)
+      io.vme_wr(i*MACperCH + j) <> outDMA_act(i).io.vme_wr(j)
     }
-    outDMA_act(i).io.last.foreach(a => a := macPW(i).io.last)
-    outDMA_act(i).io.start := macPW(i).io.done
+    outDMA_act(i).io.rowWidth := io.rowWidth
+    outDMA_act(i).io.baddr := io.outBaseAddr + (i.U * (MACperCH.U * io.rowWidth))
+
+    outDMA_act(i).io.last.foreach(a => a := mac1D(i).io.last)
+    outDMA_act(i).io.start := mac1D(i).io.done
     when(outDMA_act(i).io.done) {
       doneR(i) := true.B
     }
@@ -187,5 +149,50 @@ class PDP_Block[L <: vecN, K <: Shapes : OperatorDot : OperatorReduction, M <: S
     doneR.foreach(a => a := false.B)
   }
 
+  val memTensorRows = Mux(io.rowWidth * ChBatch.U * CxShape.getLength().U  % tpMem.tensorWidth.U === 0.U,
+    io.rowWidth * ChBatch.U * CxShape.getLength().U / tpMem.tensorWidth.U,
+    (io.rowWidth * ChBatch.U * CxShape.getLength().U /tpMem.tensorWidth.U) + 1.U)
+
+  val readTensorCnt = Counter(tpMem.memDepth)
+  when (load.map(_.io.GepAddr.ready).reduceLeft(_ && _) && state === sExec) {
+    readTensorCnt.inc()
+    load.foreach(_.io.GepAddr.valid := true.B)
+  }
+  when(readTensorCnt.value === memTensorRows) {
+    readTensorCnt.value := 0.U
+  }
+
+  val sIdle :: sWgtRead :: sActRead :: sExec :: sFinish :: Nil = Enum(3)
+  val state = RegInit(sIdle)
+
+  switch(state) {
+    is(sIdle) {
+      when(io.start) {
+        inDMA_wgt.io.start := true.B
+        state := sWgtRead
+      }
+    }
+    is(sWgtRead) {
+      when(inDMA_wgt.io.done) {
+        state := sActRead
+        inDMA_act.io.start := true.B
+      }
+    }
+    is(sActRead) {
+      when(inDMA_act.io.done){
+        state := sExec
+        mac1D.foreach(_.io.start := true.B)
+      }
+    }
+    is(sExec){
+      when(mac1D.map(_.io.done).reduceLeft(_ && _)){
+        state := sFinish
+      }
+    }
+    is(sFinish){
+      io.done := true.B
+      state := sIdle
+    }
+  }
 
 }
