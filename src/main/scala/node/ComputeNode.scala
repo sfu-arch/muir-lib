@@ -81,7 +81,7 @@ class ComputeNode(NumOuts: Int, ID: Int, opCode: String)
   val taskID = Mux(enable_valid_R, enable_R.taskID ,io.enable.bits.taskID)
 
   val DebugEnable = enable_R.control && enable_R.debug && enable_valid_R
-ss
+
 
 
   /*===============================================*
