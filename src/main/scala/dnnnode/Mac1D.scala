@@ -50,7 +50,7 @@ class Mac1D[L <: vecN, K <: Shapes : OperatorDot : OperatorReduction]
   val sIdle :: sReadWeight :: sExec :: sFinish :: Nil = Enum(4)
   val state = RegInit(sIdle)
 
-  val readWgtCnt = Counter(ChBatch)
+  val readWgtCnt = Counter(ChBatch + 1)
   val outCnt = Counter(io.tpWgt.memDepth)
   io.done := false.B
   io.last := false.B
@@ -66,7 +66,7 @@ class Mac1D[L <: vecN, K <: Shapes : OperatorDot : OperatorReduction]
   loadWeight.io.GepAddr.valid := false.B
   loadWeight.io.GepAddr.bits.taskID := 0.U
   loadWeight.io.GepAddr.bits.predicate := true.B
-  loadWeight.io.GepAddr.bits.data := io.wgtIndex
+  loadWeight.io.GepAddr.bits.data := io.wgtIndex + readWgtCnt.value
 
   loadWeight.io.Out(0).ready := ~weight_valid
   when(loadWeight.io.Out(0).fire()) {
@@ -89,9 +89,9 @@ class Mac1D[L <: vecN, K <: Shapes : OperatorDot : OperatorReduction]
     macNode
   }
 
-  val accData = for (i <- 0 until NumMac) yield {
-    val accD = RegInit(CustomDataBundle.default(0.U(UInt(p(XLEN).W))))
-    accD
+  val outData = for (i <- 0 until NumMac) yield {
+    val data = RegInit(CustomDataBundle.default(0.U(xlen.W)))
+    data
   }
 
   val accValid = for (i <- 0 until NumMac) yield {
@@ -117,44 +117,62 @@ class Mac1D[L <: vecN, K <: Shapes : OperatorDot : OperatorReduction]
 
 
   val batchCnt = for (i <- 0 until NumMac) yield {
-    val batchCounter = Counter(ChBatch)
+    val batchCounter = Counter(ChBatch + 1)
     batchCounter
   }
 
 
+  inQueue.foreach(_.io.clear := false.B)
+
   for (i <- 0 until NumMac) {
-    inQueue(i).io.enq.bits := VecInit(dataIn_R(i).data).asUInt()
+    inQueue(i).io.enq.bits := dataIn_R(i).data.asTypeOf(inQueue(i).io.enq.bits)
     inQueue(i).io.enq.valid := dataIn_validR(i)
+
+    when(inQueue(i).io.enq.fire()){
+      dataIn_validR(i) := false.B
+    }
 
     mac(i).io.enable.bits <> ControlBundle.active()
     mac(i).io.enable.valid := true.B
 
-    mac(i).io.LeftIO.bits := inQueue(i).io.deq.bits.asTypeOf(macShape)
-    mac(i).io.LeftIO.valid := inQueue(i).io.deq.valid
-    inQueue(i).io.deq.ready := mac(i).io.LeftIO.ready
+    mac(i).io.LeftIO.bits.data := inQueue(i).io.deq.bits.asUInt()
+    mac(i).io.LeftIO.bits.valid := true.B
+    mac(i).io.LeftIO.bits.predicate := true.B
+    mac(i).io.LeftIO.bits.taskID := 0.U
+    mac(i).io.LeftIO.valid := inQueue(i).io.deq.valid & state === sExec
 
-    mac(i).io.RightIO <> weightQ.io.deq
+    inQueue(i).io.deq.ready := mac(i).io.LeftIO.ready & state === sExec
+
+    mac(i).io.RightIO.bits := weightQ.io.deq.bits
+    mac(i).io.RightIO.valid := weightQ.io.deq.valid & state === sExec
+    weightQ.io.deq.ready := mac.map(_.io.RightIO.ready).reduceLeft(_ && _) & state === sExec
+
 
     mac(i).io.Out(0).ready := ~accValid(i) & (batchCnt(i).value < ChBatch.U)
     when(mac(i).io.Out(0).fire()) {
-      accData(i).data := mac(i).io.Out(0).bits.data.asUInt() + accData(i).data
-      accData(i).valid := mac(i).io.Out(0).bits.valid
-      accData(i).taskID := mac(i).io.Out(0).bits.taskID
-      accData(i).predicate := mac(i).io.Out(0).bits.predicate
+      outData(i).data := outData(i).data + mac(i).io.Out(0).bits.data.asUInt()
+      outData(i).valid := mac(i).io.Out(0).bits.valid
+      outData(i).taskID := mac(i).io.Out(0).bits.taskID
+      outData(i).predicate := mac(i).io.Out(0).bits.predicate
       accValid(i) := true.B
     }
+
+    when(accValid(i)) {
+      accValid(i) := false.B
+    }
+
+    io.Out(i).bits := outData(i)
 
     when(mac(i).io.Out(0).fire()) {
       batchCnt(i).inc()
     }
     io.Out(i).valid := false.B
     when(batchCnt(i).value === ChBatch.U) {
-      io.Out(i).bits := accData(i)
       io.Out(i).valid := true.B
     }
     when(io.Out(i).fire()) {
       batchCnt(i).value := 0.U
-      accData(i) := CustomDataBundle.default(0.U(UInt(xlen.W)))
+      outData(i).data := 0.U
     }
   }
 
@@ -200,6 +218,7 @@ class Mac1D[L <: vecN, K <: Shapes : OperatorDot : OperatorReduction]
     }
     is (sFinish){
         io.done := true.B
+        inQueue.foreach(_.io.clear := true.B)
         io.last := true.B
         state := sIdle
 

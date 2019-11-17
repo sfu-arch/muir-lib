@@ -77,6 +77,11 @@ class PDP_Block[L <: vecN, K <: Shapes : OperatorDot : OperatorReduction]
     doneReg
   }
 
+  val readTensorCnt = Counter(tpMem.memDepth)
+
+  val sIdle :: sWgtRead :: sActRead :: sExec :: sFinish :: Nil = Enum(5)
+  val state = RegInit(sIdle)
+
   /* ================================================================== *
    *                     Depth-wise - inDMA_weight                      *
    * ================================================================== */
@@ -86,10 +91,10 @@ class PDP_Block[L <: vecN, K <: Shapes : OperatorDot : OperatorReduction]
   inDMA_wgt.io.tensor <> wgtCtrl.io.tensor
   io.vme_wgt_rd <> inDMA_wgt.io.vme_rd
 
-  inDMA_wgt.io.numWeight := 50.U
+  inDMA_wgt.io.numWeight := 15.U
   inDMA_wgt.io.start := false.B
   inDMA_wgt.io.baddr := io.wgt_baddr
-  inDMA_wgt.io.start := io.start
+//  inDMA_wgt.io.start := io.start
 
   for (i <- 0 until Fx) {
     wgtCtrl.io.ReadIn(i) <> mac1D(i).io.wgtTensorReq
@@ -140,9 +145,11 @@ class PDP_Block[L <: vecN, K <: Shapes : OperatorDot : OperatorReduction]
     }
   }
 
- /* ================================================================== *
-     *                        Done Signal                              *
-     * ================================================================== */
+  mac1D.foreach(_.io.start := false.B)
+
+  /* ================================================================== *
+      *                        Done Signal                              *
+      * ================================================================== */
 
   io.done := doneR.reduceLeft(_ && _)
   when (doneR.reduceLeft(_ && _)) {
@@ -153,7 +160,7 @@ class PDP_Block[L <: vecN, K <: Shapes : OperatorDot : OperatorReduction]
     io.rowWidth * ChBatch.U * CxShape.getLength().U / tpMem.tensorWidth.U,
     (io.rowWidth * ChBatch.U * CxShape.getLength().U /tpMem.tensorWidth.U) + 1.U)
 
-  val readTensorCnt = Counter(tpMem.memDepth)
+
   when (load.map(_.io.GepAddr.ready).reduceLeft(_ && _) && state === sExec) {
     readTensorCnt.inc()
     load.foreach(_.io.GepAddr.valid := true.B)
@@ -162,8 +169,6 @@ class PDP_Block[L <: vecN, K <: Shapes : OperatorDot : OperatorReduction]
     readTensorCnt.value := 0.U
   }
 
-  val sIdle :: sWgtRead :: sActRead :: sExec :: sFinish :: Nil = Enum(3)
-  val state = RegInit(sIdle)
 
   switch(state) {
     is(sIdle) {
