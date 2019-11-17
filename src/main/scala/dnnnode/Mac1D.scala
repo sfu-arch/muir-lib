@@ -77,7 +77,7 @@ class Mac1D[L <: vecN, K <: Shapes : OperatorDot : OperatorReduction]
 
 //  val weightBuf = SyncReadMem(ChBatch, wgtShape)
 
-  val weightQ = Module( new Queue(CustomDataBundle(UInt(macShape.getWidth.W)), ChBatch))
+  val weightQ = Module( new Queue(CustomDataBundle(UInt(macShape.getWidth.W)), ChBatch + 1))
   weightQ.io.enq.bits := Mux(state === sReadWeight, weight, weightQ.io.deq.bits)
   weightQ.io.enq.valid := Mux(state === sReadWeight, weight_valid, weightQ.io.deq.valid)
   when(weightQ.io.enq.fire()) {

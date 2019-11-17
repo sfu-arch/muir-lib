@@ -151,7 +151,7 @@ class PDP_Block[L <: vecN, K <: Shapes : OperatorDot : OperatorReduction]
       *                        Done Signal                              *
       * ================================================================== */
 
-  io.done := doneR.reduceLeft(_ && _)
+  io.done := false.B
   when (doneR.reduceLeft(_ && _)) {
     doneR.foreach(a => a := false.B)
   }
@@ -195,8 +195,11 @@ class PDP_Block[L <: vecN, K <: Shapes : OperatorDot : OperatorReduction]
       }
     }
     is(sFinish){
-      io.done := true.B
-      state := sIdle
+      when(doneR.reduceLeft(_ && _)) {
+        io.done := true.B
+        state := sIdle
+      }
+
     }
   }
 
