@@ -6,8 +6,8 @@ import chisel3.util._
 import config._
 import dnn.memory._
 import dnn.types.{OperatorDot, OperatorReduction}
-import dnnnode.{Mac1D, PWShapeTransformer}
-import interfaces.ControlBundle
+import dnnnode.{Mac1D, MacPW, PWShapeTransformer, ShapeTransformer}
+import interfaces.{ControlBundle, CustomDataBundle}
 import node.{Shapes, vecN}
 import shell._
 //import vta.util.config._
@@ -50,7 +50,7 @@ class PDP_BlockIO[gen <: vecN, gen2 <: Shapes]
 
 class PDP_Block[L <: vecN, K <: Shapes : OperatorDot : OperatorReduction]
 (MACperCH: Int, Fx: Int, ChBatch: Int, wgtType: String = "none", memTensorType: String = "none")
-(memShape: => L)(CxShape: => K)(implicit p: Parameters)
+(memShape: => L)(CxShape: => K)(macDWshape: => K)(implicit p: Parameters)
   extends PDP_BlockIO(MACperCH, Fx, wgtType, memTensorType)(memShape)(CxShape)(p) {
 
 
@@ -62,6 +62,20 @@ class PDP_Block[L <: vecN, K <: Shapes : OperatorDot : OperatorReduction]
     val mac1d = Module(new Mac1D(MACperCH, ChBatch, 20,  wgtType)(CxShape))
     mac1d
   }
+
+  /*val mac1DshapeOut = new vecN(1, 0, false)
+
+  val DWShapeTransformer = for (i <- 0 until Fx) yield {
+    for (j <- 0 until MACperCH - macDWshape.getLength() + 1) yield {
+      val shapeTran = Module(new ShapeTransformer(NumIns = macDWshape.getLength(), NumOuts = 1, ID = 0)(mac1DshapeOut)(macDWshape))
+      shapeTran
+    }
+  }
+
+  val macDW = for (i <- 0 until Fx) yield {
+    val macDW = Module(new MacPW(MACperCH, wgtType)(wgtDWshape)(macDWshape))
+    macDW
+  }*/
 
   val outDMA_act = for (i <- 0 until Fx) yield {
     val outDMA = Module(new outDMA_act(MACperCH, 20, memTensorType))
