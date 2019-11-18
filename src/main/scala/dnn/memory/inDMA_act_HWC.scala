@@ -30,8 +30,7 @@ class inDMA_act_HWCIO[gen <: Shapes](NumRows: Int, NumOuts: Int, memTensorType: 
     val rowWidth = Input(UInt(mp.addrBits.W))
     val depth = Input(UInt(mp.addrBits.W))
     val vme_rd = Vec(NumRows, new VMEReadMaster)
-    val ReadIn  = Vec(NumRows, Vec(NumOuts, Flipped(Decoupled(new TensorReadReq()))))
-    val ReadOut = Vec(NumRows, Vec(NumOuts, Output(new TensorReadResp(memShape.getWidth))))
+    val tensor = Vec(NumRows, new TensorClient(memTensorType))
   })
 }
 
@@ -41,10 +40,6 @@ class inDMA_act_HWC[L <: Shapes](NumRows: Int, NumOuts: Int, memTensorType: Stri
   val tensorLoad = for (i <- 0 until NumRows) yield {
     val tensorL = Module(new TensorLoad(memTensorType))
     tensorL
-  }
-  val readTensorCtrl = for (i <- 0 until NumRows) yield {
-    val readTensorController = Module(new ReadTensorController(1, memTensorType)(memShape))
-    readTensorController
   }
   val doneR = for (i <- 0 until NumRows) yield {
     val doneReg = RegInit(init = false.B)
@@ -89,18 +84,8 @@ class inDMA_act_HWC[L <: Shapes](NumRows: Int, NumOuts: Int, memTensorType: Stri
     tensorLoad(i).io.start := io.start
     tensorLoad(i).io.inst := tl_Inst.asTypeOf(UInt(INST_BITS.W))
     tensorLoad(i).io.baddr := io.baddr + (i.U * io.rowWidth * io.depth)
-    tensorLoad(i).io.tensor <> readTensorCtrl(i).io.tensor
+    tensorLoad(i).io.tensor <> io.tensor(i)
     io.vme_rd(i) <> tensorLoad(i).io.vme_rd
   }
-
-  for (i <- 0 until NumRows) {
-    for (j <- 0 until NumOuts) {
-      readTensorCtrl(i).io.ReadIn(j) <> io.ReadIn(i)(j)
-      io.ReadOut(i)(j) <> readTensorCtrl(i).io.ReadOut(j)
-    }
-  }
-
-
-
 
 }

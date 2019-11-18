@@ -57,31 +57,31 @@ class MIMOQueue[T <: Data](gen: T,
   val io = IO(new MIMOQueueIO(genType, entries, NumIns, NumOuts))
 
   val ram = Mem(entries, genType)
-  val enq_ptr = Counter(entries)
-  val deq_ptr = Counter(entries)
+  val enq_ptr = RegInit(0.U((log2Ceil(entries)+1).W)) //Counter(entries)
+  val deq_ptr = RegInit(0.U((log2Ceil(entries)+1).W)) //Counter(entries)
   val maybe_full = RegInit(false.B)
 
   val bufCount = io.count
-  val ptr_match = enq_ptr.value === deq_ptr.value
+  val ptr_match = enq_ptr === deq_ptr
   val empty = ptr_match && !maybe_full
 //  val full = ptr_match && maybe_full
-  val full = entries.U - bufCount <= NumIns.U
+  val full = entries.U - bufCount < NumIns.U
   val do_enq = WireDefault(io.enq.fire())
   val do_deq = WireDefault(io.deq.fire())
 
   when(io.clear) {
-    enq_ptr.value := 0.U
-    deq_ptr.value := 0.U
+    enq_ptr := 0.U
+    deq_ptr := 0.U
   }
 
   when (do_enq) {
     for (i <- 0 until NumIns) {
-      ram(enq_ptr.value + i.U) := io.enq.bits(i)
+      ram((enq_ptr + i.U) % entries.U) := io.enq.bits(i)
     }
-    enq_ptr.value := enq_ptr.value + NumIns.U
+    enq_ptr := (enq_ptr + NumIns.U) % entries.U
   }
   when (do_deq) {
-    deq_ptr.value := deq_ptr.value + NumOuts.U
+    deq_ptr := (deq_ptr + NumOuts.U) % entries.U
   }
   when (do_enq =/= do_deq) {
     maybe_full := do_enq
@@ -91,7 +91,8 @@ class MIMOQueue[T <: Data](gen: T,
   io.enq.ready := !full
 //  io.deq.bits := ram(deq_ptr.value)
 
-  val ptr_diff = enq_ptr.value - deq_ptr.value
+
+  val ptr_diff = enq_ptr - deq_ptr
 
 
 //  io.Out.valid := !empty //(ptr_diff >= 0.U)
@@ -101,7 +102,7 @@ class MIMOQueue[T <: Data](gen: T,
     io.deq.valid := false.B
   }
   for (i <- 0 until NumOuts) {
-    io.deq.bits(i) := Mux(bufCount > (NumOuts - 1).U, ram(deq_ptr.value + i.U), 0.U.asTypeOf(genType))
+    io.deq.bits(i) := Mux(bufCount > (NumOuts - 1).U, ram((deq_ptr + i.U) % entries.U), 0.U.asTypeOf(genType))
   }
 
   if (flow) {
@@ -123,7 +124,7 @@ class MIMOQueue[T <: Data](gen: T,
     io.count := Mux(ptr_match,
       Mux(maybe_full,
         entries.asUInt, 0.U),
-      Mux(deq_ptr.value > enq_ptr.value,
+      Mux(deq_ptr > enq_ptr,
         entries.asUInt + ptr_diff, ptr_diff))
   }
 }
