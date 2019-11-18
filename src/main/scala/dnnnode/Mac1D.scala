@@ -21,38 +21,39 @@ import shell._
   * managed by TensorPadCtrl. The TensorDataCtrl is in charge of
   * handling the way tensors are stored on the scratchpads.
   */
-class Mac1DIO[gen <: vecN, gen2 <: Shapes](NumMac: Int, wgtTensorType: String = "none", memTensorType: String = "none")
-                                                (memShape: => gen)(macShape: => gen2)(implicit p: Parameters)
+class Mac1DIO[gen <: vecN, gen2 <: Shapes](NumMac: Int, wgtTensorType: String = "none")
+                                                (macShape: => gen2)(implicit p: Parameters)
   extends HandShakingIONPS(NumMac)(new CustomDataBundle(UInt(p(XLEN).W))) {
   val tpWgt = new TensorParams(wgtTensorType)
   val mp = p(ShellKey).memParams
 
-    val in = Vec(NumMac ,Flipped(Decoupled(new CustomDataBundle(UInt(memShape.getWidth.W)))))
+    val in = Vec(NumMac ,Flipped(Decoupled(new CustomDataBundle(UInt(macShape.getWidth.W)))))
     val wgtTensorReq = Decoupled(new TensorReadReq())
     val wgtTensorResp = Input(Flipped(new TensorReadResp(macShape.getWidth)))
     val wgtIndex = Input(UInt(tpWgt.memAddrBits.W))
     val rowWidth = Input(UInt(mp.addrBits.W))
     val last = Output(Bool())
-    val start = Input(Bool())
-    val done = Output(Bool())
+    val startLoadWgt = Input(Bool())
+    val doneLoadWgt = Output(Bool())
+    val startMac = Input(Bool())
+    val doneMac = Output(Bool())
 
-  override def cloneType = new Mac1DIO(NumMac, wgtTensorType, memTensorType)(memShape)(macShape).asInstanceOf[this.type]
+  override def cloneType = new Mac1DIO(NumMac, wgtTensorType)(macShape).asInstanceOf[this.type]
 }
 
 class Mac1D[L <: vecN, K <: Shapes : OperatorDot : OperatorReduction]
-              (NumMac: Int, ChBatch: Int, bufSize: Int, wgtTensorType: String = "none", memTensorType: String = "none")
-              (memShape: => L)(macShape: => K)
+              (NumMac: Int, ChBatch: Int, bufSize: Int, wgtTensorType: String = "none")
+              (macShape: => K)
               (implicit p: Parameters)
   extends HandShakingNPS(NumMac, 0)(new CustomDataBundle(UInt(p(XLEN).W)))(p) {
-  override lazy val io = IO(new Mac1DIO(NumMac, wgtTensorType, memTensorType)(memShape)(macShape))
+  override lazy val io = IO(new Mac1DIO(NumMac, wgtTensorType)(macShape))
 
-  val tpMem = new TensorParams(memTensorType)
-  val sIdle :: sReadWeight :: sExec :: sFinish :: Nil = Enum(4)
+  val sIdle :: sReadWeight :: sMacStart :: sExec :: sFinish :: Nil = Enum(5)
   val state = RegInit(sIdle)
 
   val readWgtCnt = Counter(ChBatch + 1)
   val outCnt = Counter(io.tpWgt.memDepth)
-  io.done := false.B
+  io.doneMac := false.B
   io.last := false.B
 
   val loadWeight = Module(new TLoad(NumPredOps = 0, NumSuccOps = 0, NumOuts = 1, ID = 0, RouteID = 0)(macShape))
@@ -74,8 +75,6 @@ class Mac1D[L <: vecN, K <: Shapes : OperatorDot : OperatorReduction]
     weight_valid := true.B
   }
 
-
-//  val weightBuf = SyncReadMem(ChBatch, wgtShape)
 
   val weightQ = Module( new Queue(CustomDataBundle(UInt(macShape.getWidth.W)), ChBatch + 1))
   weightQ.io.enq.bits := Mux(state === sReadWeight, weight, weightQ.io.deq.bits)
@@ -99,54 +98,23 @@ class Mac1D[L <: vecN, K <: Shapes : OperatorDot : OperatorReduction]
     accV
   }
 
-  val inQueue = for (i <- 0 until NumMac) yield {
-    val buffer = Module(new MIMOQueue(UInt(p(XLEN).W), bufSize, tpMem.tensorWidth, macShape.getLength()))
-    buffer
-  }
-
-  val dataIn_R = RegInit(VecInit(Seq.fill(NumMac)(CustomDataBundle.default(0.U(memShape.getWidth.W)))))
-  val dataIn_validR = RegInit(VecInit(Seq.fill(NumMac)(false.B)))
-
-  for (i <- 0 until NumMac) {
-    io.in(i).ready := ~dataIn_validR(i)
-    when(io.in(i).fire()) {
-      dataIn_R(i).data := io.in(i).bits.data
-      dataIn_validR(i) := true.B
-    }
-  }
-
-
   val batchCnt = for (i <- 0 until NumMac) yield {
     val batchCounter = Counter(ChBatch + 1)
     batchCounter
   }
 
-
-  inQueue.foreach(_.io.clear := false.B)
-
   for (i <- 0 until NumMac) {
-    inQueue(i).io.enq.bits := dataIn_R(i).data.asTypeOf(inQueue(i).io.enq.bits)
-    inQueue(i).io.enq.valid := dataIn_validR(i)
-
-    when(inQueue(i).io.enq.fire()){
-      dataIn_validR(i) := false.B
-    }
 
     mac(i).io.enable.bits <> ControlBundle.active()
     mac(i).io.enable.valid := true.B
 
-    mac(i).io.LeftIO.bits.data := inQueue(i).io.deq.bits.asUInt()
-    mac(i).io.LeftIO.bits.valid := true.B
-    mac(i).io.LeftIO.bits.predicate := true.B
-    mac(i).io.LeftIO.bits.taskID := 0.U
-    mac(i).io.LeftIO.valid := inQueue(i).io.deq.valid & state === sExec
-
-    inQueue(i).io.deq.ready := mac(i).io.LeftIO.ready & state === sExec
+    mac(i).io.LeftIO.bits <> io.in(i).bits
+    mac(i).io.LeftIO.valid := io.in(i).valid & state === sExec
+    io.in(i).ready := mac(i).io.LeftIO.ready & state === sExec
 
     mac(i).io.RightIO.bits := weightQ.io.deq.bits
     mac(i).io.RightIO.valid := weightQ.io.deq.valid & state === sExec
     weightQ.io.deq.ready := mac.map(_.io.RightIO.ready).reduceLeft(_ && _) & state === sExec
-
 
     mac(i).io.Out(0).ready := ~accValid(i) & (batchCnt(i).value < ChBatch.U)
     when(mac(i).io.Out(0).fire()) {
@@ -177,17 +145,6 @@ class Mac1D[L <: vecN, K <: Shapes : OperatorDot : OperatorReduction]
   }
 
 
-
-  /*val memTensorRows = Mux(io.rowWidth * ChBatch.U * macShape.getLength().U  % tpMem.tensorWidth.U === 0.U,
-    io.rowWidth * ChBatch.U * macShape.getLength().U / tpMem.tensorWidth.U,
-    (io.rowWidth * ChBatch.U * macShape.getLength().U /tpMem.tensorWidth.U) + 1.U)
-
-  val readTensorCnt = Counter(io.tpWgt.memDepth)
-  when (dataIn_validR.reduceLeft(_ && _) && inQueue.map(_.io.enq.ready).reduceLeft(_ && _)) {
-    readTensorCnt.inc()
-  }*/
-
-
   when (io.Out.map(_.fire()).reduceLeft(_ && _)){
     outCnt.inc()
   }
@@ -196,9 +153,11 @@ class Mac1D[L <: vecN, K <: Shapes : OperatorDot : OperatorReduction]
     readWgtCnt.inc()
   }
 
+  io.doneLoadWgt := false.B
+
   switch(state) {
     is (sIdle) {
-      when(io.start) {
+      when(io.startLoadWgt) {
         state := sReadWeight
       }
     }
@@ -206,10 +165,15 @@ class Mac1D[L <: vecN, K <: Shapes : OperatorDot : OperatorReduction]
       loadWeight.io.GepAddr.valid := true.B
       when(readWgtCnt.value === ChBatch.U){
         readWgtCnt.value := 0.U
+        state := sMacStart
+      }
+    }
+    is(sMacStart){
+      io.doneLoadWgt := true.B
+      when(io.startMac){
         state := sExec
       }
     }
-
     is (sExec) {
         when (outCnt.value === io.rowWidth) {
         state := sFinish
@@ -217,8 +181,7 @@ class Mac1D[L <: vecN, K <: Shapes : OperatorDot : OperatorReduction]
       }
     }
     is (sFinish){
-        io.done := true.B
-        inQueue.foreach(_.io.clear := true.B)
+        io.doneMac := true.B
         io.last := true.B
         state := sIdle
 

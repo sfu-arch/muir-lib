@@ -6,7 +6,7 @@ import chisel3.util._
 import config._
 import dnn.memory._
 import dnn.types.{OperatorDot, OperatorReduction}
-import dnnnode.{Mac1D, Mac2dTensor, MacPW, TLoad}
+import dnnnode.{Mac1D, Mac2dTensor, MacPW, PWShapeTransformer, TLoad}
 import interfaces.ControlBundle
 import node.{Shapes, vecN}
 import shell._
@@ -54,11 +54,12 @@ class PW_Block[L <: vecN, K <: Shapes : OperatorDot : OperatorReduction]
   extends PW_BlockIO(MACperCH, Fx, wgtType, memTensorType)(memShape)(CxShape)(p) {
 
 
-  val
-  inDMA_act =  Module(new inDMA_act_HWC(MACperCH, 1, memTensorType)(memShape))
+  val inDMA_act =  Module(new inDMA_act_HWC(MACperCH, 1, memTensorType)(memShape))
+
+  val PWShapeTransformer = Module(new PWShapeTransformer(MACperCH, Fx, 20, memTensorType)(CxShape))
 
   val mac1D = for (i <- 0 until Fx) yield {
-    val mac1d = Module(new Mac1D(MACperCH, ChBatch, 20,  wgtType, memTensorType)(memShape)(CxShape))
+    val mac1d = Module(new Mac1D(MACperCH, ChBatch, 20,  wgtType)(CxShape))
     mac1d
   }
 
@@ -74,7 +75,7 @@ class PW_Block[L <: vecN, K <: Shapes : OperatorDot : OperatorReduction]
 
   val readTensorCnt = Counter(tpMem.memDepth)
 
-  val sIdle :: sWgtRead :: sActRead :: sExec :: Nil = Enum(4)
+  val sIdle :: sWgtRead :: sActRead :: sMacLoadWgt :: sExec :: Nil = Enum(5)
   val state = RegInit(sIdle)
 
   /* ================================================================== *
@@ -89,7 +90,6 @@ class PW_Block[L <: vecN, K <: Shapes : OperatorDot : OperatorReduction]
   inDMA_wgt.io.numWeight := 15.U
   inDMA_wgt.io.start := false.B
   inDMA_wgt.io.baddr := io.wgt_baddr
-//  inDMA_wgt.io.start := io.start
 
   for (i <- 0 until Fx) {
     wgtCtrl.io.ReadIn(i) <> mac1D(i).io.wgtTensorReq
@@ -104,18 +104,12 @@ class PW_Block[L <: vecN, K <: Shapes : OperatorDot : OperatorReduction]
   inDMA_act.io.rowWidth := io.rowWidth
   inDMA_act.io.depth := CxShape.getLength().U * ChBatch.U
   inDMA_act.io.baddr := io.inBaseAddr
+
+  PWShapeTransformer.io.start := inDMA_act.io.done
+  PWShapeTransformer.io.rowWidth := io.rowWidth
+  PWShapeTransformer.io.depth := CxShape.getLength().U * ChBatch.U
   for (i <- 0 until MACperCH) {
-//    load(i).io.enable.bits <> ControlBundle.active()
-//    load(i).io.enable.valid := true.B
-//    load(i).io.GepAddr.valid := false.B
-//    load(i).io.GepAddr.bits.taskID := 0.U
-//    load(i).io.GepAddr.bits.predicate := true.B
-//    load(i).io.GepAddr.bits.data := readTensorCnt.value
-    inDMA_act.io.tensor(i).wr <> DontCare
-    inDMA_act.io.tensor(i).rd.idx.bits := readTensorCnt.value
-    inDMA_act.io.tensor(i).rd.idx.valid := mac1D.map(_.io.in(i).ready).reduceLeft(_ && _) & state === sExec
-//    inDMA_act.io.ReadIn(i)(0) <> load(i).io.tensorReq
-//    load(i).io.tensorResp <> inDMA_act.io.ReadOut(i)(0)
+    inDMA_act.io.tensor(i) <> PWShapeTransformer.io.tensor(i)
     io.vme_rd(i) <> inDMA_act.io.vme_rd(i)
   }
   /* ================================================================== *
@@ -129,12 +123,7 @@ class PW_Block[L <: vecN, K <: Shapes : OperatorDot : OperatorReduction]
     mac1D(i).io.rowWidth := io.rowWidth
 
     for (j <- 0 until MACperCH) {
-//      mac1D(i).io.in(j) <> load(j).io.Out(i)
-      mac1D(i).io.in(j).valid := inDMA_act.io.tensor(j).rd.data.valid
-      mac1D(i).io.in(j).bits.data := inDMA_act.io.tensor(j).rd.data.bits.asUInt()
-      mac1D(i).io.in(j).bits.valid := true.B
-      mac1D(i).io.in(j).bits.predicate := true.B
-      mac1D(i).io.in(j).bits.taskID := 0.U
+      mac1D(i).io.in(j) <> PWShapeTransformer.io.Out(j)(i)
 
       outDMA_act(i).io.in(j) <> mac1D(i).io.Out(j)
       io.vme_wr(i*MACperCH + j) <> outDMA_act(i).io.vme_wr(j)
@@ -143,13 +132,14 @@ class PW_Block[L <: vecN, K <: Shapes : OperatorDot : OperatorReduction]
     outDMA_act(i).io.baddr := io.outBaseAddr + (i.U * (MACperCH.U * io.rowWidth))
 
     outDMA_act(i).io.last.foreach(a => a := mac1D(i).io.last)
-    outDMA_act(i).io.start := mac1D(i).io.done
+    outDMA_act(i).io.start := mac1D(i).io.doneMac
     when(outDMA_act(i).io.done) {
       doneR(i) := true.B
     }
   }
 
-  mac1D.foreach(_.io.start := false.B)
+  mac1D.foreach(_.io.startLoadWgt := false.B)
+  mac1D.foreach(_.io.startMac := false.B)
 
   /* ================================================================== *
       *                        Done Signal                              *
@@ -168,10 +158,6 @@ class PW_Block[L <: vecN, K <: Shapes : OperatorDot : OperatorReduction]
     readTensorCnt.inc()
   }
 
-//  when (load.map(_.io.GepAddr.ready).reduceLeft(_ && _) && state === sExec) {
-//    readTensorCnt.inc()
-//    load.foreach(_.io.GepAddr.valid := true.B)
-//  }
   when(readTensorCnt.value === memTensorRows) {
     readTensorCnt.value := 0.U
   }
@@ -188,12 +174,18 @@ class PW_Block[L <: vecN, K <: Shapes : OperatorDot : OperatorReduction]
       when(inDMA_wgt.io.done) {
         state := sActRead
         inDMA_act.io.start := true.B
+        mac1D.foreach(_.io.startLoadWgt := true.B)
       }
     }
     is(sActRead) {
       when(inDMA_act.io.done){
+        state := sMacLoadWgt
+      }
+    }
+    is(sMacLoadWgt){
+      when(mac1D.map(_.io.doneLoadWgt).reduceLeft(_ && _)){
+        mac1D.foreach(_.io.startMac := true.B)
         state := sExec
-        mac1D.foreach(_.io.start := true.B)
       }
     }
     is(sExec){
