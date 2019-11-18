@@ -30,7 +30,7 @@ import junctions.SplitCallNew
 import node.{FXmatNxN, UnTypStore, matNxN, vecN}
 import shell._
 import dnn.memory.ISA._
-import dnn_layers.{DW_Block, DW_PW_Block, PDP_Block}
+import dnn_layers.{DW_Block, DW_PW_Block, PW_Block}
 import dnnnode.{Mac2dTensor, ShapeTransformer, StoreQueue, TLoad, TStore, WeightShapeTransformer}
 import firrtl.transforms.DontTouchAnnotation
 
@@ -55,9 +55,8 @@ class DNNCore(implicit val p: Parameters) extends Module {
   val cycle_count = new Counter(2000)
 
   val NumChannel = 3
-
   val MACperCH = 4
-  val Fx = 1
+  val Fx = 2
 
   val NumPWFilter = 2
 
@@ -75,7 +74,7 @@ class DNNCore(implicit val p: Parameters) extends Module {
 //  val conv = Module(new DW_PW_Block(NumChannel, MACperCH, NumPWFilter, "wgt", "wgtPW", "inp")
 //                   (memShape)(wgtDWShape)(wgtPWShape)(macDWShape)(macPWShape))
 
-  val conv = Module(new PDP_Block(MACperCH, Fx, 5, "wgtPW", "inp")(memShape)(CxShape))
+  val conv = Module(new PW_Block(MACperCH, Fx, 5, "wgtPW", "inp")(memShape)(CxShape))
 
   /* ================================================================== *
      *                      Basic Block signals                         *
@@ -83,8 +82,6 @@ class DNNCore(implicit val p: Parameters) extends Module {
   conv.io.wgtIndex := 0.U
 
   conv.io.rowWidth := 3.U
-
-
 
   /* ================================================================== *
      *                           Connections                            *

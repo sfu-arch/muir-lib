@@ -21,7 +21,7 @@ import shell._
   * managed by TensorPadCtrl. The TensorDataCtrl is in charge of
   * handling the way tensors are stored on the scratchpads.
   */
-class PDP_BlockIO[gen <: vecN, gen2 <: Shapes]
+class PW_BlockIO[gen <: vecN, gen2 <: Shapes]
 (MACperCH: Int, Fx: Int, wgtType: String = "none", memTensorType: String = "none")
 (memShape: => gen)(CxShape: => gen2)(implicit val p: Parameters)
   extends Module {
@@ -48,13 +48,14 @@ class PDP_BlockIO[gen <: vecN, gen2 <: Shapes]
   })
 }
 
-class PDP_Block[L <: vecN, K <: Shapes : OperatorDot : OperatorReduction]
+class PW_Block[L <: vecN, K <: Shapes : OperatorDot : OperatorReduction]
 (MACperCH: Int, Fx: Int, ChBatch: Int, wgtType: String = "none", memTensorType: String = "none")
 (memShape: => L)(CxShape: => K)(implicit p: Parameters)
-  extends PDP_BlockIO(MACperCH, Fx, wgtType, memTensorType)(memShape)(CxShape)(p) {
+  extends PW_BlockIO(MACperCH, Fx, wgtType, memTensorType)(memShape)(CxShape)(p) {
 
 
-  val inDMA_act =  Module(new inDMA_act_HWC(MACperCH, 1, memTensorType)(memShape))
+  val
+  inDMA_act =  Module(new inDMA_act_HWC(MACperCH, 1, memTensorType)(memShape))
 
   val load = for (i <- 0 until MACperCH) yield {
     val loadNode = Module(new TLoad(NumPredOps = 0, NumSuccOps = 0, NumOuts = Fx, ID = 0, RouteID = 0)(memShape))
@@ -79,7 +80,7 @@ class PDP_Block[L <: vecN, K <: Shapes : OperatorDot : OperatorReduction]
 
   val readTensorCnt = Counter(tpMem.memDepth)
 
-  val sIdle :: sWgtRead :: sActRead :: sExec :: sFinish :: Nil = Enum(5)
+  val sIdle :: sWgtRead :: sActRead :: sExec :: Nil = Enum(4)
   val state = RegInit(sIdle)
 
   /* ================================================================== *
@@ -190,11 +191,6 @@ class PDP_Block[L <: vecN, K <: Shapes : OperatorDot : OperatorReduction]
       }
     }
     is(sExec){
-      when(mac1D.map(_.io.done).reduceLeft(_ && _)){
-        state := sFinish
-      }
-    }
-    is(sFinish){
       when(doneR.reduceLeft(_ && _)) {
         io.done := true.B
         state := sIdle

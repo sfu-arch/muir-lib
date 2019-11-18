@@ -4,7 +4,7 @@ package dnn.memory
 import chisel3._
 import chisel3.util.Decoupled
 import config._
-import interfaces.{TensorReadReq, TensorReadResp}
+import interfaces.{CustomDataBundle, TensorReadReq, TensorReadResp}
 import node.Shapes
 import shell._
 //import vta.util.config._

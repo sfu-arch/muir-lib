@@ -7,19 +7,19 @@ import dnn.types.{OperatorDot, OperatorReduction}
 import interfaces.CustomDataBundle
 import node.{HandShakingIONPS, HandShakingNPS, Shapes}
 
-class MacIO[gen <: Shapes](NumOuts: Int)(left: => gen)(implicit p: Parameters)
+class MacIO[gen <: Shapes](NumOuts: Int)(shape: => gen)(implicit p: Parameters)
   extends HandShakingIONPS(NumOuts)(new CustomDataBundle(UInt(p(XLEN).W))) {
-  val LeftIO = Flipped(Decoupled(new CustomDataBundle(UInt(left.getWidth.W))))
-  val RightIO = Flipped(Decoupled(new CustomDataBundle(UInt(left.getWidth.W))))
-  override def cloneType = new MacIO(NumOuts)(left).asInstanceOf[this.type]
+  val LeftIO = Flipped(Decoupled(new CustomDataBundle(UInt(shape.getWidth.W))))
+  val RightIO = Flipped(Decoupled(new CustomDataBundle(UInt(shape.getWidth.W))))
+  override def cloneType = new MacIO(NumOuts)(shape).asInstanceOf[this.type]
 }
 
-class MacNode[L <: Shapes : OperatorDot : OperatorReduction](NumOuts: Int, ID: Int, lanes: Int)(left: => L)(implicit p: Parameters)
+class MacNode[L <: Shapes : OperatorDot : OperatorReduction](NumOuts: Int, ID: Int, lanes: Int)(shape: => L)(implicit p: Parameters)
   extends HandShakingNPS(NumOuts, ID)(new CustomDataBundle(UInt(p(XLEN).W)))(p) {
-  override lazy val io = IO(new MacIO(NumOuts)(left))
+  override lazy val io = IO(new MacIO(NumOuts)(shape))
 
-  val dotNode = Module(new DotNode(NumOuts = 1, ID = ID, left.getLength(), "Mul")(left))
-  val reduceNode = Module(new ReduceNode(NumOuts = 1, ID = ID, false, "Add")(left))
+  val dotNode = Module(new DotNode(NumOuts = 1, ID = ID, lanes, "Mul")(shape))
+  val reduceNode = Module(new ReduceNode(NumOuts = 1, ID = ID, false, "Add")(shape))
 
   // Connect IO to dotNode
   dotNode.io.enable <> io.enable
