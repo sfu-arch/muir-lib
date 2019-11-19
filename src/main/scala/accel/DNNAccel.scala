@@ -122,10 +122,10 @@ class DNNAccel(implicit p: Parameters) extends Module {
 
 
 
-  when(io.host.ar.fire) {
+  /*when(io.host.ar.fire) {
     //debug(0) := true.B
     debug((io.host.ar.bits.addr >> 2).asUInt()) := true.B
-  }
+  }*/
 
   /*when(io.host.r.fire) {
     debug(io.host.r.bits.data) := true.B
