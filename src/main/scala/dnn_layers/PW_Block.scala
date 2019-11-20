@@ -45,6 +45,11 @@ class PW_BlockIO[gen <: vecN, gen2 <: Shapes]
     val vme_wgt_rd = new VMEReadMaster
 
     val wgt_baddr = Input(UInt(mp.addrBits.W))
+
+    val inDMA_act_time = Output(UInt(mp.addrBits.W))
+    val inDMA_wgt_time = Output(UInt(mp.addrBits.W))
+    val outDMA_act_time = Output(UInt(mp.addrBits.W))
+    val mac_time = Output(UInt(mp.addrBits.W))
   })
 }
 
@@ -53,6 +58,15 @@ class PW_Block[L <: vecN, K <: Shapes : OperatorDot : OperatorReduction]
 (memShape: => L)(CxShape: => K)(implicit p: Parameters)
   extends PW_BlockIO(MACperCH, Fx, wgtType, memTensorType)(memShape)(CxShape)(p) {
 
+  val inDMA_act_time = Counter(2000)
+  val inDMA_wgt_time = Counter(2000)
+  val outDMA_act_time = Counter(2000)
+  val mac_time = Counter(2000)
+
+  io.inDMA_act_time := inDMA_act_time.value
+  io.inDMA_wgt_time := inDMA_wgt_time.value
+  io.outDMA_act_time := outDMA_act_time.value
+  io.mac_time := mac_time.value
 
   val inDMA_act =  Module(new inDMA_act_HWC(MACperCH, 1, memTensorType)(memShape))
 
@@ -162,6 +176,16 @@ class PW_Block[L <: vecN, K <: Shapes : OperatorDot : OperatorReduction]
     readTensorCnt.value := 0.U
   }
 
+  when(state === sIdle){
+    inDMA_act_time.value := 0.U
+    inDMA_wgt_time.value := 0.U
+    outDMA_act_time.value := 0.U
+    mac_time.value := 0.U
+  }
+
+  when(state === sWgtRead) {inDMA_wgt_time.inc()}
+  when(state === sActRead) {inDMA_act_time.inc()}
+  when(state === sExec) {mac_time.inc()}
 
   switch(state) {
     is(sIdle) {

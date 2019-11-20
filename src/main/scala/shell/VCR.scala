@@ -31,7 +31,7 @@ import config._
 case class VCRParams()
 {
   val nCtrl = 1
-  val nECnt = 1
+  val nECnt = 4 //1
   val nVals = 2
   val nPtrs = 4
   val regBits = 32

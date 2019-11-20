@@ -89,6 +89,10 @@ class DNNCore(implicit val p: Parameters) extends Module {
 
   io.vcr.ecnt(0).bits := cycle_count.value
 
+  io.vcr.ecnt(1).bits := conv.io.inDMA_act_time
+  io.vcr.ecnt(2).bits := conv.io.inDMA_wgt_time
+  io.vcr.ecnt(3).bits := conv.io.mac_time
+
   for (i <- 0 until MACperCH) {
     io.vme.rd(i) <> conv.io.vme_rd(i)
   }
@@ -127,6 +131,9 @@ class DNNCore(implicit val p: Parameters) extends Module {
   val last = state === sExec && conv.io.done
   io.vcr.finish := last
   io.vcr.ecnt(0).valid := last
+  io.vcr.ecnt(1).valid := last
+  io.vcr.ecnt(2).valid := last
+  io.vcr.ecnt(3).valid := last
 
   when(state =/= sIdle) {
     cycle_count.inc()
