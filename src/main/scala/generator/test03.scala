@@ -68,20 +68,20 @@ class test03DF(implicit p: Parameters) extends test03DFIO()(p) {
   val select_1 = Module(new SelectNode(NumOuts = 1, ID = 1)(fast = false))
 
   //  %5 = sub nsw i32 %0, %4, !UID !5
-  val binaryOp_2 = Module(new ComputeNode(NumOuts = 1, ID = 2, opCode = "sub")(sign = false, Debug = true))
+  val binaryOp_2 = Module(new ComputeNode(NumOuts = 1, ID = 2, opCode = "sub")(sign = false, Debug = true , GuardVal = 45))
 
   //  %6 = select i1 %3, i32 0, i32 %0, !UID !6
   val select_3 = Module(new SelectNode(NumOuts = 1, ID = 3)(fast = false))
 
   //  %7 = sub nsw i32 %1, %6, !UID !7
   //-----------------------------pv, what we track, numouts ++d
-  val binaryOp_4 = Module(new ComputeNode(NumOuts = 1, ID = 4, opCode = "sub")(sign = false, Debug = true))
+  val binaryOp_4 = Module(new ComputeNode(NumOuts = 1, ID = 4, opCode = "sub")(sign = false, Debug = true ,  GuardVal = 45))
   /* same C
   val buf_0 = Module(new DebugBufferNode(ID = 8, RouteID = 1, Bore_ID = 4))
   same C */
 
   //  %8 = mul nsw i32 %5, %7, !UID !8
-  val binaryOp_5 = Module(new ComputeNode(NumOuts = 1, ID = 5, opCode = "mul")(sign = false, Debug = true))
+  val binaryOp_5 = Module(new ComputeNode(NumOuts = 1, ID = 5, opCode = "mul")(sign = false, Debug = true , GuardVal = 225 ))
 
   //  ret i32 %8, !UID !9, !BB_UID !10
   val ret_6 = Module(new RetNode2(retTypes = List(32), ID = 7))

@@ -13,7 +13,7 @@ import util._
 import utility.UniformPrintfs
 
 
-class ComputeNodeIO(NumOuts: Int, Debug: Boolean, GuardVal: UInt = 0.U)
+class ComputeNodeIO(NumOuts: Int, Debug: Boolean, GuardVal: Int = 0)
                    (implicit p: Parameters)
   extends HandShakingIONPS(NumOuts, Debug)(new DataBundle) {
   // LeftIO: Left input data for computation
@@ -32,7 +32,7 @@ class ComputeNodeIO(NumOuts: Int, Debug: Boolean, GuardVal: UInt = 0.U)
 }
 
 class ComputeNode(NumOuts: Int, ID: Int, opCode: String)
-                 (sign: Boolean, Debug: Boolean = false, GuardVal: UInt = 0.U)
+                 (sign: Boolean, Debug: Boolean = false, GuardVal: Int = 0)
                  (implicit p: Parameters,
                   name: sourcecode.Name,
                   file: sourcecode.File)
@@ -68,6 +68,7 @@ class ComputeNode(NumOuts: Int, ID: Int, opCode: String)
   val s_IDLE :: s_COMPUTE :: Nil = Enum(2)
   val state = RegInit(s_IDLE)
 
+  val GuardVal_reg = RegInit(GuardVal.U)
   /**
     * val debug = RegInit(0.U)
     * debug := io.DebugIO.get
@@ -159,13 +160,20 @@ class ComputeNode(NumOuts: Int, ID: Int, opCode: String)
   switch(state) {
     is(s_IDLE) {
       when(enable_valid_R && left_valid_R && right_valid_R) {
-        if (Debug && FU.io.out != GuardVal){
+        if (Debug) {
+          when (FU.io.out =/= GuardVal_reg){
           //make flag true
-          GuardFlag =  1.U
-          io.Out.foreach(_.bits := DataBundle(FU.io.out, taskID, predicate))
-          io.Out.foreach(_.valid := true.B)
-          ValidOut()
+            GuardFlag =  1.U
+            //io.Out.foreach(_.bits := DataBundle(GuardVal, taskID, predicate))
+           io.Out.foreach(_.bits := DataBundle(GuardVal_reg, taskID, predicate))
+           io.Out.foreach(_.valid := true.B)
+           ValidOut()
+          } . otherwise {
+            GuardFlag =  0.U
+            io.Out.foreach(_.bits := DataBundle(FU.io.out, taskID, predicate))
+            io.Out.foreach(_.valid := true.B)
           }
+        }
         else{
           io.Out.foreach(_.bits := DataBundle(FU.io.out, taskID, predicate))
           io.Out.foreach(_.valid := true.B)
