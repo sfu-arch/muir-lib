@@ -30,7 +30,7 @@ import junctions.SplitCallNew
 import node.{FXmatNxN, UnTypStore, matNxN, vecN}
 import shell._
 import dnn.memory.ISA._
-import dnn_layers.{DW_Block, DW_PW_Block, PW_Block}
+import dnn_layers.{DW_Block, DW_PW_Block, PDP_Block, PW_Block}
 import dnnnode.{Mac2dTensor, ShapeTransformer, StoreQueue, TLoad, TStore, WeightShapeTransformer}
 import firrtl.transforms.DontTouchAnnotation
 
@@ -61,11 +61,12 @@ class DNNCore(implicit val p: Parameters) extends Module {
   val NumPWFilter = 2
 
   val memShape = new vecN(16, 0, false)
+
   val macDWShape = new matNxN(3, false)
-  val macPWShape = new vecN(NumChannel, 0, false)
+  val macPW2Shape = new vecN(Fx, 0, false)
 
   val wgtDWShape = new vecN(9, 0, false)
-  val wgtPWShape = new vecN(NumChannel, 0, false)
+  val wgtPW2Shape = new vecN(Fx, 0, false)
 
   val CxShape = new vecN(5, 0, false)
 
@@ -74,12 +75,19 @@ class DNNCore(implicit val p: Parameters) extends Module {
 //  val conv = Module(new DW_PW_Block(NumChannel, MACperCH, NumPWFilter, "wgt", "wgtPW", "inp")
 //                   (memShape)(wgtDWShape)(wgtPWShape)(macDWShape)(macPWShape))
 
-  val conv = Module(new PW_Block(MACperCH, Fx, 5, "wgtPW", "inp")(memShape)(CxShape))
+//  val conv = Module(new PW_Block(MACperCH, Fx, 5, "wgtPW", "inp")(memShape)(CxShape))
+  val conv = Module(new PDP_Block(MACperCH, Fx, 5, NumPWFilter,
+                    "wgtPW1", "wgt", "wgtPW2", "inp")
+                    (memShape)(CxShape)
+                    (wgtDWShape)(macDWShape)
+                    (wgtPW2Shape)(macPW2Shape))
 
   /* ================================================================== *
      *                      Basic Block signals                         *
      * ================================================================== */
-  conv.io.wgtIndex := 0.U
+  conv.io.wgtPW1index := 0.U
+  conv.io.wgtDWindex := 0.U
+  conv.io.wgtPW2index := 0.U
 
   conv.io.rowWidth := 3.U
 
@@ -89,25 +97,30 @@ class DNNCore(implicit val p: Parameters) extends Module {
 
   io.vcr.ecnt(0).bits := cycle_count.value
 
-  io.vcr.ecnt(1).bits := conv.io.inDMA_act_time
-  io.vcr.ecnt(2).bits := conv.io.inDMA_wgt_time
-  io.vcr.ecnt(3).bits := conv.io.mac_time
+  io.vcr.ecnt(1).bits := 1.U //conv.io.inDMA_act_time
+  io.vcr.ecnt(2).bits := 2.U//conv.io.inDMA_wgt_time
+  io.vcr.ecnt(3).bits := 3.U//conv.io.mac_time
 
   for (i <- 0 until MACperCH) {
     io.vme.rd(i) <> conv.io.vme_rd(i)
   }
 
-  for (i <- 0 until Fx * MACperCH) {
+  for (i <- 0 until NumPWFilter * MACperCH) {
     io.vme.wr(i) <> conv.io.vme_wr(i)
   }
 
-  io.vme.rd(4) <> conv.io.vme_wgt_rd
+  io.vme.rd(MACperCH) <> conv.io.vme_wgtPW1_rd
+  io.vme.rd(MACperCH + 1) <> conv.io.vme_wgtDW_rd
+  io.vme.rd(MACperCH + 2) <> conv.io.vme_wgtPW2_rd
 //  io.vme.rd(13) <> conv.io.vme_wgtPW_rd
 
   conv.io.start := false.B
 
   conv.io.inBaseAddr := io.vcr.ptrs(0)
-  conv.io.wgt_baddr := io.vcr.ptrs(1)
+
+  conv.io.wgtPW1_baddr := io.vcr.ptrs(1)
+  conv.io.wgtDW_baddr := io.vcr.ptrs(1)
+  conv.io.wgtPW2_baddr := io.vcr.ptrs(1)
 
   conv.io.outBaseAddr := io.vcr.ptrs(2)
 

@@ -3,12 +3,12 @@ if [ -z "${CONCURRENT}" ]; then
 fi
 
 # Set family to either "Cyclone V" or "Arria 10"
-#FAMILY="Cyclone V"
-#PART=5CSEMA5F31C6
+FAMILY="Cyclone V"
+PART=5CSEMA5F31C6
 
 #
-FAMILY="Arria 10"
-PART=10AS016E4F29E3LG
+# FAMILY="Arria 10"
+# PART=10AS016E4F29E3LG
 
 USE_VCD=ON
 
@@ -18,8 +18,9 @@ APPS=( \
     #'shiftTop'
     #'xorTop'
     #'stencilTop'\
-    #'bbgemmTop'\
-    'test_09_conv2d_a_ir_4Top'
+    'bbgemmTop'\
+    #'test_09_conv2d_a_ir_4Top'
+    # 'DNNAccel'
     #'covarianceTop'\
     #'test18Top'\
     #'testf02Top'\
