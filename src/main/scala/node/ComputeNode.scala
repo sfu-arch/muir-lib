@@ -117,16 +117,17 @@ class ComputeNode(NumOuts: Int, ID: Int, opCode: String)
   }
 
   hs*/
-  var test_value = Wire(UInt((xlen).W))
-  var log_id = Wire(UInt((4).W))
+  //var test_value = Wire(UInt((xlen).W))
+  var log_id = WireInit(ID.U((4).W))
   var log_out = WireInit(0.U((xlen-5).W))
-  var GuardFlag = Wire(UInt(1.W))
+  var GuardFlag = WireInit(0.U(1.W))
 
-  log_id := ID.U
-  GuardFlag := 0.U
-  log_out := FU.io.out.asUInt()
-  test_value := Cat(GuardFlag,log_id, log_out)
-
+  //log_id := ID.U
+  //test_value := Cat(GuardFlag,log_id, log_out)
+  val test_value = WireInit(0.U(xlen.W))
+  test_value := Cat(GuardFlag, log_id, log_out)
+//  val test_value = Cat("b1111".U, Cat("b0011".U, log_out))
+  //test_value := log_out
   if(Debug){
     val test_value_valid = Wire(Bool())
     val test_value_ready = Wire(Bool())
@@ -160,27 +161,31 @@ class ComputeNode(NumOuts: Int, ID: Int, opCode: String)
   switch(state) {
     is(s_IDLE) {
       when(enable_valid_R && left_valid_R && right_valid_R) {
+        //********************************************************************************
         if (Debug) {
-          when (FU.io.out =/= GuardVal_reg){
-          //make flag true
-            GuardFlag =  1.U
-            //io.Out.foreach(_.bits := DataBundle(GuardVal, taskID, predicate))
-           io.Out.foreach(_.bits := DataBundle(GuardVal_reg, taskID, predicate))
-           io.Out.foreach(_.valid := true.B)
-           ValidOut()
+          when (FU.io.out =/= GuardVal.U){
+            GuardFlag :=  1.U
+            io.Out.foreach(_.bits := DataBundle(GuardVal.U, taskID, predicate))
+//            io.Out.foreach(_.bits := DataBundle(FU.io.out, taskID, predicate))
+            io.Out.foreach(_.valid := true.B)
+            log_out := FU.io.out.asUInt()
+
           } . otherwise {
-            GuardFlag =  0.U
+            GuardFlag :=  0.U
             io.Out.foreach(_.bits := DataBundle(FU.io.out, taskID, predicate))
             io.Out.foreach(_.valid := true.B)
+            log_out := FU.io.out.asUInt()
+            ValidOut()
           }
         }
         else{
           io.Out.foreach(_.bits := DataBundle(FU.io.out, taskID, predicate))
           io.Out.foreach(_.valid := true.B)
+          log_out := FU.io.out.asUInt()
           ValidOut()
         }
+        //*********************************************************************************
         state := s_COMPUTE
-        log_out := FU.io.out.asUInt()
         if (log) {
           printf("[LOG] " + "[" + module_name + "] " + "[TID->%d] [COMPUTE] " +
             node_name + ": Output fired @ %d, Value: %d (%d + %d)\n", taskID, cycleCount, FU.io.out, left_R.data, right_R.data)

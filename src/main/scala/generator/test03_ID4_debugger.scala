@@ -49,7 +49,7 @@ class Debug03DF(implicit p: Parameters) extends Debug03IO()(p) {
   buf_1.io.Enable := io.Enable
   val buf_2 = Module(new DebugBufferNode(ID = 3, RouteID = 2, Bore_ID = 5, node_cnt = 2.U))
   buf_2.io.Enable := io.Enable
-  val buf_3 = Module(new DebugBufferNode(ID = 4, RouteID = 2, Bore_ID = 0, node_cnt = 3.U))
+  val buf_3 = Module(new DebugBufferNode(ID = 4, RouteID = 3, Bore_ID = 0, node_cnt = 3.U))
   buf_3.io.Enable := io.Enable
 
   //-----------------------------------p
