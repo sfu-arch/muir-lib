@@ -60,7 +60,7 @@ class DNNCoreDwPw(implicit val p: Parameters) extends Module {
 
 //  val DW_B1 = Module(new DW_Block(3, "wgt", "inp")(memShape)(wgtDWShape)(macDWShape))
 
-  val conv = Module(new DW_PW_Block(NumChannel, MACperCH, NumPWFilter, "wgt", "wgtPW", "inp")
+  val conv = Module(new DW_PW_Block(NumChannel, MACperCH, NumPWFilter, "wgt", "wgtPW1", "inp")
                    (memShape)(wgtDWShape)(wgtPWShape)(macDWShape)(macPWShape))
 
   /* ================================================================== *
