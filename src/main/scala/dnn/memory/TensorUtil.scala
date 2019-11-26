@@ -36,19 +36,29 @@ class TensorParams(tensorType: String = "none")(implicit p: Parameters)
   val errorMsg =
     s"\n\n[VTA] [TensorParams] only inp, wgt, acc, and out supported\n\n"
 
-  require(tensorType == "inp" || tensorType == "wgt" || tensorType == "wgtPW1" || tensorType == "wgtPW2"
+  require(tensorType == "inp" || tensorType == "extWgtDW" || tensorType == "extWgtPW1" || tensorType == "extWgtPW2"
+            || tensorType == "intWgtDW" || tensorType == "intWgtPW1" || tensorType == "intWgtPW2"
             || tensorType == "acc" || tensorType == "out",
           errorMsg)
 
   val (tensorLength, tensorWidth, tensorElemBits) =
     if (tensorType == "inp")
       (p(CoreKey).batch, p(CoreKey).blockIn, p(CoreKey).inpBits)
-    else if (tensorType == "wgt")
-//      (p(CoreKey).blockOut, p(CoreKey).blockIn, p(CoreKey).wgtBits)
+
+    else if (tensorType == "extWgtDW")
+          (p(CoreKey).batch, p(CoreKey).blockIn, p(CoreKey).wgtBits)
+
+    else if (tensorType == "extWgtPW1")
+          (p(CoreKey).batch, p(CoreKey).blockIn, p(CoreKey).wgtBits)
+
+    else if (tensorType == "extWgtPW2")
+          (p(CoreKey).batch, p(CoreKey).blockIn, p(CoreKey).wgtBits)
+
+    else if (tensorType == "intWgtDW")
       (p(CoreKey).batch, p(CoreKey).kernelSize, p(CoreKey).wgtBits)
-    else if (tensorType == "wgtPW1")
+    else if (tensorType == "intWgtPW1")
       (p(CoreKey).batch, p(CoreKey).PW1kernelSize, p(CoreKey).wgtBits)
-    else if (tensorType == "wgtPW2")
+    else if (tensorType == "intWgtPW2")
       (p(CoreKey).batch, p(CoreKey).PW2kernelSize, p(CoreKey).wgtBits)
     else if (tensorType == "acc")
       (p(CoreKey).batch, p(CoreKey).blockOut, p(CoreKey).accBits)
@@ -61,12 +71,20 @@ class TensorParams(tensorType: String = "none")(implicit p: Parameters)
   val memDepth =
     if (tensorType == "inp")
       p(CoreKey).inpMemDepth
-    else if (tensorType == "wgt")
-      p(CoreKey).wgtMemDepth
-    else if (tensorType == "wgtPW1")
-      p(CoreKey).wgtMemDepth
-    else if (tensorType == "wgtPW2")
-      p(CoreKey).wgtMemDepth
+
+    else if (tensorType == "extWgtDW")
+      p(CoreKey).extWgtDMemDepth
+    else if (tensorType == "extWgtPW1")
+      p(CoreKey).extWgtP1MemDepth
+    else if (tensorType == "extWgtPW2")
+      p(CoreKey).extWgtP2MemDepth
+
+    else if (tensorType == "intWgtDW")
+      p(CoreKey).intWgtDMemDepth
+    else if (tensorType == "intWgtPW1")
+      p(CoreKey).intWgtP1MemDepth
+    else if (tensorType == "intWgtPW2")
+      p(CoreKey).intWgtP2MemDepth
     else if (tensorType == "acc")
       p(CoreKey).accMemDepth
     else
@@ -358,12 +376,18 @@ class TensorDataCtrl(tensorType: String = "none",
   val elemBytes =
     if (tensorType == "inp") {
       (p(CoreKey).batch * p(CoreKey).blockIn * p(CoreKey).inpBits) / 8
-    } else if (tensorType == "wgt") {
-      //      (p(CoreKey).blockOut * p(CoreKey).blockIn * p(CoreKey).wgtBits) / 8
+    } else if (tensorType == "extWgtDW") {
+      (p(CoreKey).batch * p(CoreKey).blockIn * p(CoreKey).wgtBits) / 8
+    } else if (tensorType == "extWgtPW1") {
+      (p(CoreKey).batch * p(CoreKey).blockIn * p(CoreKey).wgtBits) / 8
+    } else if (tensorType == "extWgtPW2") {
+      (p(CoreKey).batch * p(CoreKey).blockIn * p(CoreKey).wgtBits) / 8
+
+    } else if (tensorType == "intWgtDW") {
       (p(CoreKey).batch * p(CoreKey).kernelSize * p(CoreKey).wgtBits) / 8
-    } else if (tensorType == "wgtPW1") {
+    } else if (tensorType == "intWgtPW1") {
       (p(CoreKey).batch * p(CoreKey).PW1kernelSize * p(CoreKey).wgtBits) / 8
-    } else if (tensorType == "wgtPW2") {
+    } else if (tensorType == "intWgtPW2") {
       (p(CoreKey).batch * p(CoreKey).PW2kernelSize * p(CoreKey).wgtBits) / 8
     } else {
       (p(CoreKey).batch * p(CoreKey).blockOut * p(CoreKey).accBits) / 8

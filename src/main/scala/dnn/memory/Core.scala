@@ -33,17 +33,29 @@ case class CoreParams(
     blockIn: Int = 16, //16,
     inpBits: Int = 8,
     wgtBits: Int = 8,
+
     kernelSize: Int = 9,
-    PW1kernelSize: Int = 5,
-    PW2kernelSize: Int = 5,
+    PW1kernelSize: Int = 20,
+    PW2kernelSize: Int = 20,
+
     uopBits: Int = 32,
     accBits: Int = 32,
     outBits: Int = 8,
     uopMemDepth: Int = 512,
-    inpMemDepth: Int = 512,
+    inpMemDepth: Int = 2660, //512
+
     wgtMemDepth: Int = 512,
+
+    extWgtP1MemDepth: Int = 475,
+    extWgtDMemDepth: Int = 12,
+    extWgtP2MemDepth: Int = 13,
+
+    intWgtP1MemDepth: Int = 380,
+    intWgtDMemDepth: Int = 20,
+    intWgtP2MemDepth: Int = 10,
+
     accMemDepth: Int = 512,
-    outMemDepth: Int = 512,
+    outMemDepth: Int = 1330,//512,
     instQueueEntries: Int = 32
 ) {
   require(uopBits % 8 == 0,
@@ -80,10 +92,19 @@ class CoreConfig
           accBits = 32,
           outBits = 8,
           uopMemDepth = 2048,
-          inpMemDepth = 2048,
-          wgtMemDepth = 1024,
+          inpMemDepth = 2048, //2660
+          wgtMemDepth = 512,
+
+          extWgtP1MemDepth = 475,
+          extWgtDMemDepth = 12,
+          extWgtP2MemDepth = 13,
+
+          intWgtP1MemDepth = 380,
+          intWgtDMemDepth = 20,
+          intWgtP2MemDepth = 10,
+
           accMemDepth = 2048,
-          outMemDepth = 2048,
+          outMemDepth = 1330,
           instQueueEntries = 512
         )
     })

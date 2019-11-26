@@ -40,6 +40,12 @@ import shell._
   * directory.
   */
 class DNNCoreDW(implicit val p: Parameters) extends Module {
+  val Hx = 4  //  Number of Rows
+  val Wx = 3
+  val Fx = 2
+  val Px = 2
+  val K = 3
+  val Cx = 5
   val io = IO(new Bundle {
     val vcr = new VCRClient
     val vme = new VMEMaster
@@ -51,7 +57,7 @@ class DNNCoreDW(implicit val p: Parameters) extends Module {
   val macShape = new matNxN(3, false)
   val wgtShape = new vecN(9, 0, false)
 
-  val inDMA_wgt = Module(new inDMA_wgt(20, 100, wgtTensorType = "wgt", memTensorType = "inp")(wgtShape))
+  val inDMA_wgt = Module(new inDMA_wgt(20, 100, intWgtTensorType = "wgt", extWgtTensorType = "inp")(wgtShape))
   val readTensorController2 = Module(new ReadTensorController(1, "wgt")(wgtShape))
 
   val DW_B1 = Module(new DW_Block(3, "wgt", "inp")(memShape)(wgtShape)(macShape))

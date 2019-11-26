@@ -58,7 +58,7 @@ class DW_PW_Block[L <: vecN, K <: Shapes : OperatorDot : OperatorReduction, M <:
     inDMA
   }
 
-  val mac2dDW = for (i <- 0 until NumChannel) yield {
+  val macDW = for (i <- 0 until NumChannel) yield {
     val mac2d = Module(new Mac2dTensor(MACperCH, wgtDWType, memTensorType)(memShape)(wgtDWShape)(macDWShape))
     mac2d
   }
@@ -82,7 +82,7 @@ class DW_PW_Block[L <: vecN, K <: Shapes : OperatorDot : OperatorReduction, M <:
    *                     Depth-wise - inDMA_weight                      *
    * ================================================================== */
 
-  val inDMA_wgtDW = Module(new inDMA_wgt(20, 100, wgtDWType, memTensorType = "inp")(wgtDWShape))
+  val inDMA_wgtDW = Module(new inDMA_wgt(20, 100, wgtDWType, extWgtTensorType = "inp")(wgtDWShape))
   val wgtCtrlDW = Module(new ReadTensorController(NumChannel, wgtDWType)(wgtDWShape))
   inDMA_wgtDW.io.tensor <> wgtCtrlDW.io.tensor
   io.vme_wgtDW_rd <> inDMA_wgtDW.io.vme_rd
@@ -93,8 +93,8 @@ class DW_PW_Block[L <: vecN, K <: Shapes : OperatorDot : OperatorReduction, M <:
   inDMA_wgtDW.io.start := io.start
 
   for (i <- 0 until NumChannel) {
-    wgtCtrlDW.io.ReadIn(i) <> mac2dDW(i).io.wgtTensorReq
-    mac2dDW(i).io.wgtTensorResp <> wgtCtrlDW.io.ReadOut(i)
+    wgtCtrlDW.io.ReadIn(i) <> macDW(i).io.wgtTensorReq
+    macDW(i).io.wgtTensorResp <> wgtCtrlDW.io.ReadOut(i)
   }
 
   /* ================================================================== *
@@ -120,26 +120,26 @@ class DW_PW_Block[L <: vecN, K <: Shapes : OperatorDot : OperatorReduction, M <:
     * ================================================================== */
   val inROWperCH =  MACperCH + macDWShape.getLength() - 1
   for (i <- 0 until NumChannel) {
-    mac2dDW(i).io.enable.bits <> ControlBundle.active()
-    mac2dDW(i).io.enable.valid := true.B
-    mac2dDW(i).io.wgtIndex := io.wgtDWIndex + i.U
-    mac2dDW(i).io.outRowWidth := io.outRowWidth
+    macDW(i).io.enable.bits <> ControlBundle.active()
+    macDW(i).io.enable.valid := true.B
+    macDW(i).io.wgtIndex := io.wgtDWIndex + i.U
+    macDW(i).io.outRowWidth := io.outRowWidth
 
     inDMA_act(i).io.rowWidth := io.outRowWidth + macDWShape.getLength().U - 1.U
     inDMA_act(i).io.baddr := io.inBaseAddr + (i.U * ((io.outRowWidth + macDWShape.getLength().U - 1.U) * inROWperCH.U))
 
     for (j <- 0 until inROWperCH) {
-      inDMA_act(i).io.ReadIn(j)(0) <> mac2dDW(i).io.tensorReq(j)
-      mac2dDW(i).io.tensorResp(j) <> inDMA_act(i).io.ReadOut(j)(0)
+      inDMA_act(i).io.ReadIn(j)(0) <> macDW(i).io.tensorReq(j)
+      macDW(i).io.tensorResp(j) <> inDMA_act(i).io.ReadOut(j)(0)
 
       io.vme_rd(i * inROWperCH + j) <> inDMA_act(i).io.vme_rd(j)
     }
 
     inDMA_act(i).io.start := inDMA_wgtPW.io.done
-    mac2dDW(i).io.start := inDMA_act(NumChannel - 1).io.done // after last inDMA_act
+    macDW(i).io.start := inDMA_act(NumChannel - 1).io.done // after last inDMA_act
 
     for (j <- 0 until MACperCH) {
-      mac2dDW(i).io.Out(j).ready := macPW.map(_.io.in(j).ready).reduceLeft(_ && _)
+      macDW(i).io.Out(j).ready := macPW.map(_.io.in(j).ready).reduceLeft(_ && _)
     }
 
   }
@@ -162,11 +162,11 @@ class DW_PW_Block[L <: vecN, K <: Shapes : OperatorDot : OperatorReduction, M <:
       outDMA_act(i).io.in(j) <> macPW(i).io.Out(j)
       io.vme_wr(i * MACperCH + j) <> outDMA_act(i).io.vme_wr(j)
 
-      macPW(i).io.in(j).bits.data := VecInit(mac2dDW.map(_.io.Out(j).bits.data.asUInt())).asUInt()
+      macPW(i).io.in(j).bits.data := VecInit(macDW.map(_.io.Out(j).bits.data.asUInt())).asUInt()
       macPW(i).io.in(j).bits.taskID := 0.U
       macPW(i).io.in(j).bits.predicate := true.B
       macPW(i).io.in(j).bits.valid := true.B
-      macPW(i).io.in(j).valid := mac2dDW.map(_.io.Out(j).valid).reduceLeft(_ && _)
+      macPW(i).io.in(j).valid := macDW.map(_.io.Out(j).valid).reduceLeft(_ && _)
 
     }
     outDMA_act(i).io.last.foreach(a => a := macPW(i).io.last)

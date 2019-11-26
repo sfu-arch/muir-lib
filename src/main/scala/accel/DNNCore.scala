@@ -47,28 +47,32 @@ import firrtl.transforms.DontTouchAnnotation
   * directory.
   */
 class DNNCore(implicit val p: Parameters) extends Module {
+  val Hx = 3  //  Number of Rows
+  val Wx = 112
+  val Fx = 20
+  val Px = 10
+  val K = 3
+  val Cx = 20
   val io = IO(new Bundle {
     val vcr = new VCRClient
     val vme = new VMEMaster
   })
 
+  // nRd = Hx + 3 = 6
+  // nWr = Px * (Hx - K + 1) = 10 * 1 = 10
   val cycle_count = new Counter(2000)
 
-  val NumChannel = 3
-  val MACperCH = 4
-  val Fx = 2
-
-  val NumPWFilter = 2
+//  val NumChannel = 3
 
   val memShape = new vecN(16, 0, false)
 
-  val macDWShape = new matNxN(3, false)
+  val macDWShape = new matNxN(K, false)
   val macPW2Shape = new vecN(Fx, 0, false)
 
-  val wgtDWShape = new vecN(9, 0, false)
+  val wgtDWShape = new vecN(K * K, 0, false)
   val wgtPW2Shape = new vecN(Fx, 0, false)
 
-  val CxShape = new vecN(5, 0, false)
+  val CxShape = new vecN(Cx, 0, false)
 
 //  val DW_B1 = Module(new DW_Block(3, "wgt", "inp")(memShape)(wgtDWShape)(macDWShape))
 
@@ -76,8 +80,8 @@ class DNNCore(implicit val p: Parameters) extends Module {
 //                   (memShape)(wgtDWShape)(wgtPWShape)(macDWShape)(macPWShape))
 
 //  val conv = Module(new PW_Block(MACperCH, Fx, 5, "wgtPW", "inp")(memShape)(CxShape))
-  val conv = Module(new PDP_Block(MACperCH, Fx, 5, NumPWFilter,
-                    "wgtPW1", "wgt", "wgtPW2", "inp")
+  val conv = Module(new PDP_Block(Hx, K, Fx, 19, Px,
+                    "intWgtPW1", "intWgtDW", "intWgtPW2", "inp")
                     (memShape)(CxShape)
                     (wgtDWShape)(macDWShape)
                     (wgtPW2Shape)(macPW2Shape))
@@ -89,7 +93,7 @@ class DNNCore(implicit val p: Parameters) extends Module {
   conv.io.wgtDWindex := 0.U
   conv.io.wgtPW2index := 0.U
 
-  conv.io.rowWidth := 3.U
+  conv.io.rowWidth := Wx.U //3.U
 
   /* ================================================================== *
      *                           Connections                            *
@@ -101,18 +105,22 @@ class DNNCore(implicit val p: Parameters) extends Module {
   io.vcr.ecnt(2).bits := 2.U//conv.io.inDMA_wgt_time
   io.vcr.ecnt(3).bits := 3.U//conv.io.mac_time
 
-  for (i <- 0 until MACperCH) {
+  /* ================================================================== *
+    *                    VME Reads and writes                           *
+    * ================================================================== */
+
+  for (i <- 0 until Hx) {
     io.vme.rd(i) <> conv.io.vme_rd(i)
   }
+  io.vme.rd(Hx) <> conv.io.vme_wgtPW1_rd
+  io.vme.rd(Hx + 1) <> conv.io.vme_wgtDW_rd
+  io.vme.rd(Hx + 2) <> conv.io.vme_wgtPW2_rd
+  //  io.vme.rd(13) <> conv.io.vme_wgtPW_rd
 
-  for (i <- 0 until NumPWFilter * MACperCH) {
+  for (i <- 0 until Px * (Hx - K + 1)) {
     io.vme.wr(i) <> conv.io.vme_wr(i)
   }
 
-  io.vme.rd(MACperCH) <> conv.io.vme_wgtPW1_rd
-  io.vme.rd(MACperCH + 1) <> conv.io.vme_wgtDW_rd
-  io.vme.rd(MACperCH + 2) <> conv.io.vme_wgtPW2_rd
-//  io.vme.rd(13) <> conv.io.vme_wgtPW_rd
 
   conv.io.start := false.B
 

@@ -34,13 +34,13 @@ class inDMA_wgtIO[gen <: Shapes](wgtTensorType: String = "none")(wgtShape: => ge
 }
 
 
-class inDMA_wgt[L <: Shapes](wgtTFDepth: Int, bufSize: Int, wgtTensorType: String = "none", memTensorType: String = "none")(wgtShape: => L)
-                          (implicit p: Parameters)
-  extends inDMA_wgtIO(wgtTensorType)(wgtShape)(p) {
+class inDMA_wgt[L <: Shapes](wgtTFDepth: Int, bufSize: Int, intWgtTensorType: String = "none", extWgtTensorType: String = "none")(wgtShape: => L)
+                            (implicit p: Parameters)
+  extends inDMA_wgtIO(intWgtTensorType)(wgtShape)(p) {
 
-  val tpMem = new TensorParams(memTensorType)
-  val wgtTransformer = Module(new WeightShapeTransformer(wgtTFDepth, bufSize, wgtTensorType, memTensorType)(wgtShape))
-  val tensorLoad = Module(new TensorLoad(memTensorType))
+  val tpMem = new TensorParams(extWgtTensorType)
+  val wgtTransformer = Module(new WeightShapeTransformer(wgtTFDepth, bufSize, intWgtTensorType, extWgtTensorType)(wgtShape))
+  val tensorLoad = Module(new TensorLoad(extWgtTensorType))
 
   val tl_Inst = Wire(new MemDecode)
   val memTensorRows = Mux(io.numWeight * wgtShape.getLength().U % tpMem.tensorWidth.U === 0.U,

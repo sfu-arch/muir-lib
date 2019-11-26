@@ -30,8 +30,8 @@ import memory._
   * These parameters are used on VME interfaces and modules.
   */
 case class VMEParams() {
-  val nReadClients: Int = 14
-  val nWriteClients: Int = 4
+  val nReadClients: Int = 6
+  val nWriteClients: Int = 10
   require (nReadClients > 0, s"\n\n[VTA] [VMEParams] nReadClients must be larger than 0\n\n")
 //  require (nWriteClients == 1, s"\n\n[VTA] [VMEParams] nWriteClients must be 1, only one-write-client support atm\n\n")
 }
