@@ -81,7 +81,7 @@ class test03DF(implicit p: Parameters) extends test03DFIO()(p) {
   same C */
 
   //  %8 = mul nsw i32 %5, %7, !UID !8
-  val binaryOp_5 = Module(new ComputeNode(NumOuts = 1, ID = 5, opCode = "mul")(sign = false, Debug = true , GuardVal = 22 ))
+  val binaryOp_5 = Module(new ComputeNode(NumOuts = 1, ID = 5, opCode = "mul")(sign = false, Debug = true , GuardVal = 225 ))
 
   //  ret i32 %8, !UID !9, !BB_UID !10
   val ret_6 = Module(new RetNode2(retTypes = List(32), ID = 7))

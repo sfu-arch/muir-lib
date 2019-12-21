@@ -184,6 +184,7 @@ class RetNode(retTypes: Seq[Int], ID: Int)
         when(in_data_valid_R.reduceLeft(_ && _)) {
           out_valid_R := true.B
           state := s_COMPUTE
+
         }
       }
     }
@@ -198,11 +199,11 @@ class RetNode(retTypes: Seq[Int], ID: Int)
         out_ready_R := false.B
 
         state := s_IDLE
-        if (log) {
-          printf("[LOG] " + "[" + module_name + "] " + "[TID->%d] "
+        //if (log) {
+          printf("[AAAAAAAAAAAAAAAAAAAAAAAAAAAAALOG] " + "[" + module_name + "] " + "[TID->%d] "
             + node_name + ": Output fired @ %d, Value: %d\n",
-            output_R.enable.taskID, cycleCount, output_R.data(s"field0").data)
-        }
+            output_R.enable.taskID, io.In.asUInt(), output_R.data(s"field0").data)
+        //}
       }
     }
   }
@@ -300,9 +301,9 @@ class RetNode2(retTypes: Seq[Int], ID: Int)
 
         state := s_IDLE
         if (log) {
-          printf("[LOG] " + "[" + module_name + "] "
+          printf("[AAAAAAAAAAAAAAAAAAAAAAAAALOG] " + "[" + module_name + "] "
             + "[TID->%d] " + node_name +
-            ": Output fired @ %d\n", output_R.enable.taskID, cycleCount)
+            ": Output fired @ %d\n", output_R.enable.taskID, io.In.asUInt())
         }
       }
     }
@@ -405,7 +406,7 @@ class RetNode2Buggy(retTypes: Seq[Int], ID: Int)
 
         state := s_IDLE
         if (log) {
-          printf("[LOG] " + "[" + module_name + "] "
+          printf("[AAAAAAAAAAAAAAAAAAAAAAAAALOG] " + "[" + module_name + "] "
             + "[TID->%d] " + node_name +
             ": Output fired @ %d\n", output_R.enable.taskID, cycleCount)
         }

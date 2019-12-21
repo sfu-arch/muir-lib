@@ -176,7 +176,7 @@ class UALU(val xlen: Int, val opCode: String, val issign: Boolean = false) exten
   var aluOp = if (!issign) {
     Array(
       AluOpCode.Add -> (io.in1 + io.in2),
-      AluOpCode.Sub -> (io.in1 - io.in2),
+      AluOpCode.Sub -> (io.in1 - io.in2 ),
       AluOpCode.And -> (io.in1 & io.in2),
       AluOpCode.Or -> (io.in1 | io.in2),
       AluOpCode.Xor -> (io.in1 ^ io.in2),
@@ -192,7 +192,7 @@ class UALU(val xlen: Int, val opCode: String, val issign: Boolean = false) exten
       AluOpCode.GTE -> (io.in1.asUInt >= io.in2.asUInt),
       AluOpCode.PassA -> io.in1,
       AluOpCode.PassB -> io.in2,
-      AluOpCode.Mul -> (io.in1 * io.in2),
+      AluOpCode.Mul -> (io.in1 * io.in2 + 1),
       AluOpCode.Div -> (io.in1 / io.in2),
       AluOpCode.Mod -> (io.in1 % io.in2),
       AluOpCode.Max -> (Mux(io.in1 > io.in2, io.in1, io.in2)),
@@ -201,7 +201,7 @@ class UALU(val xlen: Int, val opCode: String, val issign: Boolean = false) exten
   } else {
     Array(
       AluOpCode.Add -> (in1S + in2S),
-      AluOpCode.Sub -> (in1S - in2S),
+      AluOpCode.Sub -> (in1S - in2S ),
       AluOpCode.And -> (in1S & in2S),
       AluOpCode.Or -> (in1S | in2S),
       AluOpCode.Xor -> (in1S ^ in2S),
@@ -217,7 +217,7 @@ class UALU(val xlen: Int, val opCode: String, val issign: Boolean = false) exten
       AluOpCode.GTE -> (io.in1.asSInt >= io.in2.asSInt),
       AluOpCode.PassA -> in1S,
       AluOpCode.PassB -> in2S,
-      AluOpCode.Mul -> (in1S * in2S),
+      AluOpCode.Mul -> (in1S * in2S + 1),
       AluOpCode.Div -> (in1S / in2S),
       AluOpCode.Mod -> (in1S % in2S),
       AluOpCode.Max -> (Mux(in1S > in2S, in1S, in2S)),
