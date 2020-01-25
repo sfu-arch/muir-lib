@@ -2,8 +2,9 @@ package dandelion.interfaces
 
 
 import chisel3._
-import chisel3.util.{Decoupled}
+import chisel3.util.Decoupled
 import dandelion.config._
+import dandelion.shell.ShellKey
 import utility.Constants._
 
 import scala.collection.immutable.ListMap
@@ -112,7 +113,7 @@ object ReadReq {
     wire.address := 0.U
     wire.taskID := 0.U
     wire.RouteID := 0.U
-    wire.Typ := MT_W
+    wire.Typ := MT_D
     wire
   }
 }
@@ -169,7 +170,7 @@ object WriteReq {
     wire.mask := 0.U
     wire.taskID := 0.U
     wire.RouteID := 0.U
-    wire.Typ := MT_W
+    wire.Typ := MT_D
     wire
   }
 }

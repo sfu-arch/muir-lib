@@ -1,21 +1,10 @@
 package dandelion.memory
 
-import scala.math._
 import chisel3._
-import chisel3.util._
 import chisel3.Module
-import chisel3.testers._
-import chisel3.iotesters.{ChiselFlatSpec, Driver, PeekPokeTester, OrderedDecoupledHWIOTester}
-import org.scalatest.{Matchers, FlatSpec}
-
-import regfile._
 import dandelion.config._
 import util._
 import dandelion.interfaces._
-import muxes._
-import dandelion.accel._
-import dandelion.memory._
-import utility.Constants._
 import utility.UniformPrintfs
 
 //XXX
@@ -110,6 +99,25 @@ class UnifiedController(ID: Int,
   //--------------------------
 
   //------------------------------------------------------------------------------------
+  if(log){
+    when(io.MemReq.fire){
+      when(io.MemReq.bits.iswrite){
+        printf("[LOG] [MemController] [MemReq]: Addr: %d, Data: %d, IsWrite: ST\n", io.MemReq.bits.addr, io.MemReq.bits.data)
+      }.otherwise{
+        printf("[LOG] [MemController] [MemReq]: Addr: %d, Data: %d, IsWrite: LD\n", io.MemReq.bits.addr, io.MemReq.bits.data)
+      }
+    }
+
+    when(io.MemResp.fire()){
+      when(io.MemResp.bits.iswrite){
+        printf("[LOG] [MemController] [MemResp]: Data: %d, IsWrite: ST\n", io.MemResp.bits.data)
+      }.otherwise{
+        printf("[LOG] [MemController] [MemResp]: Data: %d, IsWrite: LD\n", io.MemReq.bits.data)
+      }
+    }
+  }
+
+
   /// Printf debugging
   override val printfSigil = "Unified: " + ID + " Type " + (Typ_SZ)
 

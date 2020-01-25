@@ -149,9 +149,7 @@ class test03Test01[T <: AccelIO](c: T)
   while (time < 10) {
     time += 1
     step(1)
-    if (peek(c.io.out.valid) == 1 &&
-      peek(c.io.out.bits.data("field0").predicate) == 1
-    ) {
+    if (peek(c.io.out.valid) == 1 ) {
       result = true
       val data = peek(c.io.out.bits.data("field0").data)
       val expected = 225
@@ -185,7 +183,7 @@ class test03Tester extends FlatSpec with Matchers {
   it should "Check that test03 works correctly." in {
     // iotester flags:
     // -ll  = log level <Error|Warn|Info|Debug|Trace>
-    // -tbn = backend <firrtl|verilator|vcs>
+    // -tbn = backend <firrtl|treadle|verilator|vcs>
     // -td  = target directory
     // -tts = seed for RNG
     chisel3.iotesters.Driver.execute(

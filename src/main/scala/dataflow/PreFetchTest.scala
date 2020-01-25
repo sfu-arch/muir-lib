@@ -72,7 +72,7 @@ class prefetchDF(implicit p: Parameters) extends prefetchDFIO()(p) {
   MemCtrl.io.MemResp <> io.MemResp
 
 
-  val bb_entry0 = Module(new BasicBlockNoMaskNode(NumInputs = 1, NumOuts = 3, BID = 0))
+  val bb_entry0 = Module(new BasicBlockNoMaskFastNode(NumInputs = 1, NumOuts = 3, BID = 0))
 
   //  %0 = load i32, i32* %arrayidx, align 4, !tbaa !2
   val ld_2 = Module(new UnTypLoad(NumPredOps=0, NumSuccOps=0, NumOuts=1, ID=2, RouteID=0))
@@ -83,7 +83,7 @@ class prefetchDF(implicit p: Parameters) extends prefetchDFIO()(p) {
   //  ret i32 %value.0
   val ret_7 = Module(new RetNode2(retTypes=List(32), ID = 7))
 
-  bb_entry0.io.predicateIn <> InputSplitter.io.Out.enable
+  bb_entry0.io.predicateIn(0) <> InputSplitter.io.Out.enable
 
   io.PreReq <> pf_ld_2.io.memReq
   pf_ld_2.io.Out(0).ready := true.B
