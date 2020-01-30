@@ -990,7 +990,7 @@ class LoopBlockNode(ID: Int, NumIns: Seq[Int], NumCarry: Seq[Int], NumOuts: Seq[
           }
           state := s_end
           //in live out should be dumped
-          log_out := in_live_out_R()
+          //log_out := in_live_out_R()
 
 
           if (log) {
