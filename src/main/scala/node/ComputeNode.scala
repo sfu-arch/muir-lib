@@ -45,7 +45,7 @@ class ComputeNode(NumOuts: Int, ID: Int, opCode: String)
 
   override val printfSigil = "[" + module_name + "] " + node_name + ": " + ID + " "
   val (cycleCount, _) = Counter(true.B, 32 * 1024)
-  
+
 
   val dbg_counter = Counter(1024)
 
@@ -70,19 +70,18 @@ class ComputeNode(NumOuts: Int, ID: Int, opCode: String)
 
   val GuardVal_reg = RegInit(GuardVal.U)
   /**
-    * val debug = RegInit(0.U)
-    * debug := io.DebugIO.get
-    *
-    * val debug = RegNext(io.DebugIO.get, init = 0.U)
-    */
+   * val debug = RegInit(0.U)
+   * debug := io.DebugIO.get
+   *
+   * val debug = RegNext(io.DebugIO.get, init = 0.U)
+   */
 
   //Output register
   val out_data_R = RegNext(Mux(enable_R.control, FU.io.out, 0.U), init = 0.U)
-  val predicate = Mux(enable_valid_R, enable_R.control ,io.enable.bits.control)
-  val taskID = Mux(enable_valid_R, enable_R.taskID ,io.enable.bits.taskID)
+  val predicate = Mux(enable_valid_R, enable_R.control, io.enable.bits.control)
+  val taskID = Mux(enable_valid_R, enable_R.taskID, io.enable.bits.taskID)
 
   val DebugEnable = enable_R.control && enable_R.debug && enable_valid_R
-
 
 
   /*===============================================*
@@ -119,16 +118,16 @@ class ComputeNode(NumOuts: Int, ID: Int, opCode: String)
   hs*/
   //var test_value = Wire(UInt((xlen).W))
   var log_id = WireInit(ID.U((4).W))
-  var log_out = WireInit(0.U((xlen-5).W))
+  var log_out = WireInit(0.U((xlen - 5).W))
   var GuardFlag = WireInit(0.U(1.W))
 
   //log_id := ID.U
   //test_value := Cat(GuardFlag,log_id, log_out)
   val test_value = WireInit(0.U(xlen.W))
   test_value := Cat(GuardFlag, log_id, log_out)
-//  val test_value = Cat("b1111".U, Cat("b0011".U, log_out))
+  //  val test_value = Cat("b1111".U, Cat("b0011".U, log_out))
   //test_value := log_out
-  if(Debug){
+  if (Debug) {
     val test_value_valid = Wire(Bool())
     val test_value_ready = Wire(Bool())
     test_value_valid := false.B
@@ -143,7 +142,6 @@ class ComputeNode(NumOuts: Int, ID: Int, opCode: String)
       test_value_valid := false.B
     }
   }
-
 
 
   //------------------v
@@ -163,27 +161,24 @@ class ComputeNode(NumOuts: Int, ID: Int, opCode: String)
       when(enable_valid_R && left_valid_R && right_valid_R) {
         //********************************************************************************
         if (Debug) {
-          when (FU.io.out =/= GuardVal.U){
-            GuardFlag :=  1.U
+          when(FU.io.out =/= GuardVal.U) {
+            GuardFlag := 1.U
             io.Out.foreach(_.bits := DataBundle(GuardVal.U, taskID, predicate))
-//            io.Out.foreach(_.bits := DataBundle(FU.io.out, taskID, predicate))
-            io.Out.foreach(_.valid := true.B)
+            //io.Out.foreach(_.bits := DataBundle(FU.io.out, taskID, predicate))
             log_out := FU.io.out.asUInt()
 
-          } . otherwise {
-            GuardFlag :=  0.U
+          }.otherwise {
+            GuardFlag := 0.U
             io.Out.foreach(_.bits := DataBundle(FU.io.out, taskID, predicate))
-            io.Out.foreach(_.valid := true.B)
             log_out := FU.io.out.asUInt()
-            ValidOut()
           }
         }
-        else{
+        else {
           io.Out.foreach(_.bits := DataBundle(FU.io.out, taskID, predicate))
-          io.Out.foreach(_.valid := true.B)
           log_out := FU.io.out.asUInt()
-          ValidOut()
         }
+        io.Out.foreach(_.valid := true.B)
+        ValidOut()
         //*********************************************************************************
         state := s_COMPUTE
         if (log) {

@@ -166,7 +166,7 @@ class HandShakingCtrlNoMaskIO(val NumOuts: Int
 
 /**
   * @brief Handshaking between data nodes with no ordering.
-  * @details Sets up base registers and hand shaking registers
+  * @note Sets up base registers and hand shaking registers
   * @param NumOuts Number of outputs
   * @param ID      Node id
   * @return Module
@@ -460,7 +460,7 @@ class HandShakingFused[T <: PredicateT](val NumIns: Int, val NumOuts: Int,
 
 /**
   * @brief Handshaking between data nodes with no ordering.
-  * @details Sets up base registers and hand shaking registers
+  * @note Sets up base registers and hand shaking registers
   * @param NumOuts Number of outputs
   * @param ID      Node id
   * @return Module
@@ -574,7 +574,7 @@ class HandShakingCtrlNPS(val NumOuts: Int,
 
 /**
   * @brief Handshaking between data nodes.
-  * @details Sets up base registers and hand shaking registers
+  * @note Sets up base registers and hand shaking registers
   * @param NumPredOps Number of parents
   * @param NumSuccOps Number of successors
   * @param NumOuts    Number of outputs
@@ -778,7 +778,7 @@ class HandShaking[T <: Data](val NumPredOps: Int,
 
 /**
   * @brief Handshaking between control nodes.
-  * @details Sets up base registers and hand shaking registers
+  * @note Sets up base registers and hand shaking registers
   * @param NumInputs Number of basick block inputs
   * @param NumOuts   Number of outputs
   * @param NumPhi    Number existing phi node
@@ -905,7 +905,7 @@ class HandShakingCtrlMask(val NumInputs: Int,
 
 /**
   * @brief Handshaking between control nodes.
-  * @details Sets up base registers and hand shaking registers
+  * @note Sets up base registers and hand shaking registers
   * @param NumInputs Number of basick block inputs
   * @param NumOuts   Number of outputs
   * @param BID       Basic block id

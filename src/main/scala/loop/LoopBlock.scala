@@ -11,7 +11,7 @@ import utility.UniformPrintfs
 import chisel3.util.experimental.BoringUtils
 /**
   * @brief LoopBlockIO class definition
-  * @details Implimentation of BasickBlockIO
+  * @note Implimentation of BasickBlockIO
   * @param NumIns   Number of liveIn DataBundles
   * @param NumOuts  Number of liveOut DataBundles
   * @param NumExits Number exit control bundles for loop (e.g. number of exit points)
@@ -444,7 +444,7 @@ class LoopBlockO1(ID: Int, NumIns: Seq[Int], NumOuts: Int, NumExits: Int)
 
 /**
   * @brief LoopBlockIO class definition
-  * @details Implimentation of BasickBlockIO
+  * @note Implimentation of BasickBlockIO
   * @param NumIns   Number of liveIn DataBundles
   * @param NumOuts  Number of liveOut DataBundles
   * @param NumExits Number exit control bundles for loop (e.g. number of exit points)
@@ -980,6 +980,14 @@ class LoopBlockNode(ID: Int, NumIns: Seq[Int], NumCarry: Seq[Int], NumOuts: Seq[
           loop_exit_valid_R.foreach(_ := true.B)
 
           //Change state
+          if (log) {
+            printf("[LOG] " + "[" + module_name + "] [TID->%d] [LOOP]   "
+              + node_name + ": Output fired @ %d ", io.activate_loop_start.bits.taskID, cycleCount)
+            for(i <- 0 until NumOuts.size){
+              printf(" Out[%d]: %d", i.U, in_live_out_R(i).data)
+            }
+            printf("\n")
+          }
           state := s_end
           //in live out should be dumped
           log_out := in_live_out_R()
@@ -998,7 +1006,7 @@ class LoopBlockNode(ID: Int, NumIns: Seq[Int], NumCarry: Seq[Int], NumOuts: Seq[
 
         //Restart to initial state
 
-        enable_R <> ControlBundle.default
+        enable_R := ControlBundle.default
         enable_valid_R := false.B
 
         loop_back_R foreach (_ := ControlBundle.default)

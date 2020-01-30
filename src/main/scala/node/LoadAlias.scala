@@ -38,7 +38,7 @@ class LoadAliasIO(NumPredOps: Int,
 
 /**
   * @brief Load Node. Implements load operations
-  * @details [load operations can either reference values in a scratchpad or cache]
+  * @note [load operations can either reference values in a scratchpad or cache]
   * @param NumPredOps [Number of predicate memory operations]
   */
 class UnTypLoadAlias(NumPredOps: Int,

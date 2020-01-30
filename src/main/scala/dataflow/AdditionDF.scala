@@ -8,7 +8,7 @@ import chisel3.iotesters.{ChiselFlatSpec, Driver, OrderedDecoupledHWIOTester, Pe
 import org.scalatest.{FlatSpec, Matchers}
 import muxes._
 import dandelion.config._
-import dandelion.control.{BasicBlockNoMaskNode, BasicBlockNode}
+import dandelion.control.{BasicBlockNoMaskFastNode, BasicBlockNode}
 import util._
 import dandelion.interfaces._
 import regfile._
@@ -82,8 +82,8 @@ class AddDF(implicit p: Parameters) extends AddDFIO() {
     * @note Module's variables they should set during initialization
     */
   //BasicBlock
-  val b0_entry = Module(new BasicBlockNoMaskNode(NumInputs = 1, NumOuts = 2, BID = 0))
-  val b1_then = Module(new BasicBlockNoMaskNode(NumInputs = 1, NumOuts = 2, BID = 1))
+  val b0_entry = Module(new BasicBlockNoMaskFastNode(NumInputs = 1, NumOuts = 2, BID = 0))
+  val b1_then = Module(new BasicBlockNoMaskFastNode(NumInputs = 1, NumOuts = 2, BID = 1))
   val b2_end = Module(new BasicBlockNode(NumInputs = 2, NumOuts = 2, NumPhi = 1, BID = 2))
 
   //Compute
@@ -107,15 +107,15 @@ class AddDF(implicit p: Parameters) extends AddDFIO() {
     */
 
   //Grounding entry BasicBlock
-  b0_entry.io.predicateIn.bits.control := true.B
-  b0_entry.io.predicateIn.bits.taskID := 0.U
-  b0_entry.io.predicateIn.valid := true.B
+  b0_entry.io.predicateIn(0).bits.control := true.B
+  b0_entry.io.predicateIn(0).bits.taskID := 0.U
+  b0_entry.io.predicateIn(0).valid := true.B
 
   /**
     * Connecting basic blocks to predicate instructions
     */
   //Connecting m1 to b1_then
-  b1_then.io.predicateIn <> m1.io.Out(param.m1_brn_bb("b1_then"))
+  b1_then.io.predicateIn(0) <> m1.io.Out(param.m1_brn_bb("b1_then"))
 
   //Connecting m1 to b2_end
   b2_end.io.predicateIn(param.b2_end_pred("m1")) <> m1.io.Out(param.m1_brn_bb("b2_end"))
@@ -151,7 +151,6 @@ class AddDF(implicit p: Parameters) extends AddDFIO() {
 
 
   m4.io.Mask <> b2_end.io.MaskBB(0)
-  //  m4.io.Mask <> b1_then.io.MaskBB(0)
 
 
   /**

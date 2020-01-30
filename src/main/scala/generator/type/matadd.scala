@@ -46,14 +46,14 @@ class mataddDF(implicit val p: Parameters) extends Module with CoreParams {
 
   //    val matadd = Module(new mataddDF()(p))
 
-  val mat_bb = Module(new BasicBlockNoMaskNode(NumInputs = 1, NumOuts = 4, BID = 0))
+  val mat_bb = Module(new BasicBlockNoMaskFastNode(NumInputs = 1, NumOuts = 4, BID = 0))
 
   val LoadA = Module(new TypLoad(NumPredOps = 0, NumSuccOps = 1, NumOuts = 1, ID = 0, RouteID = 0))
   val LoadB = Module(new TypLoad(NumPredOps = 0, NumSuccOps = 1, NumOuts = 1, ID = 0, RouteID = 1))
   val StoreType = Module(new TypStore(NumPredOps = 2, NumSuccOps = 0, NumOuts = 1, ID = 0, RouteID = 0))
   val typadd = Module(new TypCompute(NumOuts = 1, ID = 0, "Add")(true)(new matNxN(N = 2)))
 
-  mat_bb.io.predicateIn <> InputSplitter.io.Out.enable
+  mat_bb.io.predicateIn(0) <> InputSplitter.io.Out.enable
 
   LoadA.io.enable <> mat_bb.io.Out(0)
   LoadB.io.enable <> mat_bb.io.Out(1)
@@ -86,23 +86,23 @@ class mataddDF(implicit val p: Parameters) extends Module with CoreParams {
    *                   PRINTING BASICBLOCK NODES                        *
    * ================================================================== */
 
-  val bb_0 = Module(new BasicBlockNoMaskNode(NumInputs = 1, NumOuts = 1, BID = 0))
+  val bb_0 = Module(new BasicBlockNoMaskFastNode(NumInputs = 1, NumOuts = 1, BID = 0))
 
   val bb_1 = Module(new LoopHead(NumOuts = 5, NumPhi = 1, BID = 1))
 
-  val bb_2 = Module(new BasicBlockNoMaskNode(NumInputs = 1, NumOuts = 1, BID = 2))
+  val bb_2 = Module(new BasicBlockNoMaskFastNode(NumInputs = 1, NumOuts = 1, BID = 2))
 
   val bb_3 = Module(new LoopHead(NumOuts = 5, NumPhi = 1, BID = 3))
 
-  val bb_4 = Module(new BasicBlockNoMaskNode(NumInputs = 1, NumOuts = 11, BID = 4))
+  val bb_4 = Module(new BasicBlockNoMaskFastNode(NumInputs = 1, NumOuts = 11, BID = 4))
 
-  val bb_5 = Module(new BasicBlockNoMaskNode(NumInputs = 1, NumOuts = 3, BID = 5))
+  val bb_5 = Module(new BasicBlockNoMaskFastNode(NumInputs = 1, NumOuts = 3, BID = 5))
 
-  val bb_6 = Module(new BasicBlockNoMaskNode(NumInputs = 1, NumOuts = 1, BID = 6))
+  val bb_6 = Module(new BasicBlockNoMaskFastNode(NumInputs = 1, NumOuts = 1, BID = 6))
 
-  val bb_7 = Module(new BasicBlockNoMaskNode(NumInputs = 1, NumOuts = 3, BID = 7))
+  val bb_7 = Module(new BasicBlockNoMaskFastNode(NumInputs = 1, NumOuts = 3, BID = 7))
 
-  val bb_8 = Module(new BasicBlockNoMaskNode(NumInputs = 1, NumOuts = 1, BID = 8))
+  val bb_8 = Module(new BasicBlockNoMaskFastNode(NumInputs = 1, NumOuts = 1, BID = 8))
 
 
   /* ================================================================== *
@@ -217,27 +217,27 @@ class mataddDF(implicit val p: Parameters) extends Module with CoreParams {
    *                   BASICBLOCK -> PREDICATE INSTRUCTION              *
    * ================================================================== */
 
-  bb_0.io.predicateIn <> InputSplitter.io.Out.enable
+  bb_0.io.predicateIn(0) <> InputSplitter.io.Out.enable
 
   bb_1.io.activate <> Loop_1.io.activate
 
   bb_1.io.loopBack <> br_21.io.Out(0)
 
-  bb_2.io.predicateIn <> br_3.io.Out(0)
+  bb_2.io.predicateIn(0) <> br_3.io.Out(0)
 
   bb_3.io.activate <> Loop_0.io.activate
 
   bb_3.io.loopBack <> br_18.io.Out(0)
 
-  bb_4.io.predicateIn <> br_7.io.Out(0)
+  bb_4.io.predicateIn(0) <> br_7.io.Out(0)
 
-  bb_5.io.predicateIn <> br_16.io.Out(0)
+  bb_5.io.predicateIn(0) <> br_16.io.Out(0)
 
-  bb_6.io.predicateIn <> Loop_0.io.endEnable
+  bb_6.io.predicateIn(0) <> Loop_0.io.endEnable
 
-  bb_7.io.predicateIn <> br_19.io.Out(0)
+  bb_7.io.predicateIn(0) <> br_19.io.Out(0)
 
-  bb_8.io.predicateIn <> Loop_1.io.endEnable
+  bb_8.io.predicateIn(0) <> Loop_1.io.endEnable
 
 
   /* ================================================================== *
@@ -354,7 +354,7 @@ class mataddDF(implicit val p: Parameters) extends Module with CoreParams {
 
   Gep_11.io.enable <> bb_4.io.Out(6)
 
-  mat_bb.io.predicateIn <> bb_4.io.Out(7)
+  mat_bb.io.predicateIn(0) <> bb_4.io.Out(7)
 
   Gep_13.io.enable <> bb_4.io.Out(8)
 

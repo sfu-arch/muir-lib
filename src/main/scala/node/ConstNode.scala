@@ -120,7 +120,6 @@ class ConstFastNode(value: Int, ID: Int)
    *===============================================*/
 
 
-  //  io.Out.bits.data := value.asSInt(xlen.W).asUInt()
   val output_value = value.asSInt(xlen.W).asUInt()
 
   io.enable.ready := ~enable_valid_R

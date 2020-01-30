@@ -268,7 +268,7 @@ class stencilTester1 extends FlatSpec with Matchers {
   implicit val p = Parameters.root((new MiniConfig).toInstance)
   val testParams = p.alterPartial({
     case TLEN => 8
-    case TRACE => false
+    case TRACE => true
   })
   // iotester flags:
   // -ll  = log level <Error|Warn|Info|Debug|Trace>

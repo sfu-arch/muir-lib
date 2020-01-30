@@ -346,23 +346,23 @@ class fibDF(implicit p: Parameters) extends fibDFIO()(p) {
 
   //Initializing BasicBlocks: 
 
-  val bb_entry = Module(new BasicBlockNoMaskNode(NumInputs = 1, NumOuts = 5, BID = 0))
+  val bb_entry = Module(new BasicBlockNoMaskFastNode(NumInputs = 1, NumOuts = 5, BID = 0))
 
-  val bb_if_then = Module(new BasicBlockNoMaskNode(NumInputs = 1, NumOuts = 2, BID = 1))
+  val bb_if_then = Module(new BasicBlockNoMaskFastNode(NumInputs = 1, NumOuts = 2, BID = 1))
 
-  val bb_if_end = Module(new BasicBlockNoMaskNode(NumInputs = 1, NumOuts = 3, BID = 2))
+  val bb_if_end = Module(new BasicBlockNoMaskFastNode(NumInputs = 1, NumOuts = 3, BID = 2))
 
-  val bb_det_achd = Module(new BasicBlockNoMaskNode(NumInputs = 1, NumOuts = 2, BID = 3))
+  val bb_det_achd = Module(new BasicBlockNoMaskFastNode(NumInputs = 1, NumOuts = 2, BID = 3))
 
-  val bb_det_cont = Module(new BasicBlockNoMaskNode(NumInputs = 2, NumOuts = 3, BID = 4))
+  val bb_det_cont = Module(new BasicBlockNoMaskFastNode(NumInputs = 1, NumOuts = 3, BID = 4))
 
-  val bb_det_achd2 = Module(new BasicBlockNoMaskNode(NumInputs = 1, NumOuts = 2, BID = 5))
+  val bb_det_achd2 = Module(new BasicBlockNoMaskFastNode(NumInputs = 1, NumOuts = 2, BID = 5))
 
-  val bb_det_cont3 = Module(new BasicBlockNoMaskNode(NumInputs = 2, NumOuts = 1, BID = 6))
+  val bb_det_cont3 = Module(new BasicBlockNoMaskFastNode(NumInputs = 1, NumOuts = 1, BID = 6))
 
-  val bb_sync_continue = Module(new BasicBlockNoMaskNode(NumInputs = 1, NumOuts = 4, BID = 7))
+  val bb_sync_continue = Module(new BasicBlockNoMaskFastNode(NumInputs = 1, NumOuts = 4, BID = 7))
 
-  val bb_return = Module(new BasicBlockNoMaskNode(NumInputs = 1, NumOuts = 1, BID = 8))
+  val bb_return = Module(new BasicBlockNoMaskFastNode(NumInputs = 1, NumOuts = 1, BID = 8))
 
 
   /* ================================================================== *
@@ -504,23 +504,23 @@ class fibDF(implicit p: Parameters) extends fibDFIO()(p) {
     */
 
 
-  bb_entry.io.predicateIn <> InputSplitter.io.Out.enable
+  bb_entry.io.predicateIn(0) <> InputSplitter.io.Out.enable
 
   /**
     * Connecting basic blocks to predicate instructions
     */
 
   //Connecting br5 to bb_if_then
-  bb_if_then.io.predicateIn <> br5.io.Out(param.br5_brn_bb("bb_if_then"))
+  bb_if_then.io.predicateIn(0) <> br5.io.Out(param.br5_brn_bb("bb_if_then"))
 
 
   //Connecting br5 to bb_if_end
-  bb_if_end.io.predicateIn <> br5.io.Out(param.br5_brn_bb("bb_if_end"))
+  bb_if_end.io.predicateIn(0) <> br5.io.Out(param.br5_brn_bb("bb_if_end"))
 
 
   //Connecting br7 to bb_return
   //  bb_return.io.predicateIn(0) <> br7.io.Out(param.br7_brn_bb("bb_return"))
-  bb_return.io.predicateIn <> br7.io.Out(param.br7_brn_bb("bb_return")) //manual
+  bb_return.io.predicateIn(0) <> br7.io.Out(param.br7_brn_bb("bb_return")) //manual
 
 
   //Connecting br18 to bb_return
@@ -528,23 +528,23 @@ class fibDF(implicit p: Parameters) extends fibDFIO()(p) {
   //bb_return.io.MaskBB(0).ready := true.B  // Manual
 
   //Connecting detach9 to bb_det_achd
-  bb_det_achd.io.predicateIn <> detach9.io.Out(param.detach9_brn_bb("bb_det_achd"))
+  bb_det_achd.io.predicateIn(0) <> detach9.io.Out(param.detach9_brn_bb("bb_det_achd"))
 
 
   //Connecting detach9 to bb_det_cont
-  bb_det_cont.io.predicateIn <> detach9.io.Out(param.detach9_brn_bb("bb_det_cont"))
+  bb_det_cont.io.predicateIn(0) <> detach9.io.Out(param.detach9_brn_bb("bb_det_cont"))
 
 
   //Connecting detach13 to bb_det_achd2
-  bb_det_achd2.io.predicateIn <> detach13.io.Out(param.detach13_brn_bb("bb_det_achd2"))
+  bb_det_achd2.io.predicateIn(0) <> detach13.io.Out(param.detach13_brn_bb("bb_det_achd2"))
 
 
   //Connecting detach13 to bb_det_cont3
-  bb_det_cont3.io.predicateIn <> detach13.io.Out(param.detach13_brn_bb("bb_det_cont3"))
+  bb_det_cont3.io.predicateIn(0) <> detach13.io.Out(param.detach13_brn_bb("bb_det_cont3"))
 
 
   //Connecting sync16 to bb_sync_continue
-  bb_sync_continue.io.predicateIn <> sync16.io.Out(0)
+  bb_sync_continue.io.predicateIn(0) <> sync16.io.Out(0)
 
 
   /* ================================================================== *

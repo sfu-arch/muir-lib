@@ -44,7 +44,7 @@ class FilterDFTester(accel: => Accelerator)(implicit val p: Parameters) extends 
   dutMem.b.valid := memState === sMemWrAck
   dutMem.b.bits := NastiWriteResponseChannel(0.U)
   dutMem.r.valid := memState === sMemRead
-  dutMem.r.bits := NastiReadDataChannel(0.U, mem((dutMem.ar.bits.addr >> size) + rCnt), rDone)
+  dutMem.r.bits := NastiReadDataChannel(0.U, mem((dutMem.ar.bits.addr >> size).asUInt() + rCnt), rDone)
 
   switch(memState) {
     is(sMemIdle) {
@@ -58,8 +58,8 @@ class FilterDFTester(accel: => Accelerator)(implicit val p: Parameters) extends 
       assert(dutMem.aw.bits.size === size)
       assert(dutMem.aw.bits.len === len)
       when(dutMem.w.valid) {
-        mem((dutMem.aw.bits.addr >> size) + wCnt) := dutMem.w.bits.data
-        printf("[write] mem[%x] <= %x\n", (dutMem.aw.bits.addr >> size) + wCnt, dutMem.w.bits.data)
+        mem((dutMem.aw.bits.addr >> size).asUInt() + wCnt) := dutMem.w.bits.data
+        printf("[write] mem[%x] <= %x\n", (dutMem.aw.bits.addr >> size).asUInt() + wCnt, dutMem.w.bits.data)
         dutMem.w.ready := true.B
       }
       when(wDone) {
@@ -74,7 +74,7 @@ class FilterDFTester(accel: => Accelerator)(implicit val p: Parameters) extends 
     }
     is(sMemRead) {
       when(dutMem.r.ready) {
-        printf("[read] mem[%x] => %x\n", (dutMem.ar.bits.addr >> size) + rCnt, dutMem.r.bits.data)
+        printf("[read] mem[%x] => %x\n", (dutMem.ar.bits.addr >> size).asUInt() + rCnt, dutMem.r.bits.data)
       }
       when(rDone) {
         dutMem.ar.ready := true.B
