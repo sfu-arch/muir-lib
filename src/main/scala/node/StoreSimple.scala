@@ -251,11 +251,8 @@ class DebugBufferNode(
   val GepAddr = new DataBundle
   //------------------------------
   val dbg_counter = Counter(1024)
-  val Uniq_name_Data = "meData"
-  //val Uniq_name_Adr = "meAdr"
-  //---------------------------
-  // -------
 
+  //Is the Data The Wires of the Boring Connection Will put data in.
   val LogData = Module(new Queue(UInt((xlen).W), 20))
 
 

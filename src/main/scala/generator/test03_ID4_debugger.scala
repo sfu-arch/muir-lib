@@ -34,15 +34,14 @@ class Debug03DF(implicit p: Parameters) extends Debug03IO()(p) {
 
 
   val MemCtrl = Module(new UnifiedController(ID = 0, Size = 32, NReads = 0, NWrites = 4)
-  //NumOps = 1 to NumOps = 2
+  //Num of Writes and NumOps of Write should be the same as number of buffer nodes
   (WControl = new WriteMemoryController(NumOps = 4, BaseSize = 2, NumEntries = 2))
   (RControl = new ReadMemoryController(NumOps = 0, BaseSize = 2, NumEntries = 2))
   (RWArbiter = new ReadWriteArbiter()))
   io.MemReq <> MemCtrl.io.MemReq
   MemCtrl.io.MemResp <> io.MemResp
 
-
-  //new
+  //ID from 1, RoutID from 0, Bore_ID same as the ID of the node_to_be_logged and node_cnt for memory spaces from 0
   val buf_0 = Module(new DebugBufferNode(ID = 1, RouteID = 0, Bore_ID = 2, node_cnt = 0.U))
   buf_0.io.Enable := io.Enable
   val buf_1 = Module(new DebugBufferNode(ID = 2, RouteID = 1, Bore_ID = 4, node_cnt = 1.U))
@@ -52,6 +51,8 @@ class Debug03DF(implicit p: Parameters) extends Debug03IO()(p) {
   val buf_3 = Module(new DebugBufferNode(ID = 4, RouteID = 3, Bore_ID = 0, node_cnt = 3.U))
   buf_3.io.Enable := io.Enable
 
+
+  // Memory writes to connect
   //-----------------------------------p
   MemCtrl.io.WriteIn(0) <> buf_0.io.memReq
   buf_0.io.memResp <> MemCtrl.io.WriteOut(0)
