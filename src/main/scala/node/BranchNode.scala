@@ -133,7 +133,7 @@ class CBranchNode(ID: Int, Debug: Boolean = false)
   }
 }
 
-class CBranchFastIO()(implicit p: Parameters) extends CoreBundle {
+class CBranchFastIO()(implicit p: Parameters) extends AccelBundle {
   // Predicate enable
   val enable = Flipped(Decoupled(new ControlBundle))
   // Comparator input
@@ -145,7 +145,7 @@ class CBranchFastIO()(implicit p: Parameters) extends CoreBundle {
 @deprecated("CBranchFastNode is deprecated. It doesn't handle all the corner cases. Please use CBranchFastNodeVariable", "dataflow-lib 1.0")
 class CBranchFastNode(ID: Int)
                      (implicit val p: Parameters)
-  extends Module with CoreParams with UniformPrintfs {
+  extends Module with HasAccelParams with UniformPrintfs {
 
   // Printf debugging
   override val printfSigil = "Node (UBR) ID: " + ID + " "
@@ -187,7 +187,7 @@ class CBranchFastNodeVariable(val NumTrue: Int = 1, val NumFalse: Int = 1, val I
                              (implicit val p: Parameters,
                               name: sourcecode.Name,
                               file: sourcecode.File)
-  extends Module with CoreParams with UniformPrintfs {
+  extends Module with HasAccelParams with UniformPrintfs {
 
   val io = IO(new Bundle {
     //Control signal
@@ -382,7 +382,7 @@ class CBranchNodeVariableLoop(val NumTrue: Int = 1, val NumFalse: Int = 1, val N
                              (implicit val p: Parameters,
                               name: sourcecode.Name,
                               file: sourcecode.File)
-  extends Module with CoreParams with UniformPrintfs {
+  extends Module with HasAccelParams with UniformPrintfs {
 
   override lazy val io = IO(new CBranchIO(NumTrue = NumTrue, NumFalse = NumFalse, NumPredecessor = NumPredecessor))
 
@@ -649,7 +649,7 @@ class UBranchNode(NumPredOps: Int = 0,
   * Since your branch output wire to two different basic block only
   */
 
-class CompareBranchIO()(implicit p: Parameters) extends CoreBundle {
+class CompareBranchIO()(implicit p: Parameters) extends AccelBundle {
   // Predicate enable
   val enable = Flipped(Decoupled(new ControlBundle))
 
@@ -665,7 +665,7 @@ class CompareBranchIO()(implicit p: Parameters) extends CoreBundle {
 class CompareBranchNode(ID: Int, opCode: String)
                        (implicit val p: Parameters,
                         name: sourcecode.Name,
-                        file: sourcecode.File) extends Module with CoreParams with UniformPrintfs {
+                        file: sourcecode.File) extends Module with HasAccelParams with UniformPrintfs {
   // Defining IOs
   val io = IO(new CompareBranchIO())
   // Printf debugging
@@ -824,7 +824,7 @@ class UBranchNodeVariable(val NumOutputs: Int = 1, val ID: Int)
                              (implicit val p: Parameters,
                               name: sourcecode.Name,
                               file: sourcecode.File)
-  extends Module with CoreParams with UniformPrintfs {
+  extends Module with HasAccelParams with UniformPrintfs {
 
   val io = IO(new Bundle {
     //Control signal
@@ -948,7 +948,7 @@ class UBranchNodeVariable(val NumOutputs: Int = 1, val ID: Int)
   */
 
 class CBranchIO(val NumTrue: Int, val NumFalse: Int, val NumPredecessor: Int = 0)(implicit p: Parameters)
-  extends CoreBundle()(p) {
+  extends AccelBundle()(p) {
   //Control signal
   val enable = Flipped(Decoupled(new ControlBundle))
 
@@ -970,7 +970,7 @@ class CBranchFastNodeVariable2(val NumTrue: Int = 1, val NumFalse: Int = 1, val 
                               (implicit val p: Parameters,
                                name: sourcecode.Name,
                                file: sourcecode.File)
-  extends Module with CoreParams with UniformPrintfs {
+  extends Module with HasAccelParams with UniformPrintfs {
 
   val io = IO(new CBranchIO(NumTrue, NumFalse)(p))
 
@@ -1181,7 +1181,7 @@ class CBranchNodeVariable(val NumTrue: Int = 1, val NumFalse: Int = 1, val NumPr
                          (implicit val p: Parameters,
                           name: sourcecode.Name,
                           file: sourcecode.File)
-  extends Module with CoreParams with UniformPrintfs {
+  extends Module with HasAccelParams with UniformPrintfs {
 
   override lazy val io = IO(new CBranchIO(NumTrue = NumTrue, NumFalse = NumFalse, NumPredecessor = NumPredecessor))
 

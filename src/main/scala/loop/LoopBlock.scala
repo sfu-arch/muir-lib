@@ -469,7 +469,7 @@ class LoopBlockO1(ID: Int, NumIns: Seq[Int], NumOuts: Int, NumExits: Int)
 
 class LoopBlockNodeIO(NumIns: Seq[Int], NumCarry: Seq[Int], NumOuts: Seq[Int],
                       NumBackEdge: Int = 1, NumLoopFinish: Int = 1, NumExits: Int, NumStore: Int = 0, Debug: Boolean)
-                     (implicit p: Parameters) extends CoreBundle {
+                     (implicit p: Parameters) extends AccelBundle {
 
   // INPUT from outside of the loop head
   // Predicate enable
@@ -511,7 +511,7 @@ class LoopBlockNode(ID: Int, NumIns: Seq[Int], NumCarry: Seq[Int], NumOuts: Seq[
                     NumBackEdge: Int = 1, NumLoopFinish: Int = 1, NumExits: Int, NumStore: Int = 0, Debug: Boolean = false)
                    (implicit val p: Parameters,
                     name: sourcecode.Name,
-                    file: sourcecode.File) extends Module with CoreParams with UniformPrintfs {
+                    file: sourcecode.File) extends Module with HasAccelParams with UniformPrintfs {
 
   // Instantiate TaskController I/O signals
   val io = IO(new LoopBlockNodeIO(NumIns, NumCarry, NumOuts, NumBackEdge, NumLoopFinish, NumExits, NumStore, Debug))

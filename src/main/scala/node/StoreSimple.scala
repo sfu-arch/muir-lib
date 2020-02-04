@@ -232,7 +232,7 @@ class DebugBufferNode(
                      (implicit val p: Parameters,
                       name: sourcecode.Name,
                       file: sourcecode.File)
-  extends Module with CoreParams with UniformPrintfs {
+  extends Module with HasAccelParams with UniformPrintfs {
 
 
   val io = IO(new Bundle {
@@ -312,7 +312,7 @@ class UnTypDebugStore(
                      (implicit val p: Parameters,
                       name: sourcecode.Name,
                       file: sourcecode.File)
-  extends Module with CoreParams with UniformPrintfs {
+  extends Module with HasAccelParams with UniformPrintfs {
 
   // Set up StoreIO
   val io = IO(new Bundle {

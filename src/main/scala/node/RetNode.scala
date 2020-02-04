@@ -124,7 +124,7 @@ class RetNode(retTypes: Seq[Int], ID: Int)
              (implicit val p: Parameters,
               name: sourcecode.Name,
               file: sourcecode.File) extends Module
-  with CoreParams with UniformPrintfs {
+  with HasAccelParams with UniformPrintfs {
 
   val node_name = name.value
   val module_name = file.value.split("/").tail.last.split("\\.").head.capitalize
@@ -221,7 +221,7 @@ class RetNode2(retTypes: Seq[Int], ID: Int)
               (implicit val p: Parameters,
                name: sourcecode.Name,
                file: sourcecode.File) extends Module
-  with CoreParams with UniformPrintfs {
+  with HasAccelParams with UniformPrintfs {
 
   val node_name = name.value
   val module_name = file.value.split("/").tail.last.split("\\.").head.capitalize
@@ -312,7 +312,6 @@ class RetNode2(retTypes: Seq[Int], ID: Int)
 
 }
 
-
 /**
   * This version of RetNode2 is the buggy version. The bug happens when we make
   * compute nodes single cycle connected to RetNode
@@ -326,7 +325,7 @@ class RetNode2Buggy(retTypes: Seq[Int], ID: Int)
               (implicit val p: Parameters,
                name: sourcecode.Name,
                file: sourcecode.File) extends Module
-  with CoreParams with UniformPrintfs {
+  with HasAccelParams with UniformPrintfs {
 
   val node_name = name.value
   val module_name = file.value.split("/").tail.last.split("\\.").head.capitalize

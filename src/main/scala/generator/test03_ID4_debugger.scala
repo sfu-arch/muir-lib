@@ -15,7 +15,7 @@ import util._
  * ================================================================== */
 
 
-abstract class Debug03IO(implicit val p: Parameters) extends Module with CoreParams {
+abstract class Debug03IO(implicit val p: Parameters) extends Module with HasAccelParams {
   val io = IO(new Bundle {
     val Enable = Input(Bool())
     val MemResp = Flipped(Valid(new MemResp))
@@ -75,7 +75,8 @@ import java.io.{File, FileWriter}
 object Debug03Top extends App {
   val dir = new File("RTL/Debug03Top");
   dir.mkdirs
-  implicit val p = Parameters.root((new MiniConfig).toInstance)
+  //implicit val p = Parameters.root((new MiniConfig).toInstance)
+  implicit val p = new WithAccelConfig
   val chirrtl = firrtl.Parser.parse(chisel3.Driver.emit(() => new Debug03DF()))
 
   val verilogFile = new File(dir, s"${chirrtl.main}.v")

@@ -21,6 +21,8 @@ import dandelion.junctions._
 import helpers._
 
 
+
+
 class test03Main(implicit p: Parameters) extends AccelIO(List(32, 32), List(32)) {
 
   val cache = Module(new Cache) // Simple Nasti Cache
@@ -95,8 +97,8 @@ class test03Main(implicit p: Parameters) extends AccelIO(List(32, 32), List(32))
 
 
   // Check if trace option is on or off
-  if (!p(TRACE)) {
-    println(Console.RED + """****** Trace option is off. *********""" + Console.RESET)
+  if (log == false) {
+    println(Console.RED + "****** Trace option is off. *********" + Console.RESET)
   }
   else {
     println(Console.BLUE + "****** Trace option is on. *********" + Console.RESET)
@@ -174,13 +176,11 @@ class test03Test01[T <: AccelIO](c: T)
 }
 
 class test03Tester extends FlatSpec with Matchers {
-
-
   val inAddrVec = List.range(0, (4 * 10), 4)
   val inDataVec = List.fill(10)(10)
 
-  implicit val p = Parameters.root((new MiniConfig).toInstance)
-  it should "Check that test03 works correctly." in {
+  implicit val p = new WithAccelConfig
+  it should "Check that test04 works correctly." in {
     // iotester flags:
     // -ll  = log level <Error|Warn|Info|Debug|Trace>
     // -tbn = backend <firrtl|treadle|verilator|vcs>

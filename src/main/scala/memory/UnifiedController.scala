@@ -28,7 +28,7 @@ class UnifiedController(ID: Int,
                        (RControl: => RController)
                        (RWArbiter: => ReadWriteArbiter)(implicit val p: Parameters)
   extends Module
-    with CoreParams
+    with HasAccelParams
     with UniformPrintfs {
 
   val io = IO(new Bundle {
@@ -119,7 +119,7 @@ class UnifiedController(ID: Int,
 
 
   /// Printf debugging
-  override val printfSigil = "Unified: " + ID + " Type " + (Typ_SZ)
+  override val printfSigil = "Unified: " + ID + " Type " + (typesize)
 
   //  verb match {
   //    case "high"  => {printf(p" .addr: $cacheReq_R.addr")}

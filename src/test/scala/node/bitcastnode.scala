@@ -29,9 +29,6 @@ class bitCastTester(df: BitCastNode)
 
   println(s"Output: ${peek(df.io.Out(0))}\n")
   //p
-  val new_param = p.alterPartial(
-    {case TRACE => true}
-  )
   if(df.isDebug()){
 
   //  println(s"STATE of BitCastNode is : 0x${peek(df.io.LogCheck.get.bits.data.asUInt())}\n")
@@ -68,7 +65,8 @@ class bitCastTester(df: BitCastNode)
 
 
 class BitCastTests extends  FlatSpec with Matchers {
-   implicit val p = Parameters.root((new MiniConfig).toInstance)
+   //implicit val p = Parameters.root((new MiniConfig).toInstance)
+  implicit val p = new WithAccelConfig
   it should "Dataflow tester" in {
      chisel3.iotesters.Driver(() => new BitCastNode(NumOuts = 1, ID = 0, Debug = true)){
        c => new bitCastTester(c)
