@@ -118,13 +118,14 @@ class ComputeNode(NumOuts: Int, ID: Int, opCode: String)
   hs*/
   //var test_value = Wire(UInt((xlen).W))
   var log_id = WireInit(ID.U((4).W))
-  var log_out = WireInit(0.U((xlen - 5).W))
+  //var log_out = WireInit(0.U((xlen - 5).W))
   var GuardFlag = WireInit(0.U(1.W))
+  var log_out_reg = RegInit(0.U((xlen - 5).W))
 
   //log_id := ID.U
   //test_value := Cat(GuardFlag,log_id, log_out)
   val test_value = WireInit(0.U(xlen.W))
-  test_value := Cat(GuardFlag, log_id, log_out)
+  test_value := Cat(GuardFlag, log_id, log_out_reg)
   //  val test_value = Cat("b1111".U, Cat("b0011".U, log_out))
   //test_value := log_out
   if (Debug) {
@@ -165,17 +166,17 @@ class ComputeNode(NumOuts: Int, ID: Int, opCode: String)
             GuardFlag := 1.U
             io.Out.foreach(_.bits := DataBundle(GuardVal.U, taskID, predicate))
             //io.Out.foreach(_.bits := DataBundle(FU.io.out, taskID, predicate))
-            log_out := FU.io.out.asUInt()
+            log_out_reg := FU.io.out.asUInt()
 
           }.otherwise {
             GuardFlag := 0.U
             io.Out.foreach(_.bits := DataBundle(FU.io.out, taskID, predicate))
-            log_out := FU.io.out.asUInt()
+            log_out_reg := FU.io.out.asUInt()
           }
         }
         else {
           io.Out.foreach(_.bits := DataBundle(FU.io.out, taskID, predicate))
-          log_out := FU.io.out.asUInt()
+          log_out_reg := FU.io.out.asUInt()
         }
         io.Out.foreach(_.valid := true.B)
         ValidOut()

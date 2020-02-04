@@ -9,6 +9,7 @@ import dandelion.junctions._
 import dandelion.node._
 import utility.UniformPrintfs
 import chisel3.util.experimental.BoringUtils
+
 /**
   * @brief LoopBlockIO class definition
   * @note Implimentation of BasickBlockIO
@@ -467,7 +468,7 @@ class LoopBlockO1(ID: Int, NumIns: Seq[Int], NumOuts: Int, NumExits: Int)
   */
 
 class LoopBlockNodeIO(NumIns: Seq[Int], NumCarry: Seq[Int], NumOuts: Seq[Int],
-                      NumBackEdge: Int = 1, NumLoopFinish: Int = 1, NumExits: Int, NumStore: Int = 0, Debug:Boolean)
+                      NumBackEdge: Int = 1, NumLoopFinish: Int = 1, NumExits: Int, NumStore: Int = 0, Debug: Boolean)
                      (implicit p: Parameters) extends CoreBundle {
 
   // INPUT from outside of the loop head
@@ -507,7 +508,7 @@ class LoopBlockNodeIO(NumIns: Seq[Int], NumCarry: Seq[Int], NumOuts: Seq[Int],
 }
 
 class LoopBlockNode(ID: Int, NumIns: Seq[Int], NumCarry: Seq[Int], NumOuts: Seq[Int],
-                    NumBackEdge: Int = 1, NumLoopFinish: Int = 1, NumExits: Int, NumStore: Int = 0, Debug:Boolean = false)
+                    NumBackEdge: Int = 1, NumLoopFinish: Int = 1, NumExits: Int, NumStore: Int = 0, Debug: Boolean = false)
                    (implicit val p: Parameters,
                     name: sourcecode.Name,
                     file: sourcecode.File) extends Module with CoreParams with UniformPrintfs {
@@ -669,7 +670,7 @@ class LoopBlockNode(ID: Int, NumIns: Seq[Int], NumCarry: Seq[Int], NumOuts: Seq[
   // Connect LiveIn registers to I/O
   for (i <- NumOuts.indices) {
     for (j <- 0 until NumOuts(i)) {
-      io.OutLiveOut.elements(s"field$i")(j).bits <> in_live_out_R(i)//this apperantly is the output
+      io.OutLiveOut.elements(s"field$i")(j).bits <> in_live_out_R(i) //this apperantly is the output
       io.OutLiveOut.elements(s"field$i")(j).valid := out_live_out_valid_R(i)(j)
     }
   }
@@ -862,17 +863,19 @@ class LoopBlockNode(ID: Int, NumIns: Seq[Int], NumCarry: Seq[Int], NumOuts: Seq[
 
   //****************************************************************************
   val DebugEnable = enable_R.control && enable_R.debug && enable_valid_R
-
+  //val DebugEnable = true.B
   var log_id = WireInit(ID.U((4).W))
-  var log_out = WireInit(0.U((xlen-5).W))
+  var log_out_reg = RegInit(0.U((xlen - 5).W))
+  //var log_out = WireInit(0.U((xlen-5).W))
   var GuardFlag = WireInit(0.U(1.W))
 
+  //log_out := log_out_reg
 
   val test_value = WireInit(0.U(xlen.W))
-  test_value := Cat(GuardFlag, log_id, log_out)
+  test_value := Cat(GuardFlag, log_id, log_out_reg)
 
 
-  if(Debug){
+  if (Debug) {
     val test_value_valid = Wire(Bool())
     val test_value_ready = Wire(Bool())
     test_value_valid := false.B
@@ -934,7 +937,7 @@ class LoopBlockNode(ID: Int, NumIns: Seq[Int], NumCarry: Seq[Int], NumOuts: Seq[
         && IsLiveOutValid() && IsLiveInFired()
         && IsCarryDepenValid() && IsStoreDepnValid()) {
         //When loop needs to repeat itself
-        when(loop_back_R.map(_.control).reduce(_ | _)) {//in case of multiple backwardedges being valid
+        when(loop_back_R.map(_.control).reduce(_ | _)) { //in case of multiple backwardedges being valid
           //Drive loop internal output signals
           active_loop_start_R := ControlBundle.deactivate(loop_back_R(0).taskID) //outer input
           active_loop_start_valid_R := true.B
@@ -983,15 +986,15 @@ class LoopBlockNode(ID: Int, NumIns: Seq[Int], NumCarry: Seq[Int], NumOuts: Seq[
           if (log) {
             printf("[LOG] " + "[" + module_name + "] [TID->%d] [LOOP]   "
               + node_name + ": Output fired @ %d ", io.activate_loop_start.bits.taskID, cycleCount)
-            for(i <- 0 until NumOuts.size){
+            for (i <- 0 until NumOuts.size) {
               printf(" Out[%d]: %d", i.U, in_live_out_R(i).data)
             }
             printf("\n")
           }
           state := s_end
           //in live out should be dumped
-          if(Debug){
-            log_out := in_live_out_R(NumOuts.length -1).asUInt()
+          if (Debug) {
+            log_out_reg := in_live_out_R(NumOuts.length - 1).asUInt()
           }
 
 

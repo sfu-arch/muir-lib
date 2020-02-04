@@ -74,6 +74,7 @@ class BasicBlockNode(NumInputs: Int,
 
   val predicate = predicate_in_R.map(_.control).reduce(_ | _)
   val predicate_task = predicate_in_R.map(_.taskID).reduce(_ | _)
+  val predicate_debug = predicate_in_R.map(_.debug).reduce(_ | _)
 
   val start = (io.predicateIn.map(_.fire()) zip predicate_valid_R) map { case (a, b) => a | b } reduce (_ & _)
 
@@ -94,7 +95,8 @@ class BasicBlockNode(NumInputs: Int,
   // Wire up Outputs
   for (i <- 0 until NumOuts) {
     io.Out(i).bits.control := predicate
-    io.Out(i).bits.taskID := predicate_task
+    io.Out(i).bits.taskID  := predicate_task
+    io.Out(i).bits.debug   := predicate_debug
   }
 
   // Wire up mask output

@@ -1,22 +1,15 @@
 package dandelion.generator
 
 import chisel3._
-import chisel3.util._
 import chisel3.Module
-import chisel3.testers._
 import chisel3.iotesters._
 import org.scalatest.{FlatSpec, Matchers}
-import muxes._
 import dandelion.config._
-import dandelion.control._
 import util._
 import dandelion.interfaces._
-import regfile._
 import dandelion.memory._
-import dandelion.memory.stack._
-import dandelion.arbiters._
-import dandelion.loop._
 import dandelion.accel._
+import helpers._
 
 class test04MainIO(implicit val p: Parameters) extends Module with CoreParams with CacheParams {
   val io = IO(new Bundle {
@@ -29,7 +22,8 @@ class test04MainIO(implicit val p: Parameters) extends Module with CoreParams wi
   def cloneType = new test04MainIO().asInstanceOf[this.type]
 }
 
-class test04Main(implicit p: Parameters) extends test04MainIO {
+class test04Main(implicit p: Parameters) extends AccelIO(List(32, 32, 32), List(32)) {
+  //extends test04MainIO {
 
   val cache = Module(new Cache) // Simple Nasti Cache
   val memModel = Module(new NastiMemSlave) // Model of DRAM to connect to Cache
@@ -92,7 +86,6 @@ class test04Main(implicit p: Parameters) extends test04MainIO {
   }
 
 
-
   // Check if trace option is on or off
   if (p(TRACE) == false) {
     println(Console.RED + "****** Trace option is off. *********" + Console.RESET)
@@ -105,7 +98,11 @@ class test04Main(implicit p: Parameters) extends test04MainIO {
 
 
 //class test03Test01(c: test03CacheWrapper) extends PeekPokeTester(c) {
-class test04Test01[T <: test04MainIO](c: T) extends PeekPokeTester(c) {
+class test04Test01[T <: AccelIO](c: T)
+                                     (inAddrVec: List[Int], inDataVec: List[Int],
+                                      outAddrVec: List[Int], outDataVec: List[Int])
+  extends AccelTesterLocal(c)(inAddrVec, inDataVec, outAddrVec, outDataVec) {
+//  extends PeekPokeTester(c) {
 
 
   /**
@@ -172,11 +169,23 @@ class test04Test01[T <: test04MainIO](c: T) extends PeekPokeTester(c) {
     println("*** Timeout.")
     fail
   }
+    step(1000)
+    dumpMemory("Debug04.mem",0,20)
+
+    if (!result) {
+      dumpMemory("Debug04.mem",0,10)
+      println("*** Timeout.")
+      fail
+    }
+
+
 }
 
 class test04Tester extends FlatSpec with Matchers {
+  val inAddrVec = List.range(0, (4 * 10), 4)
+  val inDataVec = List.fill(10)(10)
   implicit val p = Parameters.root((new MiniConfig).toInstance)
-  it should "Check that test03 works correctly." in {
+  it should "Check that test04 works correctly." in {
     // iotester flags:
     // -ll  = log level <Error|Warn|Info|Debug|Trace>
     // -tbn = backend <firrtl|verilator|vcs>
@@ -186,10 +195,11 @@ class test04Tester extends FlatSpec with Matchers {
       Array(
         // "-ll", "Info",
         "-tbn", "verilator",
-        "-td", "test_run_dir/test03",
+        "-td", "test_run_dir/test04",
         "-tts", "0001"),
       () => new test04Main()) {
-      c => new test04Test01(c)
+      // c => new test04Test01(c)
+      c => new test04Test01(c)(inAddrVec, inDataVec, List(), List())
     } should be(true)
   }
 }
