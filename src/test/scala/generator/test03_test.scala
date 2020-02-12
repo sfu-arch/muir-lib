@@ -175,7 +175,7 @@ class test03Tester extends FlatSpec with Matchers {
   val inAddrVec = List.range(0, (4 * 10), 4)
   val inDataVec = List.fill(10)(10)
 
-  implicit val p = new WithAccelConfig
+  implicit val p = new WithAccelConfig(DandelionAccelParams(printLog = true))
   it should "Check that test04 works correctly." in {
     // iotester flags:
     // -ll  = log level <Error|Warn|Info|Debug|Trace>

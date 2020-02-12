@@ -2,6 +2,7 @@ package dandelion.generator
 
 import chisel3._
 import dandelion.config._
+import chipsalliance.rocketchip.config._
 import dandelion.control._
 import dandelion.interfaces._
 import dandelion.junctions._

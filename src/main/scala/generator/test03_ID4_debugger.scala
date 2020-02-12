@@ -2,6 +2,7 @@ package dandelion.generator
 
 import chisel3._
 import dandelion.config._
+import chipsalliance.rocketchip.config._
 import dandelion.control._
 import dandelion.interfaces._
 import dandelion.junctions._
@@ -76,7 +77,7 @@ object Debug03Top extends App {
   val dir = new File("RTL/Debug03Top");
   dir.mkdirs
   //implicit val p = Parameters.root((new MiniConfig).toInstance)
-  implicit val p = new WithAccelConfig
+  implicit val p = new WithAccelConfig(DandelionAccelParams(printLog = true))
   val chirrtl = firrtl.Parser.parse(chisel3.Driver.emit(() => new Debug03DF()))
 
   val verilogFile = new File(dir, s"${chirrtl.main}.v")

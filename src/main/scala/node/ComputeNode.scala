@@ -21,7 +21,7 @@ class ComputeNodeIO(NumOuts: Int, Debug: Boolean, GuardVal: Int = 0)
   // RightIO: Right input data for computation
   val RightIO = Flipped(Decoupled(new DataBundle()))
 
-  override def cloneType = new ComputeNodeIO(NumOuts).asInstanceOf[this.type]
+  override def cloneType = new ComputeNodeIO(NumOuts, Debug).asInstanceOf[this.type]
 
 }
 
