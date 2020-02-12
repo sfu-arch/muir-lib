@@ -1,42 +1,22 @@
 package dandelion.generator
 
-import dandelion.fpu._
-import dandelion.accel._
-import dandelion.arbiters._
 import chisel3._
-import chisel3.util._
-import chisel3.Module._
-import chisel3.testers._
-import chisel3.iotesters._
+import chipsalliance.rocketchip.config._
 import dandelion.config._
 import dandelion.control._
-import dandelion.interfaces._
 import dandelion.junctions._
 import dandelion.loop._
 import dandelion.memory._
-import muxes._
 import dandelion.node._
-import org.scalatest._
-import regfile._
-import dandelion.memory.stack._
-import util._
+import dandelion.accel._
 
 
-  /* ================================================================== *
-   *                   PRINTING PORTS DEFINITION                        *
-   * ================================================================== */
+/* ================================================================== *
+ *                   PRINTING PORTS DEFINITION                        *
+ * ================================================================== */
 
-abstract class test05DFIO(implicit val p: Parameters) extends Module with HasAccelParams {
-  val io = IO(new Bundle {
-    val in = Flipped(Decoupled(new Call(List(32))))
-    val MemResp = Flipped(Valid(new MemResp))
-    val MemReq = Decoupled(new MemReq)
-    val out = Decoupled(new Call(List(32)))
-  })
-}
-
-class test05DF(implicit p: Parameters) extends test05DFIO()(p) {
-
+class test05DF(ArgsIn: Seq[Int] = List(32), Returns: Seq[Int] = List(32))
+              (implicit p: Parameters) extends DandelionAccelModule(ArgsIn, Returns) {
 
   /* ================================================================== *
    *                   PRINTING MEMORY MODULES                          *
@@ -54,13 +34,11 @@ class test05DF(implicit p: Parameters) extends test05DFIO()(p) {
   InputSplitter.io.In <> io.in
 
 
-
   /* ================================================================== *
    *                   PRINTING LOOP HEADERS                            *
    * ================================================================== */
 
   val Loop_0 = Module(new LoopBlockNode(NumIns = List(2), NumOuts = List(), NumCarry = List(1), NumExits = 1, ID = 0))
-
 
 
   /* ================================================================== *
@@ -74,7 +52,6 @@ class test05DF(implicit p: Parameters) extends test05DFIO()(p) {
   val bb_for_body2 = Module(new BasicBlockNode(NumInputs = 2, NumOuts = 15, NumPhi = 1, BID = 2))
 
 
-
   /* ================================================================== *
    *                   PRINTING INSTRUCTION NODES                       *
    * ================================================================== */
@@ -83,7 +60,7 @@ class test05DF(implicit p: Parameters) extends test05DFIO()(p) {
   val br_0 = Module(new UBranchNode(ID = 0))
 
   //  %arrayidx2 = getelementptr inbounds i32, i32* %a, i32 9, !UID !7
-  val Gep_arrayidx21 = Module(new GepNode(NumIns = 1, NumOuts = 1, ID = 1)(ElementSize = 4, ArraySize = List()))
+  val Gep_arrayidx21 = Module(new GepNode(NumIns = 1, NumOuts = 1, ID = 1)(ElementSize = 8, ArraySize = List()))
 
   //  %0 = load i32, i32* %arrayidx2, align 4, !tbaa !8, !UID !12
   val ld_2 = Module(new UnTypLoad(NumPredOps = 0, NumSuccOps = 0, NumOuts = 1, ID = 2, RouteID = 0))
@@ -95,7 +72,7 @@ class test05DF(implicit p: Parameters) extends test05DFIO()(p) {
   val phii_094 = Module(new PhiFastNode(NumInputs = 2, NumOutputs = 3, ID = 4, Res = true))
 
   //  %arrayidx = getelementptr inbounds i32, i32* %a, i32 %i.09, !UID !16
-  val Gep_arrayidx5 = Module(new GepNode(NumIns = 1, NumOuts = 1, ID = 5)(ElementSize = 4, ArraySize = List()))
+  val Gep_arrayidx5 = Module(new GepNode(NumIns = 1, NumOuts = 1, ID = 5)(ElementSize = 8, ArraySize = List()))
 
   //  %1 = load i32, i32* %arrayidx, align 4, !tbaa !8, !UID !17
   val ld_6 = Module(new UnTypLoad(NumPredOps = 0, NumSuccOps = 0, NumOuts = 1, ID = 6, RouteID = 1))
@@ -107,10 +84,10 @@ class test05DF(implicit p: Parameters) extends test05DFIO()(p) {
   val binaryOp_add8 = Module(new ComputeNode(NumOuts = 1, ID = 8, opCode = "add")(sign = false))
 
   //  %arrayidx1 = getelementptr inbounds i32, i32* %a, i32 %add, !UID !20
-  val Gep_arrayidx19 = Module(new GepNode(NumIns = 1, NumOuts = 1, ID = 9)(ElementSize = 4, ArraySize = List()))
+  val Gep_arrayidx19 = Module(new GepNode(NumIns = 1, NumOuts = 1, ID = 9)(ElementSize = 8, ArraySize = List()))
 
   //  store i32 %mul, i32* %arrayidx1, align 4, !tbaa !8, !UID !21
-  val st_10 = Module(new UnTypStore(NumPredOps = 0, NumSuccOps = 0, ID = 10, RouteID = 0))
+  val st_10 = Module(new UnTypStore(NumPredOps = 0, NumSuccOps = 1, ID = 10, RouteID = 0))
 
   //  %inc = add nuw nsw i32 %i.09, 1, !UID !22
   val binaryOp_inc11 = Module(new ComputeNode(NumOuts = 2, ID = 11, opCode = "add")(sign = false))
@@ -119,8 +96,7 @@ class test05DF(implicit p: Parameters) extends test05DFIO()(p) {
   val icmp_exitcond12 = Module(new ComputeNode(NumOuts = 1, ID = 12, opCode = "eq")(sign = false))
 
   //  br i1 %exitcond, label %for.cond.cleanup, label %for.body, !UID !24, !BB_UID !25
-  val br_13 = Module(new CBranchNodeVariable(NumTrue = 1, NumFalse = 1, NumPredecessor = 0, ID = 13))
-
+  val br_13 = Module(new CBranchNodeVariable(NumTrue = 1, NumFalse = 1, NumPredecessor = 1, ID = 13))
 
 
   /* ================================================================== *
@@ -146,13 +122,11 @@ class test05DF(implicit p: Parameters) extends test05DFIO()(p) {
   val const5 = Module(new ConstFastNode(value = 5, ID = 5))
 
 
-
   /* ================================================================== *
    *                   BASICBLOCK -> PREDICATE INSTRUCTION              *
    * ================================================================== */
 
   bb_entry0.io.predicateIn(0) <> InputSplitter.io.Out.enable
-
 
 
   /* ================================================================== *
@@ -166,11 +140,9 @@ class test05DF(implicit p: Parameters) extends test05DFIO()(p) {
   bb_for_body2.io.predicateIn(0) <> Loop_0.io.activate_loop_back
 
 
-
   /* ================================================================== *
    *                   PRINTING PARALLEL CONNECTIONS                    *
    * ================================================================== */
-
 
 
   /* ================================================================== *
@@ -184,11 +156,9 @@ class test05DF(implicit p: Parameters) extends test05DFIO()(p) {
   Loop_0.io.loopFinish(0) <> br_13.io.TrueOutput(0)
 
 
-
   /* ================================================================== *
    *                   ENDING INSTRUCTIONS                              *
    * ================================================================== */
-
 
 
   /* ================================================================== *
@@ -196,7 +166,6 @@ class test05DF(implicit p: Parameters) extends test05DFIO()(p) {
    * ================================================================== */
 
   Loop_0.io.InLiveIn(0) <> InputSplitter.io.Out.data.elements("field0")(1)
-
 
 
   /* ================================================================== *
@@ -208,17 +177,14 @@ class test05DF(implicit p: Parameters) extends test05DFIO()(p) {
   Gep_arrayidx19.io.baseAddress <> Loop_0.io.OutLiveIn.elements("field0")(1)
 
 
-
   /* ================================================================== *
    *                   LOOP DATA LIVE-OUT DEPENDENCIES                  *
    * ================================================================== */
 
 
-
   /* ================================================================== *
    *                   LOOP LIVE OUT DEPENDENCIES                       *
    * ================================================================== */
-
 
 
   /* ================================================================== *
@@ -228,13 +194,11 @@ class test05DF(implicit p: Parameters) extends test05DFIO()(p) {
   Loop_0.io.CarryDepenIn(0) <> binaryOp_inc11.io.Out(0)
 
 
-
   /* ================================================================== *
    *                   LOOP DATA CARRY DEPENDENCIES                     *
    * ================================================================== */
 
   phii_094.io.InData(1) <> Loop_0.io.CarryDepenOut.elements("field0")(0)
-
 
 
   /* ================================================================== *
@@ -284,8 +248,6 @@ class test05DF(implicit p: Parameters) extends test05DFIO()(p) {
   br_13.io.enable <> bb_for_body2.io.Out(14)
 
 
-
-
   /* ================================================================== *
    *                   CONNECTING PHI NODES                             *
    * ================================================================== */
@@ -293,11 +255,9 @@ class test05DF(implicit p: Parameters) extends test05DFIO()(p) {
   phii_094.io.Mask <> bb_for_body2.io.MaskBB(0)
 
 
-
   /* ================================================================== *
    *                   PRINT ALLOCA OFFSET                              *
    * ================================================================== */
-
 
 
   /* ================================================================== *
@@ -317,11 +277,9 @@ class test05DF(implicit p: Parameters) extends test05DFIO()(p) {
   st_10.io.memResp <> MemCtrl.io.WriteOut(0)
 
 
-
   /* ================================================================== *
    *                   PRINT SHARED CONNECTIONS                         *
    * ================================================================== */
-
 
 
   /* ================================================================== *
@@ -368,6 +326,7 @@ class test05DF(implicit p: Parameters) extends test05DFIO()(p) {
 
   st_10.io.Out(0).ready := true.B
 
+  br_13.io.PredOp(0) <> st_10.io.SuccOp(0)
 
 
   /* ================================================================== *

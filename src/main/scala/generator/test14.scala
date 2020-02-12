@@ -7,6 +7,7 @@ import chisel3.testers._
 import chisel3.iotesters._
 import dandelion.accel._
 import dandelion.arbiters._
+import chipsalliance.rocketchip.config._
 import dandelion.config._
 import dandelion.control._
 import dandelion.fpu._
@@ -22,21 +23,8 @@ import regfile._
 import util._
 
 
-  /* ================================================================== *
-   *                   PRINTING PORTS DEFINITION                        *
-   * ================================================================== */
-
-abstract class test14DFIO(implicit val p: Parameters) extends Module with HasAccelParams {
-  val io = IO(new Bundle {
-    val in = Flipped(Decoupled(new Call(List(32, 32, 32))))
-    val MemResp = Flipped(Valid(new MemResp))
-    val MemReq = Decoupled(new MemReq)
-    val out = Decoupled(new Call(List(32)))
-  })
-}
-
-class test14DF(implicit p: Parameters) extends test14DFIO()(p) {
-
+class test14DF(ArgsIn: Seq[Int] = List(32, 32, 32), Returns: Seq[Int] = List(32))
+              (implicit p: Parameters) extends DandelionAccelModule(ArgsIn, Returns) {
 
   /* ================================================================== *
    *                   PRINTING MEMORY MODULES                          *

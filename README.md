@@ -107,6 +107,7 @@ Here we explain how to build dandelion-lib project, so you can use it in another
 ```shell
 git clone git@csil-git1.cs.surrey.sfu.ca:Dandelion/dandelion-lib.git
 cd dandelion-lib
+git submodule update --init --recursive
 sbt "publishLocal"
 ```
 

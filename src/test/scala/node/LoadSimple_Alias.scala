@@ -3,6 +3,8 @@ package dandelion.node
 
 import chisel3.iotesters._
 import org.scalatest.{Matchers, FlatSpec}
+import chisel3.MultiIOModule
+import chipsalliance.rocketchip.config._
 import dandelion.config._
 import chisel3._
 import chisel3.iotesters._
@@ -101,7 +103,13 @@ import Constants._
 class LoadAliasTester extends FlatSpec with Matchers {
   implicit val p = new WithAccelConfig
   it should "Load Node tester" in {
-    chisel3.iotesters.Driver(() => new UnTypLoadAlias(NumPredOps = 0, NumSuccOps = 0, NumAliasPredOps = 2, NumAliasSuccOps = 0, NumOuts = 1, Typ = MT_W, ID = 1, RouteID = 0)) { c =>
+    chisel3.iotesters.Driver.execute(
+      Array(
+        // "-ll", "Info",
+        "-tbn", "verilator",
+        "-td", "test_run_dir/LoadAliasNodeTester",
+        "-tts", "0001"),
+      () => new UnTypLoadAlias(NumPredOps = 0, NumSuccOps = 0, NumAliasPredOps = 2, NumAliasSuccOps = 0, NumOuts = 1, Typ = MT_W, ID = 1, RouteID = 0)) { c =>
       new LoadAliasTests(c)
     } should be(true)
   }

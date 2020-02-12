@@ -1,16 +1,15 @@
 package dandelion.node
 
 import chisel3._
-import chisel3.iotesters.{ChiselFlatSpec, Driver, OrderedDecoupledHWIOTester, PeekPokeTester}
-import chisel3.Module
-import chisel3.testers._
 import chisel3.util._
 import chisel3.util.experimental.BoringUtils
 import org.scalatest.{FlatSpec, Matchers}
 import dandelion.config._
+import chisel3.Module
 import dandelion.interfaces._
 import util._
-import utility.UniformPrintfs
+import chipsalliance.rocketchip.config._
+import dandelion.config._
 
 
 class ComputeNodeIO(NumOuts: Int, Debug: Boolean, GuardVal: Int = 0)
@@ -22,12 +21,7 @@ class ComputeNodeIO(NumOuts: Int, Debug: Boolean, GuardVal: Int = 0)
   // RightIO: Right input data for computation
   val RightIO = Flipped(Decoupled(new DataBundle()))
 
-  //p
-
-  //  val DebugEnable = if (Debug) Some(Input(new Bool)) else None
-
-  //v
-  override def cloneType = new ComputeNodeIO(NumOuts, Debug, GuardVal).asInstanceOf[this.type]
+  override def cloneType = new ComputeNodeIO(NumOuts).asInstanceOf[this.type]
 
 }
 
@@ -180,7 +174,8 @@ class ComputeNode(NumOuts: Int, ID: Int, opCode: String)
         }
         io.Out.foreach(_.valid := true.B)
         ValidOut()
-        //*********************************************************************************
+        left_valid_R := false.B
+        right_valid_R := false.B
         state := s_COMPUTE
         if (log) {
           printf("[LOG] " + "[" + module_name + "] " + "[TID->%d] [COMPUTE] " +
@@ -192,14 +187,10 @@ class ComputeNode(NumOuts: Int, ID: Int, opCode: String)
       when(IsOutReady()) {
         // Reset data
 
-        left_valid_R := false.B
-        right_valid_R := false.B
-
         out_data_R := 0.U
 
         //Reset state
         state := s_IDLE
-
         Reset()
 
 

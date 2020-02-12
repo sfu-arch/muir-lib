@@ -7,10 +7,12 @@ import chisel3.testers._
 import chisel3.util._
 import org.scalatest.{FlatSpec, Matchers}
 import utility.UniformPrintfs
-import dandelion.config._
+import chipsalliance.rocketchip.config._
 import dandelion.interfaces.{VariableDecoupledData, _}
 import muxes._
 import util._
+import dandelion.config._
+
 
 /*
 class RetNodeIO(val NumPredOps: Int, val retTypes: Seq[Int])(implicit p: Parameters)

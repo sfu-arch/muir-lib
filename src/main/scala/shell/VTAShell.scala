@@ -21,27 +21,18 @@ package dandelion.shell
 
 import chisel3._
 import dandelion.interfaces.axi._
-import dandelion.config._
-
-/** Shell parameters. */
-case class ShellParams(
-    hostParams: AXIParams,
-    memParams: AXIParams,
-    vcrParams: VCRParams,
-    vmeParams: VMEParams
-)
-
-case object ShellKey extends Field[ShellParams]
+import chipsalliance.rocketchip.config._
+import dandelion.config.HasAccelShellParams
 
 /** VTAShell.
   *
   * The VTAShell is based on a VME, VCR and core. This creates a complete VTA
   * system that can be used for simulation or real hardware.
   */
-class VTAShell(implicit p: Parameters) extends Module {
+class VTAShell(implicit val p: Parameters) extends Module with HasAccelShellParams {
   val io = IO(new Bundle {
-    val host = new AXILiteClient(p(ShellKey).hostParams)
-    val mem = new AXIMaster(p(ShellKey).memParams)
+    val host = new AXILiteClient(hostParams)
+    val mem = new AXIMaster(memParams)
   })
 
   val vcr = Module(new VCR)

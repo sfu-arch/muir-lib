@@ -2,6 +2,7 @@ package dandelion.node
 
 import chisel3._
 import chisel3.util._
+import chipsalliance.rocketchip.config._
 import chisel3.util.experimental.BoringUtils
 import dandelion.config._
 import dandelion.interfaces._

@@ -1,31 +1,19 @@
 package dandelion.generator
 
+import dandelion.accel._
 import chisel3._
+import chipsalliance.rocketchip.config._
 import dandelion.config._
 import dandelion.control._
-import dandelion.interfaces._
 import dandelion.junctions._
 import dandelion.memory._
 import dandelion.node._
 import util._
 
 
-/* ================================================================== *
- *                   PRINTING PORTS DEFINITION                        *
- * ================================================================== */
 
-
-abstract class test03DFIO(implicit val p: Parameters) extends Module with HasAccelParams {
-  val io = IO(new Bundle {
-    val in = Flipped(Decoupled(new Call(List(32, 32))))
-    val MemResp = Flipped(Valid(new MemResp))
-    val MemReq = Decoupled(new MemReq)
-    val out = Decoupled(new Call(List(32)))
-  })
-}
-
-class test03DF(implicit p: Parameters) extends test03DFIO()(p) {
-
+class test03DF(ArgsIn: Seq[Int] = List(32, 32), Returns: Seq[Int] = List(32))
+              (implicit p: Parameters) extends DandelionAccelModule(ArgsIn, Returns) {
 
   /* ================================================================== *
    *                   PRINTING MEMORY MODULES                          *
