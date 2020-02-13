@@ -206,7 +206,7 @@ class DebugVMEBufferNode(BufferLen: Int = 20, ID: Int, Bore_ID: Int)
 
   val io = IO(new Bundle {
 
-    val addr_debug = Input(UInt(memParams.addrBits.W))
+    val addrDebug = Input(UInt(memParams.addrBits.W))
 
     /**
       * Mem Interface to talk with VME
@@ -262,7 +262,7 @@ class DebugVMEBufferNode(BufferLen: Int = 20, ID: Int, Bore_ID: Int)
     enqPtr := enqPtr + 1.U
   }
 
-  io.vmeOut.cmd.bits.addr := io.addr_debug
+  io.vmeOut.cmd.bits.addr := io.addrDebug
   io.vmeOut.cmd.bits.len := BufferLen.U
 
 
