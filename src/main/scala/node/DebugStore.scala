@@ -291,12 +291,18 @@ class DebugVMEBufferNode(BufferLen: Int = 20, ID: Int, Bore_ID: Int)
     io.vmeOut.cmd.valid := true.B
   }
 
+
+  io.vmeOut.data.bits := 0.U
+  io.vmeOut.data.valid := false.B
+  io.vmeOut.data.ready := true.B
+
   when(bufferFull && !writeFinish) {
     io.vmeOut.data.bits := LogData.io.deq.bits
     io.vmeOut.data.valid := LogData.io.deq.valid
     LogData.io.deq.ready := io.vmeOut.data.ready
-
   }
+
+
 
   //  st_node.io.InData.bits := DataBundle(LogData.io.deq.bits)
   //  st_node.io.InData.valid := LogData.io.deq.valid
