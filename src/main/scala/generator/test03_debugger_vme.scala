@@ -54,7 +54,10 @@ class DebugVME03DF(implicit p: Parameters) extends DebugVME03IO()(p)  {
   buf_0.io.vmeOut.data.ready := io.vmeOut.data.ready
 
 
-  io.vmeOut.cmd := buf_0.io.vmeOut.cmd
+  io.vmeOut.cmd.bits := buf_0.io.vmeOut.cmd.bits
+  io.vmeOut.cmd.valid:= buf_0.io.vmeOut.cmd.valid
+  buf_0.io.vmeOut.cmd.ready := io.vmeOut.cmd.ready
+  
   buf_0.io.vmeOut.ack := io.vmeOut.ack
 
   //  val buf_1 = Module(new DebugVMEBufferNode(ID = 2, Bore_ID = 4))
