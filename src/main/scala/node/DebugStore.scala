@@ -264,6 +264,7 @@ class DebugVMEBufferNode(BufferLen: Int = 20, ID: Int, Bore_ID: Int)
 
   io.vmeOut.cmd.bits.addr := io.addrDebug
   io.vmeOut.cmd.bits.len := BufferLen.U
+  io.vmeOut.cmd.valid := (wState === sReq)
 
 
   switch(wState) {
@@ -285,10 +286,6 @@ class DebugVMEBufferNode(BufferLen: Int = 20, ID: Int, Bore_ID: Int)
         enqPtr := 0.U
       }
     }
-  }
-
-  when(wState === sReq) {
-    io.vmeOut.cmd.valid := true.B
   }
 
 
