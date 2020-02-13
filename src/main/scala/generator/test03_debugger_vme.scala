@@ -49,9 +49,11 @@ class DebugVME03DF(implicit p: Parameters) extends DebugVME03IO()(p)  {
   val buf_0 = Module(new DebugVMEBufferNode(ID = 1, Bore_ID = 2))
   buf_0.io.Enable := io.Enable
   buf_0.io.addrDebug := io.addrDebug
-  io.vmeOut := buf_0.io.vmeOut
+  io.vmeOut.data := buf_0.io.vmeOut.data
+  io.vmeOut.cmd := buf_0.io.vmeOut.cmd
+  buf_0.io.vmeOut.ack := io.vmeOut.ack
 
-//  val buf_1 = Module(new DebugVMEBufferNode(ID = 2, Bore_ID = 4))
+  //  val buf_1 = Module(new DebugVMEBufferNode(ID = 2, Bore_ID = 4))
 //  buf_1.io.Enable := io.Enable
 //  val buf_2 = Module(new DebugVMEBufferNode(ID = 3, Bore_ID = 5))
 //  buf_2.io.Enable := io.Enable
