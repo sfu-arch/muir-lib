@@ -211,7 +211,7 @@ class DebugVMEBufferNode(BufferLen: Int = 20, ID: Int, Bore_ID: Int)
     /**
       * Mem Interface to talk with VME
       */
-    val vmeOut = Flipped(new VMEWriteMaster)
+    val vmeOut = new VMEWriteMaster
 
     val Enable = Input(Bool())
   })

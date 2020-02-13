@@ -23,7 +23,7 @@ abstract class DebugVME03IO(implicit val p: Parameters) extends Module with HasA
     /**
       * Mem Interface to talk with VME
       */
-    val vmeOut = Flipped(new VMEWriteMaster)
+    val vmeOut = new VMEWriteMaster
 
     val Enable = Input(Bool())
   })
