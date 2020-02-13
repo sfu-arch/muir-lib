@@ -8,6 +8,7 @@ import dandelion.interfaces._
 import dandelion.junctions._
 import dandelion.memory._
 import dandelion.node._
+import dandelion.shell.VMEWriteMaster
 import util._
 
 
@@ -19,6 +20,11 @@ import util._
 abstract class DebugVME03IO(implicit val p: Parameters) extends Module with HasAccelParams with HasAccelShellParams {
   val io = IO(new Bundle {
     val addrDebug = Input(UInt(memParams.addrBits.W))
+    /**
+      * Mem Interface to talk with VME
+      */
+    val vmeOut = Output(new VMEWriteMaster)
+
     val Enable = Input(Bool())
   })
 }
@@ -43,6 +49,8 @@ class DebugVME03DF(implicit p: Parameters) extends DebugVME03IO()(p)  {
   val buf_0 = Module(new DebugVMEBufferNode(ID = 1, Bore_ID = 2))
   buf_0.io.Enable := io.Enable
   buf_0.io.addrDebug := io.addrDebug
+  io.vmeOut := buf_0.io.vmeOut
+  
 //  val buf_1 = Module(new DebugVMEBufferNode(ID = 2, Bore_ID = 4))
 //  buf_1.io.Enable := io.Enable
 //  val buf_2 = Module(new DebugVMEBufferNode(ID = 3, Bore_ID = 5))
