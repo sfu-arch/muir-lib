@@ -294,7 +294,6 @@ class DebugVMEBufferNode(BufferLen: Int = 20, ID: Int, Bore_ID: Int)
 
   io.vmeOut.data.bits := 0.U
   io.vmeOut.data.valid := false.B
-  io.vmeOut.data.ready := true.B
 
   when(bufferFull && !writeFinish) {
     io.vmeOut.data.bits := LogData.io.deq.bits
