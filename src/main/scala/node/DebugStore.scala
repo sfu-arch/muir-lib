@@ -224,23 +224,18 @@ class DebugVMEBufferNode(BufferLen: Int = 20, ID: Int, Bore_ID: Int)
   //------------------------------
   val dbg_counter = Counter(1024)
 
-  val enqPtr = RegInit(0.U(log2Ceil(BufferLen).W))
-  val deqPtr = RegInit(0.U(log2Ceil(BufferLen).W))
-
-
   val sIdel :: sReq :: sBusy :: Nil = Enum(3)
   val wState = RegInit(sIdel)
 
   //Is the Data The Wires of the Boring Connection Will put data in.
   val LogData = Module(new Queue(UInt((xlen).W), BufferLen))
 
-  val bufferFull = (deqPtr === (BufferLen - 1).U)
-  val writeFinish = (enqPtr === (BufferLen - 1).U)
-
+  val queue_count = RegInit(0.U)
+  when(LogData.io.enq.fire){
+    queue_count := queue_count + 1.U
+  }
 
   LogData.io.enq.bits := 0.U
-  LogData.io.enq.valid := false.B
-  LogData.io.deq.ready := false.B
 
   val queue_data = WireInit(0.U((xlen).W))
   val queue_valid = WireInit(false.B)
@@ -250,26 +245,23 @@ class DebugVMEBufferNode(BufferLen: Int = 20, ID: Int, Bore_ID: Int)
   BoringUtils.addSink(queue_valid, "valid" + Bore_ID)
   BoringUtils.addSource(queue_ready, "ready" + Bore_ID)
 
+  val writeFinished = Wire(Bool())
+  writeFinished := false.B
+  BoringUtils.addSink(writeFinished, "writefinish" + Bore_ID)
+
+
   LogData.io.enq.bits := queue_data
   LogData.io.enq.valid := queue_valid && io.Enable
   queue_ready := LogData.io.enq.ready
 
-  when(LogData.io.deq.fire) {
-    deqPtr := deqPtr + 1.U
-  }
-
-  when(LogData.io.enq.fire) {
-    enqPtr := enqPtr + 1.U
-  }
-
   io.vmeOut.cmd.bits.addr := io.addrDebug
-  io.vmeOut.cmd.bits.len := BufferLen.U
+  io.vmeOut.cmd.bits.len := queue_count - 1.U
   io.vmeOut.cmd.valid := (wState === sReq)
 
 
   switch(wState) {
     is(sIdel) {
-      when(bufferFull) {
+      when(writeFinished) {
         wState := sReq
       }
     }
@@ -281,9 +273,7 @@ class DebugVMEBufferNode(BufferLen: Int = 20, ID: Int, Bore_ID: Int)
     is(sBusy) {
       when(io.vmeOut.ack) {
         wState := sIdel
-
-        deqPtr := 0.U
-        enqPtr := 0.U
+        queue_count := 0.U
       }
     }
   }
@@ -291,12 +281,14 @@ class DebugVMEBufferNode(BufferLen: Int = 20, ID: Int, Bore_ID: Int)
 
   io.vmeOut.data.bits := 0.U
   io.vmeOut.data.valid := false.B
+  LogData.io.deq.ready := false.B
 
-  when(bufferFull && !writeFinish) {
+  when(wState === sBusy) {
     io.vmeOut.data.bits := LogData.io.deq.bits
     io.vmeOut.data.valid := LogData.io.deq.valid
     LogData.io.deq.ready := io.vmeOut.data.ready
   }
+
 
 
 

@@ -437,6 +437,15 @@ object ControlBundle {
     wire
   }
 
+  def debug(taskID: UInt = 0.U)(implicit p: Parameters): ControlBundle = {
+    val wire = Wire(new ControlBundle)
+    wire.control := true.B
+    wire.taskID := taskID
+    wire.debug := true.B
+    wire
+  }
+
+
   def deactivate(taskID: UInt = 0.U)(implicit p: Parameters): ControlBundle = {
     val wire = Wire(new ControlBundle)
     wire.control := false.B

@@ -75,7 +75,8 @@ class ComputeNode(NumOuts: Int, ID: Int, opCode: String)
   val predicate = Mux(enable_valid_R, enable_R.control, io.enable.bits.control)
   val taskID = Mux(enable_valid_R, enable_R.taskID, io.enable.bits.taskID)
 
-  val DebugEnable = enable_R.control && enable_R.debug && enable_valid_R
+  //val DebugEnable = enable_R.control && enable_R.debug && enable_valid_R
+  val DebugEnable = WireInit(true.B)
 
 
   /*===============================================*
@@ -115,28 +116,40 @@ class ComputeNode(NumOuts: Int, ID: Int, opCode: String)
   //var log_out = WireInit(0.U((xlen - 5).W))
   var GuardFlag = WireInit(0.U(1.W))
   var log_out_reg = RegInit(0.U((xlen - 5).W))
-
+  val writeFinish = RegInit(false.B)
   //log_id := ID.U
   //test_value := Cat(GuardFlag,log_id, log_out)
   val test_value = WireInit(0.U(xlen.W))
   test_value := Cat(GuardFlag, log_id, log_out_reg)
+
   //  val test_value = Cat("b1111".U, Cat("b0011".U, log_out))
   //test_value := log_out
   if (Debug) {
     val test_value_valid = Wire(Bool())
     val test_value_ready = Wire(Bool())
-    test_value_valid := false.B
+    val test_value_valid_r = RegInit(false.B)
+    test_value_valid := test_value_valid_r
     test_value_ready := false.B
     BoringUtils.addSource(test_value, "data" + ID)
     BoringUtils.addSource(test_value_valid, "valid" + ID)
     BoringUtils.addSink(test_value_ready, "ready" + ID)
 
-    when(DebugEnable) {
-      test_value_valid := true.B
-    }.otherwise {
-      test_value_valid := false.B
+
+    val writefinishready = Wire(Bool())
+    writefinishready := false.B
+    BoringUtils.addSource(writeFinish, "writefinish" + ID)
+
+
+
+    when(enable_valid_R && left_valid_R && right_valid_R) {
+      test_value_valid_r := true.B
     }
+    when(state === s_COMPUTE){
+      test_value_valid_r := false.B
+    }
+
   }
+
 
 
   //------------------v
@@ -186,7 +199,7 @@ class ComputeNode(NumOuts: Int, ID: Int, opCode: String)
     is(s_COMPUTE) {
       when(IsOutReady()) {
         // Reset data
-
+        writeFinish := true.B
         out_data_R := 0.U
 
         //Reset state
