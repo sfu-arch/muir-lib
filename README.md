@@ -245,6 +245,7 @@ In this document, we explain how someone can build an accelerator using IR-Lib a
 Authors:
 ========
 * Amirali Sharifian  (amiralis@sfu.ca)
+* Parmida Vahdatnia  (pvahdatn@sfu.ca)
 * Arrvindh Shriraman (ashriram@sfu.ca)
 * Steve Margerm      (smargerm@sfu.ca)
 * Reza Hojabr        (rshojabro@sfu.ca)
