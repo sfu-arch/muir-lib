@@ -241,6 +241,8 @@ In this document, we explain how someone can build an accelerator using IR-Lib a
 
 * [**Test Fitting**](./doc/test-fit.md)
 
+This is testing for debug.
+
 
 Authors:
 ========
@@ -250,4 +252,3 @@ Authors:
 * Steve Margerm      (smargerm@sfu.ca)
 * Reza Hojabr        (rshojabro@sfu.ca)
 * Naveen Vedula      (nvedula@sfu.ca)
-
