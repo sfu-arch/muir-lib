@@ -8,6 +8,7 @@ import dandelion.interfaces._
 import dandelion.junctions._
 import dandelion.memory._
 import dandelion.node._
+import dandelion.shell.VMEWriteMaster
 import util._
 
 
@@ -16,16 +17,19 @@ import util._
  * ================================================================== */
 
 
-abstract class Debug04IO(implicit val p: Parameters) extends Module with HasAccelParams {
+abstract class DebugVME04IO(implicit val p: Parameters) extends Module with HasAccelParams with HasAccelShellParams {
   val io = IO(new Bundle {
+    val addrDebug = Input(UInt(memParams.addrBits.W))
+    /**
+     * Mem Interface to talk with VME
+     */
+    val vmeOut = new VMEWriteMaster
+
     val Enable = Input(Bool())
-    val MemResp = Flipped(Valid(new MemResp))
-    val MemReq = Decoupled(new MemReq)
-//    val out = Decoupled(new Call(List()))
   })
 }
 
-class Debug04DF(implicit p: Parameters) extends Debug04IO()(p) {
+class DebugVME04DF(implicit p: Parameters) extends DebugVME04IO()(p)  {
 
 
   /* ================================================================== *
@@ -34,45 +38,22 @@ class Debug04DF(implicit p: Parameters) extends Debug04IO()(p) {
 
 
 
-  val MemCtrl = Module(new UnifiedController(ID = 0, Size = 32, NReads = 0, NWrites = 1)
-  //Num of Writes and NumOps of Write should be the same as number of buffer nodes
-  (WControl = new WriteMemoryController(NumOps = 1, BaseSize = 2, NumEntries = 2))
-  (RControl = new ReadMemoryController(NumOps = 0, BaseSize = 2, NumEntries = 2))
-  (RWArbiter = new ReadWriteArbiter()))
-  io.MemReq <> MemCtrl.io.MemReq
-  MemCtrl.io.MemResp <> io.MemResp
 
   //ID from 1, RoutID from 0, Bore_ID same as the ID of the node_to_be_logged and node_cnt for memory spaces from 0
-  val buf_0 = Module(new DebugBufferNode(ID = 1, RouteID = 0, Bore_ID = 0, node_cnt = 0.U))
+  val buf_0 = Module(new DebugVMEBufferNode(ID = 1, Bore_ID = 4))
   buf_0.io.Enable := io.Enable
+  buf_0.io.addrDebug := io.addrDebug
+  io.vmeOut.data.bits := buf_0.io.vmeOut.data.bits
+  io.vmeOut.data.valid := buf_0.io.vmeOut.data.valid
+  buf_0.io.vmeOut.data.ready := io.vmeOut.data.ready
 
 
+  io.vmeOut.cmd.bits := buf_0.io.vmeOut.cmd.bits
+  io.vmeOut.cmd.valid:= buf_0.io.vmeOut.cmd.valid
+  buf_0.io.vmeOut.cmd.ready := io.vmeOut.cmd.ready
 
-  // Memory writes to connect
-  //-----------------------------------p
-  MemCtrl.io.WriteIn(0) <> buf_0.io.memReq
-  buf_0.io.memResp <> MemCtrl.io.WriteOut(0)
+  buf_0.io.vmeOut.ack := io.vmeOut.ack
 
-  //----------------------------------------------v
 
 
 }
-
-import java.io.{File, FileWriter}
-
-object Debug04Top extends App {
-  val dir = new File("RTL/Debug03Top");
-  dir.mkdirs
-  implicit val p = new WithAccelConfig
-  val chirrtl = firrtl.Parser.parse(chisel3.Driver.emit(() => new Debug03DF()))
-
-  val verilogFile = new File(dir, s"${chirrtl.main}.v")
-  val verilogWriter = new FileWriter(verilogFile)
-  val compileResult = (new firrtl.VerilogCompiler).compileAndEmit(firrtl.CircuitState(chirrtl, firrtl.ChirrtlForm))
-  val compiledStuff = compileResult.getEmittedCircuit
-  verilogWriter.write(compiledStuff.value)
-  verilogWriter.close()
-}
-
-
-

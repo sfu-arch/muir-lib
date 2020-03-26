@@ -61,7 +61,7 @@ case class DandelionAccelParams(
                                  tSize: Int = 64,
                                  verbosity: String = "low",
                                  components: String = "",
-                                 printLog: Boolean = false,
+                                 printLog: Boolean = true,
                                  printCLog: Boolean = false
                                ) extends AccelParams {
   var xlen: Int = dataLen

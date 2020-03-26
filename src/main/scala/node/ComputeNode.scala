@@ -137,7 +137,7 @@ class ComputeNode(NumOuts: Int, ID: Int, opCode: String)
 
     val writefinishready = Wire(Bool())
     writefinishready := false.B
-    BoringUtils.addSource(writeFinish, "writefinish" + ID)
+   // BoringUtils.addSource(writeFinish, "writefinish" + ID)
 
 
 

@@ -42,7 +42,7 @@ class StoreIO(NumPredOps: Int,
 class UnTypStore(NumPredOps: Int,
                  NumSuccOps: Int,
                  NumOuts: Int = 1,
-                 Typ: UInt = MT_W, ID: Int, RouteID: Int, Debug: Boolean = false)
+                 Typ: UInt = MT_W, ID: Int, RouteID: Int, Debug: Boolean = false, GuardValData : Int = 0 , GuardValAddr : Int = 0)
                 (implicit p: Parameters,
                  name: sourcecode.Name,
                  file: sourcecode.File)
@@ -72,17 +72,42 @@ class UnTypStore(NumPredOps: Int,
 
   val ReqValid = RegInit(false.B)
 
-
   //------------------------------
+  var log_id = WireInit(ID.U((4).W))
+  var GuardFlag = WireInit(0.U(1.W))
 
-  //  if (ID == 7) {
-  //    val SinkVal = Wire (UInt(6.W))
-  //    SinkVal:= 0.U
-  //    val Uniq_name = "me"
-  //    BoringUtils.addSink(SinkVal, Uniq_name)
-  //    printf("[***************************sinksource*******************" + SinkVal)
-  //  }
+  var log_data_reg = RegInit(0.U((xlen-20).W))
+  var log_addr_reg = RegInit(0.U(15.W))
+  val writeFinish = RegInit(false.B)
+  //log_id := ID.U
+  //test_value := Cat(GuardFlag,log_id, log_out)
+  val log_value = WireInit(0.U(xlen.W))
+  log_value := Cat(GuardFlag, log_id, log_data_reg, log_addr_reg)
+
+
+
+  if (Debug) {
+    val test_value_valid = Wire(Bool())
+    val test_value_ready = Wire(Bool())
+    val test_value_valid_r = RegInit(false.B)
+    test_value_valid := test_value_valid_r
+    test_value_ready := false.B
+    BoringUtils.addSource(log_value, "data" + ID)
+    BoringUtils.addSource(test_value_valid, "valid" + ID)
+    BoringUtils.addSink(test_value_ready, "ready" + ID)
+
+
+
+    when(enable_valid_R ) {
+      test_value_valid_r := true.B
+    }
+    when(state === s_Done){
+      test_value_valid_r := false.B
+    }
+
+  }
   //----------------------------------
+
 
 
   /*============================================
@@ -122,6 +147,7 @@ class UnTypStore(NumPredOps: Int,
     io.Out(i).bits.taskID := data_R.taskID | addr_R.taskID | enable_R.taskID
   }
   // Outgoing Address Req ->
+  //here
   io.memReq.bits.address := addr_R.data
   io.memReq.bits.data := data_R.data
   io.memReq.bits.Typ := Typ
@@ -144,6 +170,21 @@ class UnTypStore(NumPredOps: Int,
         when(data_valid_R && addr_valid_R) {
           when(enable_R.control && mem_req_fire) {
             io.memReq.valid := true.B
+
+            if (Debug) {
+              when(data_R.data =/= GuardValData.U || addr_R.data =/= GuardValAddr.U ) {
+                GuardFlag := 1.U
+                log_data_reg :=  data_R.data
+                log_addr_reg := addr_R.data
+                data_R.data := GuardValData.U
+                addr_R.data := GuardValAddr.U
+
+              }.otherwise {
+                GuardFlag := 0.U
+                log_data_reg :=  data_R.data
+                log_addr_reg := addr_R.data
+              }
+            }
             when(io.memReq.ready) {
               state := s_RECEIVING
             }

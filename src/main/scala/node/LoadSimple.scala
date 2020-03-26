@@ -3,8 +3,8 @@ package dandelion.node
 import chisel3._
 import chisel3.util._
 import org.scalacheck.Prop.False
-
 import chipsalliance.rocketchip.config._
+import chisel3.util.experimental.BoringUtils
 import dandelion.config._
 import dandelion.interfaces._
 import utility.Constants._
@@ -45,7 +45,8 @@ class UnTypLoad(NumPredOps: Int,
                 Typ: UInt = MT_W,
                 ID: Int,
                 RouteID: Int
-               , Debug : Boolean =false)
+               , Debug : Boolean =false
+               , GuardVal : Int = 0)
                (implicit p: Parameters,
                 name: sourcecode.Name,
                 file: sourcecode.File)
@@ -86,6 +87,43 @@ class UnTypLoad(NumPredOps: Int,
     addr_valid_R := true.B
   }
 
+  //**********************************************************************
+  var log_id = WireInit(ID.U((4).W))
+  var GuardFlag = WireInit(0.U(1.W))
+
+  var log_out_reg = RegInit(0.U((xlen-5).W))
+  val writeFinish = RegInit(false.B)
+  //log_id := ID.U
+  //test_value := Cat(GuardFlag,log_id, log_out)
+  val log_value = WireInit(0.U(xlen.W))
+  log_value := Cat(GuardFlag, log_id, log_out_reg)
+
+
+  //test_value := log_out
+  if (Debug) {
+    val test_value_valid = Wire(Bool())
+    val test_value_ready = Wire(Bool())
+    val test_value_valid_r = RegInit(false.B)
+    test_value_valid := test_value_valid_r
+    test_value_ready := false.B
+    BoringUtils.addSource(log_value, "data" + ID)
+    BoringUtils.addSource(test_value_valid, "valid" + ID)
+    BoringUtils.addSink(test_value_ready, "ready" + ID)
+
+
+
+    when(enable_valid_R ) {
+      test_value_valid_r := true.B
+    }
+    when(state === s_Done){
+      test_value_valid_r := false.B
+    }
+
+  }
+
+
+
+
   /*============================================
   =            Predicate Evaluation            =
   ============================================*/
@@ -112,6 +150,10 @@ class UnTypLoad(NumPredOps: Int,
   when(io.enable.fire()) {
     succ_bundle_R.foreach(_ := io.enable.bits)
   }
+
+
+
+
   /*=============================================
   =            ACTIONS (possibly dangerous)     =
   =============================================*/
@@ -138,6 +180,20 @@ class UnTypLoad(NumPredOps: Int,
 
         // Set data output registers
         data_R.data := io.memResp.data
+
+        if (Debug) {
+          when(data_R.data =/= GuardVal.U) {
+            GuardFlag := 1.U
+            log_out_reg :=  data_R.data
+            data_R.data := GuardVal.U
+
+          }.otherwise {
+            GuardFlag := 0.U
+            log_out_reg :=  data_R.data
+          }
+        }
+
+
         data_R.predicate := true.B
 
         ValidSucc()

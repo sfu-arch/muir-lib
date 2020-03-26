@@ -8,6 +8,7 @@ import chisel3.util._
 import org.scalatest.{FlatSpec, Matchers}
 import utility.UniformPrintfs
 import chipsalliance.rocketchip.config._
+import chisel3.util.experimental.BoringUtils
 import dandelion.interfaces.{VariableDecoupledData, _}
 import muxes._
 import util._
@@ -213,13 +214,13 @@ class RetNode(retTypes: Seq[Int], ID: Int)
 
 }
 
-class RetNode2IO(val retTypes: Seq[Int])(implicit p: Parameters)
+class RetNode2IO(val retTypes: Seq[Int], Debug:Boolean = false , NumBores : Int = 0)(implicit p: Parameters)
   extends Bundle {
   val In = Flipped(new CallDecoupled(retTypes))
   val Out = Decoupled(new Call(retTypes)) // Returns to calling block(s)
 }
 
-class RetNode2(retTypes: Seq[Int], ID: Int)
+class RetNode2(retTypes: Seq[Int], ID: Int , Debug: Boolean = false, NumBores : Int = 0)
               (implicit val p: Parameters,
                name: sourcecode.Name,
                file: sourcecode.File) extends Module
@@ -277,10 +278,27 @@ class RetNode2(retTypes: Seq[Int], ID: Int)
   io.Out.bits := output_R
   io.Out.valid := out_valid_R
 
+
+  //**********************************************************************
+  val RunFinish = RegInit(false.B)
+  val RunFinishBoring = WireInit(false.B)
+  RunFinishBoring := RunFinish
+  if (Debug) {
+    for (i <- 0 until NumBores) {
+      BoringUtils.addSource(RunFinishBoring, "RunFinished" + (i+1))
+    }
+  }
+  //*******************************************************************
+
   when(io.Out.fire()) {
+    RunFinish := true.B
     out_ready_R := io.Out.ready
     out_valid_R := false.B
   }
+
+
+
+
 
   switch(state) {
     is(s_IDLE) {
@@ -303,7 +321,7 @@ class RetNode2(retTypes: Seq[Int], ID: Int)
 
         state := s_IDLE
         if (log) {
-          printf("[AAAAAAAAAAAAAAAAAAAAAAAAALOG] " + "[" + module_name + "] "
+          printf("[LOG] " + "[" + module_name + "] "
             + "[TID->%d] " + node_name +
             ": Output fired @ %d\n", output_R.enable.taskID, io.In.asUInt())
         }

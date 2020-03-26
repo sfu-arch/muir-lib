@@ -72,7 +72,7 @@ class test03DF(ArgsIn: Seq[Int] = List(32, 32), Returns: Seq[Int] = List(32))
   val binaryOp_5 = Module(new ComputeNode(NumOuts = 1, ID = 5, opCode = "mul")(sign = false, Debug = false))
 
   //  ret i32 %8, !UID !9, !BB_UID !10
-  val ret_6 = Module(new RetNode2(retTypes = List(32), ID = 7))
+  val ret_6 = Module(new RetNode2(retTypes = List(32), ID = 7, Debug = true , NumBores = 1))
 
   //-----------------------------------------------------------------------------------p
   /*hs

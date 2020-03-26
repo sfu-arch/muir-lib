@@ -224,6 +224,7 @@ class DebugVMEBufferNode(BufferLen: Int = 20, ID: Int, Bore_ID: Int)
   //------------------------------
   val dbg_counter = Counter(1024)
 
+  val N = RegInit(32.U)
   val sIdel :: sReq :: sBusy :: Nil = Enum(3)
   val wState = RegInit(sIdel)
 
@@ -247,8 +248,9 @@ class DebugVMEBufferNode(BufferLen: Int = 20, ID: Int, Bore_ID: Int)
 
   val writeFinished = Wire(Bool())
   writeFinished := false.B
-  BoringUtils.addSink(writeFinished, "writefinish" + Bore_ID)
-
+  BoringUtils.addSink(writeFinished, "RunFinished" + ID)
+  //Insert
+  //  BoringUtils.addSink(writeFinished, "writefinish" + ID)
 
   LogData.io.enq.bits := queue_data
   LogData.io.enq.valid := queue_valid && io.Enable
@@ -261,11 +263,13 @@ class DebugVMEBufferNode(BufferLen: Int = 20, ID: Int, Bore_ID: Int)
 
   switch(wState) {
     is(sIdel) {
-      when(writeFinished) {
+      when((writeFinished && LogData.io.deq.valid) || (LogData.io.count.asUInt() === N.asUInt()/2.U)) {
         wState := sReq
       }
     }
     is(sReq) {
+//      LogData.io.enq.ready := false.B
+      queue_ready := false.B
       when(io.vmeOut.cmd.fire()) {
         wState := sBusy
       }

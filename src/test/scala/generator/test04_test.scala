@@ -42,7 +42,6 @@ class test04Main(implicit p: Parameters) extends AccelIO(List(32, 32, 32), List(
   // Wire up the cache and modules under test.
   //    val test03 = Module(new test03DF())
   val test04 = Module(new test04DF())
-  val test04_debug = Module(new Debug04DF())
   //Put an arbiter infront of cache
   val CacheArbiter = Module(new MemArbiter(3))
 
@@ -53,9 +52,6 @@ class test04Main(implicit p: Parameters) extends AccelIO(List(32, 32, 32), List(
   //Connect main module to cache arbiter
   CacheArbiter.io.cpu.MemReq(1) <> io.req
   io.resp <> CacheArbiter.io.cpu.MemResp(1)
-
-  CacheArbiter.io.cpu.MemReq(2) <> test04_debug.io.MemReq
-  test04_debug.io.MemResp <> CacheArbiter.io.cpu.MemResp(2)
 
   //Connect cache to the arbiter
   cache.io.cpu.req <> CacheArbiter.io.cache.MemReq
@@ -71,21 +67,7 @@ class test04Main(implicit p: Parameters) extends AccelIO(List(32, 32, 32), List(
   val sIdle :: sActive :: Nil = Enum(2)
   val state = RegInit(sIdle)
 
-  test04_debug.io.Enable := (state === sActive)
 
-  switch(state) {
-    is(sIdle) {
-      when(io.in.fire) {
-        state := sActive
-      }
-    }
-    is(sActive) {
-      when(test04.io.out.fire) {
-        state := sIdle
-      }
-    }
-
-  }
 
 
   // Check if trace option is on or off
