@@ -13,8 +13,8 @@ import dandelion.interfaces._
 import muxes._
 import util._
 
-class AllocaNodeIO(NumOuts: Int) (implicit p: Parameters)
-  extends HandShakingIONPS(NumOuts)(new DataBundle) {
+class AllocaNodeIO(NumOuts: Int, Debug : Boolean) (implicit p: Parameters)
+  extends HandShakingIONPS(NumOuts, Debug)(new DataBundle) {
   /**
     * @note requested size for address
     */
@@ -26,16 +26,16 @@ class AllocaNodeIO(NumOuts: Int) (implicit p: Parameters)
   val allocaReqIO = Decoupled(new AllocaReq())
   val allocaRespIO = Input(Flipped(new AllocaResp()))
 
-  override def cloneType = new AllocaNodeIO(NumOuts).asInstanceOf[this.type]
+  override def cloneType = new AllocaNodeIO(NumOuts, Debug).asInstanceOf[this.type]
 
 }
 
-class AllocaNode(NumOuts: Int, ID: Int, RouteID: Int, FrameSize : Int = 16)
+class AllocaNode(NumOuts: Int, ID: Int, RouteID: Int, FrameSize : Int = 16, Debug : Boolean = false)
                 (implicit p: Parameters,
                  name: sourcecode.Name,
                  file: sourcecode.File)
-  extends HandShakingNPS(NumOuts, ID)(new DataBundle)(p) {
-  override lazy val io = IO(new AllocaNodeIO(NumOuts))
+  extends HandShakingNPS(NumOuts, ID, Debug)(new DataBundle)(p) {
+  override lazy val io = IO(new AllocaNodeIO(NumOuts, Debug))
   // Printf debugging
   val node_name = name.value
   val module_name = file.value.split("/").tail.last.split("\\.").head.capitalize
@@ -43,6 +43,9 @@ class AllocaNode(NumOuts: Int, ID: Int, RouteID: Int, FrameSize : Int = 16)
   val (cycleCount,_) = Counter(true.B,32*1024)
 
   val FrameBits = log2Ceil(FrameSize)
+
+
+
   /*===========================================*
    *            Registers                      *
    *===========================================*/
@@ -67,6 +70,8 @@ class AllocaNode(NumOuts: Int, ID: Int, RouteID: Int, FrameSize : Int = 16)
 
   val predicate = alloca_R.predicate & IsEnable()
   val start = alloca_R.valid & IsEnableValid()
+
+
 
   /*===============================================*
    *            Latch inputs. Wire up output       *
@@ -109,7 +114,9 @@ class AllocaNode(NumOuts: Int, ID: Int, RouteID: Int, FrameSize : Int = 16)
     is (s_idle) {
       when (start & predicate) {
         req_valid := true.B
+
         state := s_req
+
       }
     }
     is (s_req) {
@@ -126,6 +133,7 @@ class AllocaNode(NumOuts: Int, ID: Int, RouteID: Int, FrameSize : Int = 16)
       when(IsOutReady()) {
         alloca_R := AllocaIO.default
         data_R := 0.U
+        pred_R := false.B
         pred_R := false.B
         state := s_idle
         Reset()
@@ -149,5 +157,7 @@ class AllocaNode(NumOuts: Int, ID: Int, RouteID: Int, FrameSize : Int = 16)
   // printf(p"Alloca req:   ${io.allocaReqIO}\n")
   // printf(p"Alloca res:   ${io.allocaRespIO}\n")
 
-  
+  def isDebug(): Boolean = {
+    Debug
+  }
 }

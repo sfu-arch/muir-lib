@@ -226,4 +226,5 @@ Authors:
 * Arrvindh Shriraman (ashriram@sfu.ca)
 * Steve Margerm      (smargerm@sfu.ca)
 * Reza Hojabr        (rshojabro@sfu.ca)
+* Parmida Vahdatnia  (pvahdatn@sfu.ca)
 

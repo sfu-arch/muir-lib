@@ -81,6 +81,7 @@ class CallOutNode(ID: Int, val argTypes: Seq[Int], NumSuccOps: Int = 0, NoReturn
         // Clear all other state
         Reset()
         // Reset state.
+
         state := s_idle
         if (log) {
           printf("[LOG] " + "[" + module_name + "] [TID->%d] " + node_name + ": Output fired @ %d\n", enable_R.taskID, cycleCount)
@@ -88,6 +89,8 @@ class CallOutNode(ID: Int, val argTypes: Seq[Int], NumSuccOps: Int = 0, NoReturn
       }
     }
   }
+
+
 }
 
 class CallOutNode2(ID: Int, val argTypes: Seq[Int], NumSuccOps: Int = 0, NoReturn: Bool = false.B)
@@ -141,6 +144,7 @@ class CallOutNode2(ID: Int, val argTypes: Seq[Int], NumSuccOps: Int = 0, NoRetur
             }
           }
         }
+
         state := s_Done
       }
     }
@@ -158,4 +162,5 @@ class CallOutNode2(ID: Int, val argTypes: Seq[Int], NumSuccOps: Int = 0, NoRetur
       }
     }
   }
+
 }

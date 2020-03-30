@@ -42,13 +42,16 @@ import dandelion.config._
   * @param NumOuts Number of outputs
   *
   */
-class HandShakingIONPS[T <: Data](val NumOuts: Int)(gen: T)(implicit p: Parameters)
+class HandShakingIONPS[T <: Data](val NumOuts: Int, val Debug: Boolean = false)(gen: T)(implicit p: Parameters)
   extends AccelBundle with HasAccelParams {
   // Predicate enable
   val enable = Flipped(Decoupled(new ControlBundle))
   // Output IO
   val Out    = Vec(NumOuts, Decoupled(gen))
-
+  /*hs
+  val LogCheck = if (Debug) Some (Decoupled(new CustomDataBundle(UInt (32.W)))) else None
+  val LogCheckAddr = if (Debug) Some (Decoupled(new CustomDataBundle(UInt (32.W)))) else None
+  hs*/
   override def cloneType = new HandShakingIONPS(NumOuts)(gen).asInstanceOf[this.type]
 
 }
@@ -68,8 +71,8 @@ class HandShakingIONPS[T <: Data](val NumOuts: Int)(gen: T)(implicit p: Paramete
   */
 class HandShakingIOPS[T <: Data](val NumPredOps: Int,
                                  val NumSuccOps: Int,
-                                 val NumOuts: Int)(gen: T)(implicit p: Parameters)
-  extends AccelBundle()(p) {
+                                 val NumOuts: Int, val Debug: Boolean = false)(gen: T)(implicit p: Parameters)
+  extends AccelBundle( )(p) {
   // Predicate enable
   val enable = Flipped(Decoupled(new ControlBundle))
   // Predecessor Ordering
@@ -78,7 +81,10 @@ class HandShakingIOPS[T <: Data](val NumPredOps: Int,
   val SuccOp = Vec(NumSuccOps, Decoupled(new ControlBundle( )))
   // Output IO
   val Out    = Vec(NumOuts, Decoupled(gen))
-
+  // Logging port
+  /*hs
+  val LogCheck = if (Debug) Some(Decoupled(new CustomDataBundle(UInt(2.W)))) else None
+  hs*/
   override def cloneType = new HandShakingIOPS(NumPredOps, NumSuccOps, NumOuts)(gen).asInstanceOf[this.type]
 
 }
@@ -91,7 +97,8 @@ class HandShakingIOPS[T <: Data](val NumPredOps: Int,
   * @param NumOuts Number of outputs
   *
   */
-class HandShakingFusedIO[T <: Data](val NumIns: Int, val NumOuts: Int)(gen: T)(implicit p: Parameters)
+class HandShakingFusedIO[T <: Data](val NumIns: Int, val NumOuts: Int,
+					val Debug: Boolean = false)(gen: T)(implicit p: Parameters)
   extends AccelBundle( )(p) {
   // Predicate enable
   val enable = Flipped(Decoupled(new ControlBundle))
@@ -99,7 +106,9 @@ class HandShakingFusedIO[T <: Data](val NumIns: Int, val NumOuts: Int)(gen: T)(i
   val In     = Flipped(Vec(NumIns, Decoupled(gen)))
   // Output IO
   val Out    = Vec(NumOuts, Decoupled(gen))
-
+  /*hs
+  val LogCheck = if (Debug) Some(Decoupled(new CustomDataBundle(UInt(2.W)))) else None
+  hs*/
   override def cloneType = new HandShakingFusedIO(NumIns, NumOuts)(gen).asInstanceOf[this.type]
 
 }
@@ -114,13 +123,15 @@ class HandShakingFusedIO[T <: Data](val NumIns: Int, val NumOuts: Int)(gen: T)(i
   */
 class HandShakingCtrlMaskIO(val NumInputs: Int,
                             val NumOuts: Int,
-                            val NumPhi: Int)(implicit p: Parameters)
+                            val NumPhi: Int, val Debug: Boolean = false)(implicit p: Parameters)
   extends AccelBundle( )(p) {
 
   // Output IO
   val MaskBB = Vec(NumPhi, Decoupled(UInt(NumInputs.W)))
   val Out    = Vec(NumOuts, Decoupled(new ControlBundle))
-
+  /*hs
+  val LogCheck = if (Debug) Some(Decoupled(new CustomDataBundle(UInt(2.W)))) else None
+  hs*/
   override def cloneType = new HandShakingCtrlMaskIO(NumInputs, NumOuts, NumPhi).asInstanceOf[this.type]
 }
 
@@ -131,11 +142,13 @@ class HandShakingCtrlMaskIO(val NumInputs: Int,
   * @param NumOuts Number of outputs (Num Inst.)
   *
   */
-class HandShakingCtrlNoMaskIO(val NumOuts: Int)(implicit p: Parameters)
+class HandShakingCtrlNoMaskIO(val NumOuts: Int, val Debug: Boolean = false)(implicit p: Parameters)
   extends AccelBundle( )(p) {
   // Output IO
   val Out = Vec(NumOuts, Decoupled(new ControlBundle))
-
+  /*hs
+  val LogCheck = if (Debug) Some(Decoupled(new CustomDataBundle(UInt(2.W)))) else None
+  hs*/
   override def cloneType = new HandShakingCtrlNoMaskIO(NumOuts).asInstanceOf[this.type]
 }
 
@@ -152,10 +165,10 @@ class HandShakingCtrlNoMaskIO(val NumOuts: Int)(implicit p: Parameters)
   */
 
 class HandShakingNPS[T <: Data](val NumOuts: Int,
-                                val ID: Int)(gen: T)(implicit val p: Parameters)
+                                val ID: Int, val Debug: Boolean = false)(gen: T)(implicit val p: Parameters)
   extends Module with HasAccelParams with UniformPrintfs {
 
-  lazy val io = IO(new HandShakingIONPS(NumOuts)(gen))
+  lazy val io = IO(new HandShakingIONPS(NumOuts, Debug)(gen))
 
   /*=================================
   =            Registers            =
@@ -198,6 +211,26 @@ class HandShakingNPS[T <: Data](val NumOuts: Int,
   /*===================================*
    *            Helper Checks          *
    *===================================*/
+  /*hs
+  if(Debug){
+    io.LogCheck.get.valid := false.B
+    io.LogCheck.get.bits := DataBundle.default
+    io.LogCheckAddr.get.bits := DataBundle.default
+    io.LogCheckAddr.get.valid := false.B
+  }
+
+  def CaptureLog(data: UInt, addr: UInt = 0.U): Unit = {
+    if (Debug) {
+      io.LogCheck.get.bits := DataBundle(data)
+      io.LogCheck.get.valid := true.B
+      io.LogCheckAddr.get.bits := DataBundle(addr)
+      io.LogCheckAddr.get.valid := true.B
+    }
+  }
+  hs*/
+
+
+
   def IsEnable(): Bool = {
     enable_R.control
   }
@@ -219,7 +252,15 @@ class HandShakingNPS[T <: Data](val NumOuts: Int,
       fire_mask reduce {_ & _}
     }
   }
-
+  /*hs
+  def IsDebugReady(): Bool = {
+    if(Debug){
+      io.LogCheck.get.ready
+    } else {
+      return true.B
+    }
+  }
+  hs*/
   def IsOutValid(): Bool = {
     //    out_valid_R.asUInt.andR
     if (NumOuts == 0) {
@@ -244,10 +285,10 @@ class HandShakingNPS[T <: Data](val NumOuts: Int,
 }
 
 class HandShakingFused[T <: PredicateT](val NumIns: Int, val NumOuts: Int,
-                                        val ID: Int)(gen: T)(implicit val p: Parameters)
+                                        val ID: Int, val Debug: Boolean = false)(gen: T)(implicit val p: Parameters)
   extends Module with HasAccelParams with UniformPrintfs {
 
-  lazy val io = IO(new HandShakingFusedIO(NumIns, NumOuts)(new DataBundle))
+  lazy val io = IO(new HandShakingFusedIO(NumIns, NumOuts ,Debug)(new DataBundle))
 
   /*=================================
   =            Registers            =
@@ -319,6 +360,22 @@ class HandShakingFused[T <: PredicateT](val NumIns: Int, val NumOuts: Int,
   /*===================================*
    *            Helper Checks          *
    *===================================*/
+
+  /*hs
+  if(Debug){
+    io.LogCheck.get.valid := false.B
+    io.LogCheck.get.bits := DataBundle.default
+  }
+
+  def CaptureLog(data: UInt): Unit = {
+    if (Debug) {
+      io.LogCheck.get.bits := DataBundle(data)
+      io.LogCheck.get.valid := true.B
+    }
+  }
+
+  hs*/
+
   def IsEnable(): Bool = {
     enable_R.control
   }
@@ -401,10 +458,10 @@ class HandShakingFused[T <: PredicateT](val NumIns: Int, val NumOuts: Int,
   */
 
 class HandShakingCtrlNPS(val NumOuts: Int,
-                         val ID: Int)(implicit val p: Parameters)
+                         val ID: Int, val Debug: Boolean = false)(implicit val p: Parameters)
   extends Module with HasAccelParams with UniformPrintfs {
 
-  lazy val io = IO(new HandShakingIONPS(NumOuts)(new ControlBundle))
+  lazy val io = IO(new HandShakingIONPS(NumOuts ,Debug)(new ControlBundle))
 
   /*=================================
   =            Registers            =
@@ -449,6 +506,22 @@ class HandShakingCtrlNPS(val NumOuts: Int,
   /*===================================*
    *            Helper Checks          *
    *===================================*/
+
+  /*hs
+  if(Debug){
+    io.LogCheck.get.valid := false.B
+    io.LogCheck.get.bits := DataBundle.default
+  }
+
+  def CaptureLog(data: UInt): Unit = {
+    if (Debug) {
+      io.LogCheck.get.bits := DataBundle(data)
+      io.LogCheck.get.valid := true.B
+    }
+  }
+  hs*/
+
+
   def IsEnable(): Bool = {
     enable_R.control
   }
@@ -502,10 +575,11 @@ class HandShakingCtrlNPS(val NumOuts: Int,
 class HandShaking[T <: Data](val NumPredOps: Int,
                              val NumSuccOps: Int,
                              val NumOuts: Int,
-                             val ID: Int)(gen: T)(implicit val p: Parameters)
+                             val ID: Int,
+			     val Debug: Boolean = false)(gen: T)(implicit val p: Parameters)
   extends Module with HasAccelParams with UniformPrintfs {
 
-  lazy val io = IO(new HandShakingIOPS(NumPredOps, NumSuccOps, NumOuts)(gen))
+  lazy val io = IO(new HandShakingIOPS(NumPredOps, NumSuccOps, NumOuts ,Debug)(gen))
 
   /*=================================
   =            Registers            =
@@ -582,6 +656,24 @@ class HandShaking[T <: Data](val NumPredOps: Int,
   /*=====================================
   =            Helper Checks            =
   =====================================*/
+
+
+  /*hs
+  if(Debug){
+    io.LogCheck.get.valid := false.B
+    io.LogCheck.get.bits := DataBundle.default
+  }
+
+  def CaptureLog(data: UInt): Unit = {
+    if (Debug) {
+      io.LogCheck.get.bits := DataBundle(data)
+      io.LogCheck.get.valid := true.B
+    }
+  }
+  hs*/
+
+
+
   def IsEnable(): Bool = {
     return enable_R.control
   }
@@ -687,10 +779,11 @@ class HandShaking[T <: Data](val NumPredOps: Int,
 class HandShakingCtrlMask(val NumInputs: Int,
                           val NumOuts: Int,
                           val NumPhi: Int,
-                          val BID: Int)(implicit val p: Parameters)
+                          val BID: Int,
+			  val Debug: Boolean = false)(implicit val p: Parameters)
   extends Module with HasAccelParams with UniformPrintfs {
 
-  lazy val io = IO(new HandShakingCtrlMaskIO(NumInputs, NumOuts, NumPhi))
+  lazy val io = IO(new HandShakingCtrlMaskIO(NumInputs, NumOuts, NumPhi,Debug))
 
   /*=================================
   =            Registers            =
@@ -737,6 +830,21 @@ class HandShakingCtrlMask(val NumInputs: Int,
   /*===================================*
    *            Helper Checks          *
    *===================================*/
+
+  /*hs
+  if(Debug){
+    io.LogCheck.get.valid := false.B
+    io.LogCheck.get.bits := DataBundle.default
+  }
+
+  def CaptureLog(data: UInt): Unit = {
+    if (Debug) {
+      io.LogCheck.get.bits := DataBundle(data)
+      io.LogCheck.get.valid := true.B
+    }
+  }
+  hs*/
+
   // OUTs
   def IsOutReady(): Bool = {
     out_ready_R.asUInt.andR
@@ -795,10 +903,11 @@ class HandShakingCtrlMask(val NumInputs: Int,
 
 class HandShakingCtrlNoMask(val NumInputs: Int,
                             val NumOuts: Int,
-                            val BID: Int)(implicit val p: Parameters)
+                            val BID: Int,
+                            val Debug: Boolean = false)(implicit val p: Parameters)
   extends Module with HasAccelParams with UniformPrintfs {
 
-  lazy val io = IO(new HandShakingCtrlNoMaskIO(NumOuts))
+  lazy val io = IO(new HandShakingCtrlNoMaskIO(NumOuts ,Debug))
 
   /*=================================
   =            Registers            =
@@ -829,6 +938,20 @@ class HandShakingCtrlNoMask(val NumInputs: Int,
   /*===================================*
    *            Helper Checks          *
    *===================================*/
+
+  /*hs
+  if(Debug){
+    io.LogCheck.get.valid := false.B
+    io.LogCheck.get.bits := DataBundle.default
+  }
+
+  def CaptureLog(data: UInt): Unit = {
+    if (Debug) {
+      io.LogCheck.get.bits := DataBundle(data)
+      io.LogCheck.get.valid := true.B
+    }
+  }
+  hs*/
   // OUTs
   def IsOutReady(): Bool = {
     out_ready_R.asUInt.andR
@@ -862,33 +985,41 @@ class HandShakingAliasIO[T <: Data](NumPredOps: Int,
                                     val NumAliasPredOps: Int = 0,
                                     val NumAliasSuccOps: Int = 0,
                                     NumOuts: Int
+                                    ,Debug: Boolean = false
                                    )(gen: T)(implicit p: Parameters)
-  extends HandShakingIOPS(NumPredOps, NumSuccOps, NumOuts)(gen) {
-  val InA  = (new Bundle {
+  extends HandShakingIOPS(NumPredOps, NumSuccOps, NumOuts
+  ,Debug)(gen) {
+  //PV: till the next 12 lines 2 () were deleted
+  val InA  = new Bundle {
     val In     = Vec(NumAliasPredOps, Flipped(Decoupled(new DataBundle)))
     // Predessor
     val PredOp = Vec(NumAliasPredOps, Flipped(Decoupled(new ControlBundle)))
-  })
-  val OutA = (new Bundle {
+  }
+  val OutA = new Bundle {
     /* Need to explicitly specify output when mixing directions */
     // Successor Ordering
     val SuccOp = Output(Vec(NumAliasSuccOps, Decoupled(new ControlBundle)))
     // Output IO
     val Out    = Output(Vec(NumAliasSuccOps, Decoupled(new DataBundle)))
-  })
+  }
 
   override def cloneType = new HandShakingAliasIO(NumPredOps, NumSuccOps, NumAliasPredOps, NumAliasSuccOps, NumOuts)(gen).asInstanceOf[this.type]
 }
 
+//PV ask about two HSs
 class HandShakingAlias[T <: Data](NumPredOps: Int,
                                   NumSuccOps: Int,
                                   val NumAliasPredOps: Int = 0,
                                   val NumAliasSuccOps: Int = 0,
                                   NumOuts: Int,
-                                  ID: Int)(gen: T)(implicit p: Parameters)
-  extends HandShaking(NumPredOps, NumSuccOps, NumOuts, ID)(gen)(p) {
+                                  ID: Int
+                                  ,Debug: Boolean = false
+                                 )(gen: T)(implicit p: Parameters)
+  extends HandShaking(NumPredOps, NumSuccOps, NumOuts, ID
+    ,Debug)(gen)(p) {
 
-  override lazy val io = IO(new HandShakingAliasIO(NumPredOps, NumSuccOps, NumAliasPredOps, NumAliasSuccOps, NumOuts)(gen))
+  override lazy val io = IO(new HandShakingAliasIO(NumPredOps, NumSuccOps, NumAliasPredOps, NumAliasSuccOps, NumOuts
+  ,Debug)(gen))
 
   // Alias Predecessor Handshaking
   val alias_pred_valid_R  = Seq.fill(NumAliasPredOps)(RegInit(false.B))
@@ -940,6 +1071,7 @@ class HandShakingAlias[T <: Data](NumPredOps: Int,
       alias_in_bundle_R(i) := io.InA.In(i).bits
     }
   }
+
 
   def AliasInfoAvail(): Bool = {
     if (NumAliasPredOps == 0) {

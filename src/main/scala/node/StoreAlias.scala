@@ -21,8 +21,9 @@ class StoreAliasIO(NumPredOps: Int,
                    NumSuccOps: Int,
                    NumAliasPredOps: Int,
                    NumAliasSuccOps: Int,
-                   NumOuts: Int)(implicit p: Parameters)
-  extends HandShakingAliasIO(NumPredOps = NumPredOps, NumSuccOps = NumSuccOps, NumAliasPredOps = NumAliasPredOps, NumAliasSuccOps = NumAliasSuccOps, NumOuts = NumOuts)(new DataBundle) { // Node specific IO
+                   NumOuts: Int, Debug :Boolean = false)(implicit p: Parameters)
+  extends HandShakingAliasIO(NumPredOps = NumPredOps, NumSuccOps = NumSuccOps, NumAliasPredOps = NumAliasPredOps,
+    NumAliasSuccOps = NumAliasSuccOps, NumOuts = NumOuts, Debug)(new DataBundle) { // Node specific IO
 // GepAddr: The calculated address comming from GEP node
 val GepAddr = Flipped(Decoupled(new DataBundle))
   // Store data.
@@ -32,7 +33,8 @@ val memReq  = Decoupled(new WriteReq( ))
   // Memory response.
 val memResp = Input(Flipped(new WriteResp( )))
 
-  override def cloneType = new StoreAliasIO(NumPredOps, NumSuccOps, NumAliasPredOps, NumAliasSuccOps, NumOuts).asInstanceOf[this.type]
+  override def cloneType = new StoreAliasIO(NumPredOps, NumSuccOps, NumAliasPredOps,
+    NumAliasSuccOps, NumOuts, Debug).asInstanceOf[this.type]
 
 }
 
@@ -48,13 +50,17 @@ class UnTypStoreAlias(NumPredOps: Int,
                       NumOuts: Int = 1,
                       Typ: UInt = MT_W,
                       ID: Int,
-                      RouteID: Int)(implicit p: Parameters,
+                      RouteID: Int
+                     , Debug : Boolean = false)(implicit p: Parameters,
                                     name: sourcecode.Name,
                                     file: sourcecode.File)
-  extends HandShakingAlias(NumPredOps = NumPredOps, NumSuccOps = NumSuccOps, NumAliasPredOps = NumAliasPredOps, NumAliasSuccOps = NumAliasSuccOps, NumOuts = NumOuts, ID = ID)(new DataBundle)(p) {
+  extends HandShakingAlias(NumPredOps = NumPredOps, NumSuccOps = NumSuccOps,
+    NumAliasPredOps = NumAliasPredOps, NumAliasSuccOps = NumAliasSuccOps, NumOuts = NumOuts, ID = ID
+  , Debug)(new DataBundle)(p) {
 
   // Set up StoreIO
-  override lazy val io = IO(new StoreAliasIO(NumPredOps, NumSuccOps, NumAliasPredOps, NumAliasSuccOps, NumOuts))
+  override lazy val io = IO(new StoreAliasIO(NumPredOps, NumSuccOps, NumAliasPredOps, NumAliasSuccOps,
+    NumOuts, Debug))
   // Printf debugging
   val node_name   = name.value
   val module_name = file.value.split("/").tail.last.split("\\.").head.capitalize
@@ -200,5 +206,8 @@ class UnTypStoreAlias(NumPredOps: Int,
       }
       case everythingElse => {}
     }
+  }
+  def isDebug(): Boolean = {
+    Debug
   }
 }

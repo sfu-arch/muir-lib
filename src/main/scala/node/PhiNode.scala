@@ -13,10 +13,12 @@ import muxes._
 import util._
 import utility.UniformPrintfs
 import dandelion.config._
+import chisel3.util.experimental.BoringUtils
 
-class PhiNodeIO(NumInputs: Int, NumOuts: Int)
+
+class PhiNodeIO(NumInputs: Int, NumOuts: Int, Debug:Boolean=false)
                (implicit p: Parameters)
-  extends HandShakingIONPS(NumOuts)(new DataBundle) {
+  extends HandShakingIONPS(NumOuts, Debug)(new DataBundle) {
 
   // Vector input
   val InData = Vec(NumInputs, Flipped(Decoupled(new DataBundle)))
@@ -24,10 +26,10 @@ class PhiNodeIO(NumInputs: Int, NumOuts: Int)
   // Predicate mask comming from the basic block
   val Mask = Flipped(Decoupled(UInt(NumInputs.W)))
 
-  override def cloneType = new PhiNodeIO(NumInputs, NumOuts).asInstanceOf[this.type]
+  override def cloneType = new PhiNodeIO(NumInputs, NumOuts, Debug).asInstanceOf[this.type]
 }
 
-abstract class PhiFastNodeIO(val NumInputs: Int = 2, val NumOutputs: Int = 1, val ID: Int)
+abstract class PhiFastNodeIO(val NumInputs: Int = 2, val NumOutputs: Int = 1, val ID: Int, Debug: Boolean = false, GuardVal: Int = 0)
                             (implicit val p: Parameters)
   extends Module with HasAccelParams with UniformPrintfs {
 
@@ -50,12 +52,12 @@ abstract class PhiFastNodeIO(val NumInputs: Int = 2, val NumOutputs: Int = 1, va
 @deprecated("Use PhiFastNode instead", "1.0")
 class PhiNode(NumInputs: Int,
               NumOuts: Int,
-              ID: Int)
+              ID: Int , Debug :Boolean=false)
              (implicit p: Parameters,
               name: sourcecode.Name,
               file: sourcecode.File)
-  extends HandShakingNPS(NumOuts, ID)(new DataBundle)(p) {
-  override lazy val io = IO(new PhiNodeIO(NumInputs, NumOuts))
+  extends HandShakingNPS(NumOuts, ID, Debug)(new DataBundle)(p) {
+  override lazy val io = IO(new PhiNodeIO(NumInputs, NumOuts, Debug))
   // Printf debugging
   val node_name = name.value
   val module_name = file.value.split("/").tail.last.split("\\.").head.capitalize
@@ -138,7 +140,6 @@ class PhiNode(NumInputs: Int,
         out_data_R.predicate := false.B
 
         //Reset state
-        state := s_IDLE
         //Reset output
         Reset()
 
@@ -152,7 +153,9 @@ class PhiNode(NumInputs: Int,
       }
     }
   }
-
+  def isDebug(): Boolean = {
+    Debug
+  }
 }
 
 
@@ -171,7 +174,7 @@ class PhiNode(NumInputs: Int,
   *        that nothing is latched.
   *        3) If Phi node itself is not predicated, we restart all the registers and
   *        fire the output with zero predication.
-  *        4) There is bug in LLVM generate and we need sometime support
+  *        4) There is a bug in LLVM code generation and we need sometime support
   *        revers masking for phi ndoes the issue will be solved in the next version
   *        but for now using Res argument we control direction of mask bits
   * @param NumInputs
@@ -181,7 +184,7 @@ class PhiNode(NumInputs: Int,
   * @param name
   * @param file
   */
-class PhiFastNode(NumInputs: Int = 2, NumOutputs: Int = 1, ID: Int, Res: Boolean = false)
+class PhiFastNode(NumInputs: Int = 2, NumOutputs: Int = 1, ID: Int, Res: Boolean = false, Induction:Boolean = false,  Debug: Boolean = false, GuardVal: Int = 0)
                  (implicit p: Parameters,
                   name: sourcecode.Name,
                   file: sourcecode.File)
@@ -207,15 +210,31 @@ class PhiFastNode(NumInputs: Int = 2, NumOutputs: Int = 1, ID: Int, Res: Boolean
   val mask_R = RegInit(0.U(NumInputs.W))
   val mask_valid_R = RegInit(false.B)
 
+  //Output register
+  val s_idle :: s_fire :: s_not_predicated :: Nil = Enum(3)
+  val state = RegInit(s_idle)
+
   // Latching output data
   val out_valid_R = Seq.fill(NumOutputs)(RegInit(false.B))
 
   val fire_R = Seq.fill(NumOutputs)(RegInit(false.B))
 
+  /**
+   * Debug variables
+   */
+  var log_id = WireInit(ID.U((4).W))
+  //var GuardFlag = WireInit(0.U(1.W))
+  var mask_log = RegInit(0.U(NumInputs.W))
+  var GuardFlag = WireInit(0.U(1.W))
+
+
   // Latching Mask value
   io.Mask.ready := ~mask_valid_R
   when(io.Mask.fire()) {
     mask_R := io.Mask.bits
+    //*****
+    mask_log := mask_R
+    //******
     mask_valid_R := true.B
   }
 
@@ -235,6 +254,45 @@ class PhiFastNode(NumInputs: Int = 2, NumOutputs: Int = 1, ID: Int, Res: Boolean
     }
   }
 
+
+  //**********************************************************************
+
+  var log_out_reg = RegInit(0.U((xlen - 5 - NumInputs).W))
+  val writeFinish = RegInit(false.B)
+  //log_id := ID.U
+  //test_value := Cat(GuardFlag,log_id, log_out)
+  val log_value = WireInit(0.U(xlen.W))
+  log_value := Cat(GuardFlag, log_id, mask_log,  log_out_reg)
+
+
+  //test_value := log_out
+  if (Debug) {
+    val test_value_valid = Wire(Bool())
+    val test_value_ready = Wire(Bool())
+    val test_value_valid_r = RegInit(false.B)
+    test_value_valid := test_value_valid_r
+    test_value_ready := false.B
+    BoringUtils.addSource(log_value, "data" + ID)
+    BoringUtils.addSource(test_value_valid, "valid" + ID)
+    BoringUtils.addSink(test_value_ready, "ready" + ID)
+
+
+
+
+    when(enable_valid_R ) {
+      test_value_valid_r := true.B
+    }
+    when(state === s_fire){
+      test_value_valid_r := false.B
+    }
+
+  }
+
+  //*******************************************************************
+
+
+
+
   //val sel = OHToUInt(Reverse(mask_value))
   val sel =
     if (Res == false) {
@@ -251,10 +309,11 @@ class PhiFastNode(NumInputs: Int = 2, NumOutputs: Int = 1, ID: Int, Res: Boolean
 
   val task_input = (io.enable.bits.taskID | enable_R.taskID)
 
-  for (i <- 0 until NumOutputs) {
-    io.Out(i).bits := in_data_R(sel)
-    io.Out(i).valid := out_valid_R(i)
-  }
+    for (i <- 0 until NumOutputs) {
+      io.Out(i).bits := in_data_R(sel)
+      io.Out(i).valid := out_valid_R(i)
+    }
+
 
   for (i <- 0 until NumOutputs) {
     when(io.Out(i).fire) {
@@ -270,17 +329,29 @@ class PhiFastNode(NumInputs: Int = 2, NumOutputs: Int = 1, ID: Int, Res: Boolean
     return in_data_valid_R.reduce(_ & _)
   }
 
-  //Output register
-  val s_idle :: s_fire :: s_not_predicated :: Nil = Enum(3)
-  val state = RegInit(s_idle)
 
   switch(state) {
     is(s_idle) {
       when(enable_valid_R && IsInputValid()) {
         out_valid_R.foreach(_ := true.B)
         when(enable_R.control) {
+          //*********************************
           state := s_fire
+          //********************************
           //Print output
+          if (Debug) {
+            when(in_data_R(sel).data =/= GuardVal.U) {
+              GuardFlag := 1.U
+              log_out_reg :=  in_data_R(sel).data
+              in_data_R(sel).data := GuardVal.U
+
+            }.otherwise {
+              GuardFlag := 0.U
+              log_out_reg :=  in_data_R(sel).data
+            }
+          }
+
+          //*****************************************************************
           if (log) {
             printf("[LOG] " + "[" + module_name + "] [TID->%d] [PHI] "
               + node_name + ": Output fired @ %d, Value: %d\n",

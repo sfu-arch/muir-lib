@@ -12,7 +12,7 @@ class ConstNode(value: Int, NumOuts: Int = 1, ID: Int)
                (implicit p: Parameters,
                 name: sourcecode.Name,
                 file: sourcecode.File)
-  extends HandShakingNPS(NumOuts, ID)(new DataBundle())(p) {
+  extends HandShakingNPS(NumOuts, ID )(new DataBundle())(p) {
 
   override lazy val io = IO(new HandShakingIONPS(NumOuts)(new DataBundle()))
   val node_name = name.value
@@ -67,12 +67,14 @@ class ConstNode(value: Int, NumOuts: Int = 1, ID: Int)
           out_data_R.predicate := io.enable.bits.control
           out_data_R.taskID := task_ID_W
         }
+
         state := s_COMPUTE
       }
     }
     is(s_COMPUTE) {
       when(IsOutReady()) {
         //Reset state
+
         state := s_IDLE
         out_data_R.predicate := false.B
         Reset()

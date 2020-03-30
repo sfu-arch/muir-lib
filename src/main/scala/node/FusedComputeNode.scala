@@ -67,6 +67,7 @@ def PrintOut(): Unit = {
    *==========================================*/
   InvalidOut()
   when(IsOutReady() & (state === s_COMPUTE)) {
+    //if (Debug) getData(state)
     // Reset data
     state := s_idle
 
@@ -99,6 +100,9 @@ def PrintOut(): Unit = {
       case everythingElse => {}
     }
   }
+  //def isDebug(): Boolean = {
+   // Debug
+  //}
 }
 
 class Chain(ID: Int, NumOps: Int, OpCodes: Array[String])(sign: Boolean)(implicit p: Parameters)

@@ -29,6 +29,9 @@ class AccelTesterLocal[T <: AccelIO](c: T)
                                      outAddrVec: List[Int], outDataVec: List[Int]) extends PeekPokeTester(c) {
 
   def MemRead(addr: Int): BigInt = {
+
+    poke(c.io.req.valid, 0)
+
     while (peek(c.io.req.ready) == 0) {
       step(1)
     }
@@ -47,7 +50,7 @@ class AccelTesterLocal[T <: AccelIO](c: T)
     result
   }
 
-  def MemWrite(addr: Int, data: Int): BigInt = {
+  def MemWrite(addr: Int, data: Int) = {
     while (peek(c.io.req.ready) == 0) {
       step(1)
     }
@@ -59,7 +62,6 @@ class AccelTesterLocal[T <: AccelIO](c: T)
     poke(c.io.req.bits.mask, (1 << (c.io.req.bits.mask.getWidth)) - 1)
     step(1)
     poke(c.io.req.valid, 0)
-    1
   }
 
   def dumpMemoryInit(path: String) = {
@@ -71,6 +73,17 @@ class AccelTesterLocal[T <: AccelIO](c: T)
     }
     pw.close
 
+  }
+
+  def dumpMemory(path: String, begin: Int, end: Int) = {
+    //Writing mem states back to the file
+    val Addr = List.range((begin * 4), (end * 4), 4)
+    val pw = new PrintWriter(new File(path))
+    for (i <- begin until end) {
+      val data = MemRead(Addr(i))
+      pw.write("0X" + Addr(i).toHexString + " -> " + data + "\n")
+    }
+    pw.close
   }
 
 

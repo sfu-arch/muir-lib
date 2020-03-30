@@ -13,18 +13,18 @@ import dandelion.interfaces._
 import muxes._
 import util._
 
-class CustomFunctionalNodeIO(NumIns: Int, NumOuts: Int)
+class CustomFunctionalNodeIO(NumIns: Int, NumOuts: Int, Debug : Boolean = false)
                             (implicit p: Parameters)
-  extends HandShakingFusedIO(NumIns, NumOuts)(new DataBundle) {
+  extends HandShakingFusedIO(NumIns, NumOuts , Debug)(new DataBundle) {
 
-  override def cloneType = new CustomFunctionalNodeIO(NumIns, NumOuts).asInstanceOf[this.type]
+  override def cloneType = new CustomFunctionalNodeIO(NumIns, NumOuts, Debug).asInstanceOf[this.type]
 }
 
-class CustomFunctionalNode(NumIns: Int, NumOuts: Int, ID: Int, opCode: String)
+class CustomFunctionalNode(NumIns: Int, NumOuts: Int, ID: Int, opCode: String , Debug : Boolean = false)
                           (sign: Boolean)
                           (implicit p: Parameters)
-  extends HandShakingFused(NumIns, NumOuts, ID)(new DataBundle)(p) {
-  override lazy val io = IO(new CustomFunctionalNodeIO(NumIns, NumOuts))
+  extends HandShakingFused(NumIns, NumOuts, ID, Debug)(new DataBundle)(p) {
+  override lazy val io = IO(new CustomFunctionalNodeIO(NumIns, NumOuts, Debug))
 
   // Printf debugging
   def PrintOut(): Unit = {
@@ -66,7 +66,6 @@ class CustomFunctionalNode(NumIns: Int, NumOuts: Int, ID: Int, opCode: String)
   InvalidOut()
   when(IsOutReady() & (state === s_COMPUTE)) {
     // Reset data
-    state := s_idle
 
     // Valid out is a wire
     ValidOut()
@@ -98,6 +97,9 @@ class CustomFunctionalNode(NumIns: Int, NumOuts: Int, ID: Int, opCode: String)
       }
       case everythingElse => {}
     }
+  }
+  def isDebug(): Boolean = {
+    Debug
   }
 }
 

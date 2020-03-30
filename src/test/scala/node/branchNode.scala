@@ -28,6 +28,13 @@ class BranchTester(df: CBranchNode)(implicit p: Parameters) extends PeekPokeTest
   println(s"Output: ${peek(df.io.Out(0))}\n")
   println(s"Output: ${peek(df.io.Out(1))}\n")
 
+//
+
+  if(df.isDebug()){
+
+   // println(s"STATE of ComputeNode is : 0x${peek(df.io.LogCheck.get.bits.data.asUInt())}\n")
+  }
+  //
 
   step(1)
 
@@ -57,7 +64,7 @@ class BranchTester(df: CBranchNode)(implicit p: Parameters) extends PeekPokeTest
 class BrTests extends  FlatSpec with Matchers {
    implicit val p = new WithAccelConfig
   it should "Dataflow tester" in {
-     chisel3.iotesters.Driver(() => new CBranchNode(ID = 0)) {
+     chisel3.iotesters.Driver(() => new CBranchNode(ID = 0, Debug = true)) {
        c => new BranchTester(c)
      } should be(true)
    }

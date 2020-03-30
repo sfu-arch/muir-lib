@@ -24,7 +24,10 @@ import utility.UniformPrintfs
 class UnifiedController(ID: Int,
                         Size: Int,
                         NReads: Int,
-                        NWrites: Int)(WControl: => WController)(RControl: => RController)(RWArbiter: => ReadWriteArbiter)(implicit val p: Parameters)
+                        NWrites: Int)
+                       (WControl: => WController)
+                       (RControl: => RController)
+                       (RWArbiter: => ReadWriteArbiter)(implicit val p: Parameters)
   extends Module
     with HasAccelParams
     with UniformPrintfs {
@@ -51,8 +54,8 @@ class UnifiedController(ID: Int,
   //val memResp_R = RegInit(MemResp.default)
 
   // Initialize a vector of register files (as wide as type).
-  val WriteController  = Module(WControl)
-  val ReadController   = Module(RControl)
+  val WriteController  = if(NWrites > 0) Some(Module(WControl)) else None
+  val ReadController   = if(NReads > 0) Some(Module(RControl)) else None
   val ReadWriteArbiter = Module(RWArbiter)
 
   /*================================================
@@ -61,22 +64,32 @@ class UnifiedController(ID: Int,
 
   // Connect up Write ins with arbiters
   for (i <- 0 until NWrites) {
-    WriteController.io.WriteIn(i) <> io.WriteIn(i)
-    io.WriteOut(i) <> WriteController.io.WriteOut(i)
+    WriteController.get.io.WriteIn(i) <> io.WriteIn(i)
+    io.WriteOut(i) <> WriteController.get.io.WriteOut(i)
   }
 
   // Connect up Read ins with arbiters
   for (i <- 0 until NReads) {
-    ReadController.io.ReadIn(i) <> io.ReadIn(i)
-    io.ReadOut(i) <> ReadController.io.ReadOut(i)
+    ReadController.get.io.ReadIn(i) <> io.ReadIn(i)
+    io.ReadOut(i) <> ReadController.get.io.ReadOut(i)
   }
 
   // Connect Read/Write Controllers to ReadWrite Arbiter
-  ReadWriteArbiter.io.ReadMemReq <> ReadController.io.MemReq
-  ReadController.io.MemResp <> ReadWriteArbiter.io.ReadMemResp
+  if(NReads > 0){
+    ReadWriteArbiter.io.ReadMemReq <> ReadController.get.io.MemReq
+    ReadController.get.io.MemResp <> ReadWriteArbiter.io.ReadMemResp
+  }else{
+    ReadWriteArbiter.io.ReadMemReq <> DontCare
+    ReadWriteArbiter.io.ReadMemResp <> DontCare
+  }
 
-  ReadWriteArbiter.io.WriteMemReq <> WriteController.io.MemReq
-  WriteController.io.MemResp <> ReadWriteArbiter.io.WriteMemResp
+  if(NWrites > 0){
+    ReadWriteArbiter.io.WriteMemReq <> WriteController.get.io.MemReq
+    WriteController.get.io.MemResp <> ReadWriteArbiter.io.WriteMemResp
+  }else{
+    WriteController.get.io.MemReq <> DontCare
+    WriteController.get.io.MemResp <> DontCare
+  }
 
 
   ReadWriteArbiter.io.MemReq.ready := io.MemReq.ready

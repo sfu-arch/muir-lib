@@ -87,6 +87,16 @@ object AllocaResp {
   }
 }
 
+
+class AllocaRespTest(implicit p: Parameters)
+  extends ValidT with RouteID {
+  val ptr = UInt(xlen.W)
+
+
+}
+
+
+
 // Read interface into Scratchpad stack
 //  address: Word aligned address to read from
 //  node : dataflow node id to return data to
@@ -291,6 +301,26 @@ class DataBundle(implicit p: Parameters) extends PredicateT with TaskID {
   }
 }
 
+//p
+
+
+class LogBundle(implicit p: Parameters) extends PredicateT with TaskID {
+  // Data packet
+  val stateData = UInt(2.W)
+
+}
+object LogBundle {
+
+  def apply(stateData: UInt = 0.U, taskID: UInt = 0.U)(implicit p: Parameters): LogBundle = {
+    val wire = Wire(new LogBundle)
+    wire.stateData := stateData
+    wire.taskID := taskID
+    wire.predicate := true.B
+    wire
+  }}
+
+
+//v
 
 object DataBundle {
 
@@ -363,6 +393,7 @@ class ControlBundle(implicit p: Parameters) extends AccelBundle()(p) {
   //Control packet
   val taskID = UInt(tlen.W)
   val control = Bool()
+  val debug = Bool()
 
   def asDataBundle(): DataBundle = {
     val wire = Wire(new DataBundle)
@@ -378,6 +409,7 @@ object ControlBundle {
     val wire = Wire(new ControlBundle)
     wire.control := false.B
     wire.taskID := 0.U
+    wire.debug := false.B
     wire
   }
 
@@ -385,6 +417,15 @@ object ControlBundle {
     val wire = Wire(new ControlBundle)
     wire.control := control
     wire.taskID := task
+    wire.debug := false.B
+    wire
+  }
+
+  def default(control: Bool, task: UInt, debug: Bool)(implicit p: Parameters): ControlBundle = {
+    val wire = Wire(new ControlBundle)
+    wire.control := control
+    wire.taskID := task
+    wire.debug := debug
     wire
   }
 
@@ -392,21 +433,33 @@ object ControlBundle {
     val wire = Wire(new ControlBundle)
     wire.control := true.B
     wire.taskID := taskID
+    wire.debug := false.B
     wire
   }
+
+  def debug(taskID: UInt = 0.U)(implicit p: Parameters): ControlBundle = {
+    val wire = Wire(new ControlBundle)
+    wire.control := true.B
+    wire.taskID := taskID
+    wire.debug := true.B
+    wire
+  }
+
 
   def deactivate(taskID: UInt = 0.U)(implicit p: Parameters): ControlBundle = {
     val wire = Wire(new ControlBundle)
     wire.control := false.B
     wire.taskID := taskID
+    wire.debug := false.B
     wire
   }
 
 
-  def apply(control: Bool = false.B, taskID: UInt = 0.U)(implicit p: Parameters): ControlBundle = {
+  def apply(control: Bool = false.B, taskID: UInt = 0.U, debug: Bool = false.B)(implicit p: Parameters): ControlBundle = {
     val wire = Wire(new ControlBundle)
     wire.control := control
     wire.taskID := taskID
+    wire.debug := debug
     wire
   }
 
@@ -424,8 +477,18 @@ object ControlBundle {
 class CustomDataBundle[T <: Data](gen: T = UInt(32.W))(implicit p: Parameters) extends AccelBundle()(p) {
   // Data packet
   val data = gen.cloneType
+  //same as data = UInt(32.W)
   val predicate = Bool()
   val taskID = UInt(tlen.W)
+
+  def asDataBundle(): DataBundle = {
+    val wire = Wire(new DataBundle)
+    wire.data := this.data.asUInt()
+    wire.predicate := this.predicate
+    wire.taskID := this.taskID
+    wire
+  }
+
 
   override def cloneType: this.type = new CustomDataBundle(gen).asInstanceOf[this.type]
 }
