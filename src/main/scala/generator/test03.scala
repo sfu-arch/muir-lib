@@ -307,18 +307,3 @@ class test03DebugDF(ArgsIn: Seq[Int] = List(32, 32), Returns: Seq[Int] = List(32
 
 }
 
-import java.io.{File, FileWriter}
-
-object test03Top extends App {
-  val dir = new File("RTL/test03Top");
-  dir.mkdirs
-  implicit val p = new WithAccelConfig
-  val chirrtl = firrtl.Parser.parse(chisel3.Driver.emit(() => new test03DF()))
-
-  val verilogFile = new File(dir, s"${chirrtl.main}.v")
-  val verilogWriter = new FileWriter(verilogFile)
-  val compileResult = (new firrtl.VerilogCompiler).compileAndEmit(firrtl.CircuitState(chirrtl, firrtl.ChirrtlForm))
-  val compiledStuff = compileResult.getEmittedCircuit
-  verilogWriter.write(compiledStuff.value)
-  verilogWriter.close()
-}

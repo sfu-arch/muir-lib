@@ -3,13 +3,8 @@ package dandelion.generator
 import chisel3._
 import dandelion.config._
 import chipsalliance.rocketchip.config._
-import dandelion.control._
-import dandelion.interfaces._
-import dandelion.junctions._
-import dandelion.memory._
 import dandelion.node._
-import dandelion.shell.VMEWriteMaster
-import util._
+import dandelion.shell.DMEWriteMaster
 
 
 /* ================================================================== *
@@ -23,7 +18,7 @@ abstract class DebugVME04IO(implicit val p: Parameters) extends Module with HasA
     /**
      * Mem Interface to talk with VME
      */
-    val vmeOut = new VMEWriteMaster
+    val vmeOut = new DMEWriteMaster
 
     val Enable = Input(Bool())
   })

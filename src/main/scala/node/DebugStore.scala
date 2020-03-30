@@ -6,7 +6,7 @@ import chipsalliance.rocketchip.config._
 import chisel3.util.experimental.BoringUtils
 import dandelion.config._
 import dandelion.interfaces._
-import dandelion.shell.VMEWriteMaster
+import dandelion.shell.DMEWriteMaster
 import utility.Constants._
 import utility.UniformPrintfs
 
@@ -211,7 +211,7 @@ class DebugVMEBufferNode(BufferLen: Int = 20, ID: Int, Bore_ID: Int)
     /**
       * Mem Interface to talk with VME
       */
-    val vmeOut = new VMEWriteMaster
+    val vmeOut = new DMEWriteMaster
 
     val Enable = Input(Bool())
   })
