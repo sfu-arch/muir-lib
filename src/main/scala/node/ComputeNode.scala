@@ -15,10 +15,7 @@ import dandelion.config._
 class ComputeNodeIO(NumOuts: Int, Debug: Boolean, GuardVal: Int = 0)
                    (implicit p: Parameters)
   extends HandShakingIONPS(NumOuts, Debug)(new DataBundle) {
-  // LeftIO: Left input data for computation
   val LeftIO = Flipped(Decoupled(new DataBundle()))
-
-  // RightIO: Right input data for computation
   val RightIO = Flipped(Decoupled(new DataBundle()))
 
   override def cloneType = new ComputeNodeIO(NumOuts, Debug).asInstanceOf[this.type]
@@ -30,8 +27,10 @@ class ComputeNode(NumOuts: Int, ID: Int, opCode: String)
                  (implicit p: Parameters,
                   name: sourcecode.Name,
                   file: sourcecode.File)
-  extends HandShakingNPS(NumOuts, ID, Debug)(new DataBundle())(p) {
+  extends HandShakingNPS(NumOuts, ID, Debug)(new DataBundle())(p) with HasAccelShellParams {
   override lazy val io = IO(new ComputeNodeIO(NumOuts, Debug, GuardVal))
+
+  val dparam = dbgParams
 
   // Printf debugging
   val node_name = name.value
@@ -64,11 +63,11 @@ class ComputeNode(NumOuts: Int, ID: Int, opCode: String)
 
   val GuardVal_reg = RegInit(GuardVal.U)
   /**
-   * val debug = RegInit(0.U)
-   * debug := io.DebugIO.get
-   *
-   * val debug = RegNext(io.DebugIO.get, init = 0.U)
-   */
+    * val debug = RegInit(0.U)
+    * debug := io.DebugIO.get
+    *
+    * val debug = RegNext(io.DebugIO.get, init = 0.U)
+    */
 
   //Output register
   val out_data_R = RegNext(Mux(enable_R.control, FU.io.out, 0.U), init = 0.U)
@@ -111,19 +110,13 @@ class ComputeNode(NumOuts: Int, ID: Int, opCode: String)
   }
 
   hs*/
-  //var test_value = Wire(UInt((xlen).W))
-  var log_id = WireInit(ID.U((4).W))
-  //var log_out = WireInit(0.U((xlen - 5).W))
-  var GuardFlag = WireInit(0.U(1.W))
-  var log_out_reg = RegInit(0.U((xlen - 5).W))
+  var log_id = WireInit(ID.U((dparam.IdLen).W))
+  var GuardFlag = WireInit(0.U(dparam.gLen.W))
+  var log_out_reg = RegInit(0.U((dparam.dataLen).W))
   val writeFinish = RegInit(false.B)
-  //log_id := ID.U
-  //test_value := Cat(GuardFlag,log_id, log_out)
   val test_value = WireInit(0.U(xlen.W))
   test_value := Cat(GuardFlag, log_id, log_out_reg)
 
-  //  val test_value = Cat("b1111".U, Cat("b0011".U, log_out))
-  //test_value := log_out
   if (Debug) {
     val test_value_valid = Wire(Bool())
     val test_value_ready = Wire(Bool())
@@ -137,28 +130,17 @@ class ComputeNode(NumOuts: Int, ID: Int, opCode: String)
 
     val writefinishready = Wire(Bool())
     writefinishready := false.B
-   // BoringUtils.addSource(writeFinish, "writefinish" + ID)
-
-
+    // BoringUtils.addSource(writeFinish, "writefinish" + ID)
 
     when(enable_valid_R && left_valid_R && right_valid_R) {
       test_value_valid_r := true.B
     }
-    when(state === s_COMPUTE){
+    when(state === s_COMPUTE) {
       test_value_valid_r := false.B
     }
 
   }
 
-
-
-  //------------------v
-  // Wire up Outputs
-  // The taskID's should be identical except in the case
-  // when one input is tied to a constant.  In that case
-  // the taskID will be zero.  Logical OR'ing the IDs
-  // Should produce a valid ID in either case regardless of
-  // which input is constant.
   io.Out.foreach(_.bits := DataBundle(out_data_R, taskID, predicate))
 
   /*============================================*
@@ -167,13 +149,21 @@ class ComputeNode(NumOuts: Int, ID: Int, opCode: String)
   switch(state) {
     is(s_IDLE) {
       when(enable_valid_R && left_valid_R && right_valid_R) {
-        //********************************************************************************
+        /**
+          * Debug logic: The output of FU is compared against Guard value
+          * and if the value is not equal to expected value the correct value
+          * will become available
+          */
         if (Debug) {
           when(FU.io.out =/= GuardVal.U) {
             GuardFlag := 1.U
             io.Out.foreach(_.bits := DataBundle(GuardVal.U, taskID, predicate))
-            //io.Out.foreach(_.bits := DataBundle(FU.io.out, taskID, predicate))
             log_out_reg := FU.io.out.asUInt()
+
+            if (log) {
+              printf("[LOG] [DEBUG]" + "[" + module_name + "] " + "[TID->%d] [COMPUTE] " +
+                node_name + ": Output fired @ %d, Value(W): %d -> Value(C): %d\n", taskID, cycleCount, FU.io.out, GuardVal.U)
+            }
 
           }.otherwise {
             GuardFlag := 0.U
@@ -205,14 +195,8 @@ class ComputeNode(NumOuts: Int, ID: Int, opCode: String)
         //Reset state
         state := s_IDLE
         Reset()
-
-
       }
     }
-  }
-
-  def isDebug(): Boolean = {
-    Debug
   }
 
 }

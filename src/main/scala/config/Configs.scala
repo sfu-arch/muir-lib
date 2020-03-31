@@ -33,9 +33,9 @@ trait AccelParams {
 }
 
 /**
- * VCR parameters.
- * These parameters are used on VCR interfaces and modules.
- */
+  * VCR parameters.
+  * These parameters are used on VCR interfaces and modules.
+  */
 trait DCRParams {
   val nCtrl: Int
   val nECnt: Int
@@ -45,9 +45,9 @@ trait DCRParams {
 }
 
 /**
- * DME parameters.
- * These parameters are used on DME interfaces and modules.
- */
+  * DME parameters.
+  * These parameters are used on DME interfaces and modules.
+  */
 trait DMEParams {
   val nReadClients: Int
   val nWriteClients: Int
@@ -85,6 +85,7 @@ case class DandelionAccelParams(
   //Cache
   val nways = cacheNWays // TODO: set-associative
   val nsets = cacheNSets
+
   def cacheBlockBytes: Int = 4 * (xlen >> 3) // 4 x 64 bits = 32B
 
   // Debugging dumps
@@ -97,9 +98,9 @@ case class DandelionAccelParams(
 }
 
 /**
- * VCR parameters.
- * These parameters are used on VCR interfaces and modules.
- */
+  * DCR parameters.
+  * These parameters are used on DCR interfaces and modules.
+  */
 case class DandelionDCRParams(numCtrl: Int = 1,
                               numEvent: Int = 1,
                               numVals: Int = 2,
@@ -113,9 +114,9 @@ case class DandelionDCRParams(numCtrl: Int = 1,
 }
 
 /**
- * DME parameters.
- * These parameters are used on DME interfaces and modules.
- */
+  * DME parameters.
+  * These parameters are used on DME interfaces and modules.
+  */
 case class DandelionDMEParams(numRead: Int = 1,
                               numWrite: Int = 1) {
   val nReadClients: Int = numRead
@@ -127,13 +128,26 @@ case class DandelionDMEParams(numRead: Int = 1,
     s"\n\n[Dandelion] [DMEParams] nWriteClients must be larger than 0\n\n")
 }
 
+/**
+  * Debug Parameters
+  * These parameters are used on Debug nodes.
+  */
+case class DebugParams(len_data: Int = 64,
+                       len_id: Int = 4,
+                       len_guard: Int = 1) {
+  val dataLen = len_data - (len_id + len_guard)
+  val IdLen = len_id
+  val gLen = len_guard
+}
+
 
 /** Shell parameters. */
 case class ShellParams(
                         val hostParams: AXIParams,
                         val memParams: AXIParams,
                         val vcrParams: DandelionDCRParams,
-                        val dmeParams: DandelionDMEParams
+                        val dmeParams: DandelionDMEParams,
+                        val debugParams: DebugParams
                       )
 
 
@@ -147,17 +161,14 @@ case object HostParamKey extends Field[AXIParams]
 
 case object MemParamKey extends Field[AXIParams]
 
+case object DebugParamKey extends Field[DebugParams]
+
 
 class WithAccelConfig(inParams: DandelionAccelParams = DandelionAccelParams())
   extends Config((site, here, up) => {
     // Core
     case DandelionConfigKey => inParams
 
-    // NastiIO
-    //    case NastiKey => new NastiParameters(
-    //      idBits = 12,
-    //      dataBits = 32,
-    //      addrBits = 32)
   }
 
   )
@@ -195,6 +206,8 @@ trait HasAccelShellParams {
   def memParams: AXIParams = p(MemParamKey)
 
   def nastiParams: NastiParameters = p(NastiKey)
+
+  def dbgParams: DebugParams = p(DebugParamKey)
 
 }
 
