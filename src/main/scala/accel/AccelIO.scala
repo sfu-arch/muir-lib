@@ -82,8 +82,11 @@ class DandelionAccelDebugIO(val numDebugNode: Int)(implicit p: Parameters)
 }
 
 
-abstract class DandelionAccelDebugModule(val numDebugNode: Int)(implicit val p: Parameters) extends Module
+abstract class DandelionAccelDebugModule(val numDebugNode: Int, val boreIDList: Seq[Int])(implicit val p: Parameters) extends Module
   with HasAccelParams
   with HasAccelShellParams {
   override lazy val io = IO(new DandelionAccelDebugIO(numDebugNode))
+
+  require(numDebugNode == boreIDList.length,
+    s"You the size boreIDs should be equalt to number debug nodes\n")
 }

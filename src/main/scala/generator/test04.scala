@@ -30,7 +30,7 @@ class test04DebugDF(ArgsIn: Seq[Int] = List(32, 32, 32), Returns: Seq[Int] = Lis
    *                   PRINTING LOOP HEADERS                            *
    * ================================================================== */
 
-  val Loop_0 = Module(new LoopBlockNode(NumIns = List(2, 1, 1), NumOuts = List(1), NumCarry = List(1, 1), NumExits = 1, ID = 0, Debug =false))
+  val Loop_0 = Module(new LoopBlockNode(NumIns = List(2, 1, 1), NumOuts = List(1), NumCarry = List(1, 1), NumExits = 1, ID = 0, Debug = false))
 
 
 
@@ -67,7 +67,7 @@ class test04DebugDF(ArgsIn: Seq[Int] = List(32, 32, 32), Returns: Seq[Int] = Lis
   val phi3 = Module(new PhiFastNode(NumInputs = 2, NumOutputs = 1, ID = 3, Res = true, Induction = true))
 
   //  %7 = phi i32 [ %9, %5 ], [ %0, %.preheader ], !UID !7
-  val phi4 = Module(new PhiFastNode(NumInputs = 2, NumOutputs = 1, ID = 4, Res = true , Debug = true , GuardVal = 3 ))
+  val phi4 = Module(new PhiFastNode(NumInputs = 2, NumOutputs = 1, ID = 4, Res = true , Debug = false))
 
   //  %8 = add i32 %7, %0, !UID !8
   val binaryOp_5 = Module(new ComputeNode(NumOuts = 1, ID = 5, opCode = "add")(sign = false))
@@ -91,7 +91,7 @@ class test04DebugDF(ArgsIn: Seq[Int] = List(32, 32, 32), Returns: Seq[Int] = Lis
   val phi11 = Module(new PhiFastNode(NumInputs = 2, NumOutputs = 1, ID = 11, Res = true))
 
   //  ret i32 %13, !UID !15, !BB_UID !16
-  val ret_12 = Module(new RetNode2(retTypes = List(32), ID = 12 , NumBores = 1 , Debug = true))
+  val ret_12 = Module(new RetNode2(retTypes = List(32), ID = 12, NumBores = 1, Debug = true))
 
 
 

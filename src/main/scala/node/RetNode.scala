@@ -100,11 +100,11 @@ class RetNode(retTypes: Seq[Int], ID: Int)
         out_ready_R := false.B
 
         state := s_IDLE
-        //if (log) {
-          printf("[AAAAAAAAAAAAAAAAAAAAAAAAAAAAALOG] " + "[" + module_name + "] " + "[TID->%d] "
+        if (log) {
+          printf("[LOG] " + "[" + module_name + "] " + "[TID->%d] "
             + node_name + ": Output fired @ %d, Value: %d\n",
             output_R.enable.taskID, io.In.asUInt(), output_R.data(s"field0").data)
-        //}
+        }
       }
     }
   }
@@ -115,7 +115,10 @@ class RetNode(retTypes: Seq[Int], ID: Int)
 class RetNode2IO(retTypes: Seq[Int], Debug:Boolean = false , NumBores : Int = 0)(implicit val p: Parameters)
   extends Bundle {
   val In = Flipped(new CallDecoupled(retTypes))
-  val Out = Decoupled(new Call(retTypes)) // Returns to calling block(s)
+  val Out = Decoupled(new Call(retTypes))
+
+  override def cloneType = new RetNode2IO(retTypes, Debug, NumBores).asInstanceOf[this.type]
+
 }
 
 class RetNode2(retTypes: Seq[Int], ID: Int , Debug: Boolean = false, NumBores : Int = 0)
@@ -150,7 +153,7 @@ class RetNode2(retTypes: Seq[Int], ID: Int , Debug: Boolean = false, NumBores : 
 
   def IsInValid(): Bool = {
     if (retTypes.length == 0) {
-      return true.B
+      true.B
     } else {
       in_data_valid_R.reduceLeft(_ && _)
     }
@@ -183,7 +186,7 @@ class RetNode2(retTypes: Seq[Int], ID: Int , Debug: Boolean = false, NumBores : 
   RunFinishBoring := RunFinish
   if (Debug) {
     for (i <- 0 until NumBores) {
-      BoringUtils.addSource(RunFinishBoring, "RunFinished" + (i+1))
+      BoringUtils.addSource(RunFinishBoring, "RunFinished" + i)
     }
   }
   //*******************************************************************
@@ -193,10 +196,6 @@ class RetNode2(retTypes: Seq[Int], ID: Int , Debug: Boolean = false, NumBores : 
     out_ready_R := io.Out.ready
     out_valid_R := false.B
   }
-
-
-
-
 
   switch(state) {
     is(s_IDLE) {
@@ -221,7 +220,7 @@ class RetNode2(retTypes: Seq[Int], ID: Int , Debug: Boolean = false, NumBores : 
         if (log) {
           printf("[LOG] " + "[" + module_name + "] "
             + "[TID->%d] " + node_name +
-            ": Output fired @ %d\n", output_R.enable.taskID, io.In.asUInt())
+            ": Output fired @ %d\n", output_R.enable.taskID, cycleCount)
         }
       }
     }
@@ -323,7 +322,7 @@ class RetNode2Buggy(retTypes: Seq[Int], ID: Int)
 
         state := s_IDLE
         if (log) {
-          printf("[AAAAAAAAAAAAAAAAAAAAAAAAALOG] " + "[" + module_name + "] "
+          printf("[LOG] " + "[" + module_name + "] "
             + "[TID->%d] " + node_name +
             ": Output fired @ %d\n", output_R.enable.taskID, cycleCount)
         }
