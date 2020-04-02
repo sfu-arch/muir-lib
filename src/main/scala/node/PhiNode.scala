@@ -185,7 +185,8 @@ class PhiNode(NumInputs: Int,
  * @param name
  * @param file
  */
-class PhiFastNode(NumInputs: Int = 2, NumOutputs: Int = 1, ID: Int, Res: Boolean = false, Induction: Boolean = false, Debug: Boolean = false, GuardVal: Seq[Int] = List())
+class PhiFastNode(NumInputs: Int = 2, NumOutputs: Int = 1, ID: Int, Res: Boolean = false, Induction: Boolean = false,
+                  Debug: Boolean = false, val GuardVals: Seq[Int] = List())
                  (implicit p: Parameters,
                   name: sourcecode.Name,
                   file: sourcecode.File)
@@ -226,11 +227,14 @@ class PhiFastNode(NumInputs: Int = 2, NumOutputs: Int = 1, ID: Int, Res: Boolean
   /**
    * Debug variables
    */
-  val guard_values = if(Debug) Some(VecInit(GuardVal.map(_.U))) else None
+  val guard_values = if (Debug) Some(VecInit(GuardVals.map(_.U(xlen.W)))) else None
 
-  val log_id = WireInit(ID.U((dbgParams.IdLen).W))
-  val mask_log = RegEnable(init = 0.U(NumInputs.W), next = io.Mask.bits, enable = io.Mask.fire)
-  val GuardFlag = WireInit(0.U(dbgParams.gLen.W))
+  val log_flag = WireInit(0.U(dbgParams.gLen.W)) // 1
+  val log_id = WireInit(ID.U((dbgParams.IdLen).W)) // 4
+  val log_mask = WireInit(0.U(NumInputs.W)) // 2
+  val log_iteration = WireInit(0.U(dbgParams.iterLen.W)) // 10
+  val log_data = WireInit(0.U((dbgParams.dataLen - NumInputs).W)) // 64 - 17
+  val isBuggy = RegInit(false.B)
 
 
   // Latching Mask value
@@ -256,37 +260,6 @@ class PhiFastNode(NumInputs: Int = 2, NumOutputs: Int = 1, ID: Int, Res: Boolean
     }
   }
 
-
-  //***************************BORE Connection*************************************
-
-  var log_out_reg = RegInit(0.U((xlen - (dbgParams.IdLen + dbgParams.gLen) - NumInputs).W))
-  val log_value = WireInit(0.U(xlen.W))
-  log_value := Cat(GuardFlag, log_id, mask_log, log_out_reg)
-
-
-  if (Debug) {
-    val test_value_valid = Wire(Bool())
-    val test_value_ready = Wire(Bool())
-    val test_value_valid_r = RegInit(false.B)
-    test_value_valid := test_value_valid_r
-    test_value_ready := false.B
-    BoringUtils.addSource(log_value, "data" + ID)
-    BoringUtils.addSource(test_value_valid, "valid" + ID)
-    BoringUtils.addSink(test_value_ready, "ready" + ID)
-
-
-    when(enable_valid_R) {
-      test_value_valid_r := true.B
-    }
-    when(state === s_fire) {
-      test_value_valid_r := false.B
-    }
-
-  }
-
-  //*******************************************************************
-
-
   val sel =
     if (Res == false) {
       OHToUInt(mask_R)
@@ -303,12 +276,6 @@ class PhiFastNode(NumInputs: Int = 2, NumOutputs: Int = 1, ID: Int, Res: Boolean
   val task_input = (io.enable.bits.taskID | enable_R.taskID)
 
   for (i <- 0 until NumOutputs) {
-    io.Out(i).bits := in_data_R(sel)
-    io.Out(i).valid := out_valid_R(i)
-  }
-
-
-  for (i <- 0 until NumOutputs) {
     when(io.Out(i).fire) {
       fire_R(i) := true.B
       out_valid_R(i) := false.B
@@ -318,6 +285,40 @@ class PhiFastNode(NumInputs: Int = 2, NumOutputs: Int = 1, ID: Int, Res: Boolean
   //Getting mask for fired nodes
   val fire_mask = (fire_R zip io.Out.map(_.fire)).map { case (a, b) => a | b }
 
+  //***************************BORE Connection*************************************
+
+  val log_value = WireInit(0.U(xlen.W))
+  log_value := Cat(log_flag, log_id, log_mask, log_iteration, log_data)
+
+
+  if (Debug) {
+    val test_value_valid = Wire(Bool())
+    val test_value_ready = Wire(Bool())
+    val test_value_valid_w = WireInit(false.B)
+    test_value_valid := test_value_valid_w
+    test_value_ready := false.B
+    BoringUtils.addSource(log_value, "data" + ID)
+    BoringUtils.addSource(test_value_valid, "valid" + ID)
+    BoringUtils.addSink(test_value_ready, "ready" + ID)
+
+
+    when(enable_valid_R) {
+      test_value_valid_w := true.B
+    }
+    when(state === s_fire) {
+      test_value_valid_w := false.B
+    }
+  }
+
+  val (guard_index, _) = Counter(isInFire(), GuardVals.length)
+  val correctVal = RegNext(if (Debug) DataBundle(guard_values.get(guard_index)) else DataBundle.default)
+  log_data := in_data_R(sel).data
+  log_iteration := guard_index
+  log_mask := sel
+
+  //*******************************************************************
+
+
   def IsInputValid(): Bool = {
     in_data_valid_R.reduce(_ & _)
   }
@@ -325,11 +326,17 @@ class PhiFastNode(NumInputs: Int = 2, NumOutputs: Int = 1, ID: Int, Res: Boolean
   def isInFire(): Bool = {
     enable_valid_R && IsInputValid() && enable_R.control && state === s_idle
   }
-  val (guard_index, _) = Counter(isInFire(), GuardVal.length)
+
+
+  for (i <- 0 until NumOutputs) {
+    io.Out(i).bits := Mux(isBuggy, correctVal, in_data_R(sel))
+    io.Out(i).valid := out_valid_R(i)
+  }
 
   switch(state) {
     is(s_idle) {
       when(enable_valid_R && IsInputValid()) {
+        //Make outputs valid
         out_valid_R.foreach(_ := true.B)
         when(enable_R.control) {
           //*********************************
@@ -338,19 +345,14 @@ class PhiFastNode(NumInputs: Int = 2, NumOutputs: Int = 1, ID: Int, Res: Boolean
           //Print output
           if (Debug) {
             when(in_data_R(sel).data =/= guard_values.get(guard_index)) {
-              GuardFlag := 1.U
-              log_out_reg := in_data_R(sel).data
-              in_data_R(sel).data := guard_values.get(guard_index)
+              isBuggy := true.B
+              log_flag := 1.U
 
               if (log) {
                 printf("[DEBUG] [" + module_name + "] [TID->%d] [PHI] " + node_name +
                   " Produced value: %d, correct value: %d\n",
                   in_data_R(sel).taskID, in_data_R(sel).data, guard_values.get(guard_index))
               }
-
-            }.otherwise {
-              GuardFlag := 0.U
-              log_out_reg := in_data_R(sel).data
             }
           }
 
@@ -358,7 +360,7 @@ class PhiFastNode(NumInputs: Int = 2, NumOutputs: Int = 1, ID: Int, Res: Boolean
           if (log) {
             printf("[LOG] " + "[" + module_name + "] [TID->%d] [PHI] "
               + node_name + ": Output fired @ %d, Value: %d\n",
-              io.InData(sel).bits.taskID, cycleCount, select_input)
+              io.InData(sel).bits.taskID, cycleCount, correctVal.data)
           }
         }.otherwise {
           state := s_not_predicated
@@ -391,6 +393,8 @@ class PhiFastNode(NumInputs: Int = 2, NumOutputs: Int = 1, ID: Int, Res: Boolean
         enable_valid_R := false.B
 
         fire_R.foreach(_ := false.B)
+
+        isBuggy := false.B
 
         state := s_idle
 

@@ -134,10 +134,12 @@ case class DandelionDMEParams(numRead: Int = 1,
   */
 case class DebugParams(len_data: Int = 64,
                        len_id: Int = 4,
+                       iteration_len: Int = 10,
                        len_guard: Int = 1) {
-  val dataLen = len_data - (len_id + len_guard)
   val IdLen = len_id
   val gLen = len_guard
+  val iterLen = iteration_len
+  val dataLen = len_data - (len_id + len_guard + iteration_len)
 }
 
 

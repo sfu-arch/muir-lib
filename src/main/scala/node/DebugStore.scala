@@ -11,10 +11,9 @@ import utility.Constants._
 import utility.UniformPrintfs
 
 /**
-  * @brief Store Node. Implements store operations
-  * @details [long description]
-  * @param NumPredOps [Number of predicate memory operations]
-  */
+ * @brief Store Node. Implements store operations
+ * @details [long description]
+ */
 
 class DebugBufferNode(
                        NumOuts: Int = 1,
@@ -89,11 +88,11 @@ class DebugBufferNode(
 
 
 /**
-  * This is a test for debug store node
-  *
-  * @brief Store Node. Implements store operations
-  * @details [long description]
-  */
+ * This is a test for debug store node
+ *
+ * @brief Store Node. Implements store operations
+ * @details [long description]
+ */
 class UnTypDebugStore(
                        NumOuts: Int = 1,
                        Typ: UInt = MT_W, ID: Int, RouteID: Int)
@@ -197,6 +196,18 @@ class UnTypDebugStore(
 }
 
 
+/**
+ * DebugVMEBufferNode
+ * The debug buffer nodes that is connected to design's node using boreID
+ * and use DME interface to flush data to off-chip memory
+ *
+ * @param BufferLen Length of buffer memory
+ * @param ID
+ * @param Bore_ID
+ * @param p
+ * @param name
+ * @param file
+ */
 class DebugVMEBufferNode(BufferLen: Int = 20, ID: Int, Bore_ID: Int)
                         (implicit val p: Parameters,
                          name: sourcecode.Name,
@@ -207,14 +218,10 @@ class DebugVMEBufferNode(BufferLen: Int = 20, ID: Int, Bore_ID: Int)
   val io = IO(new Bundle {
 
     val addrDebug = Input(UInt(memParams.addrBits.W))
-
-    /**
-      * Mem Interface to talk with VME
-      */
     val vmeOut = new DMEWriteMaster
-
     val Enable = Input(Bool())
   })
+
   val node_name = name.value
   val module_name = file.value.split("/").tail.last.split("\\.").head.capitalize
   override val printfSigil = "[" + module_name + "] " + node_name + ": " + ID + " "
@@ -231,8 +238,8 @@ class DebugVMEBufferNode(BufferLen: Int = 20, ID: Int, Bore_ID: Int)
   //Is the Data The Wires of the Boring Connection Will put data in.
   val LogData = Module(new Queue(UInt((xlen).W), BufferLen))
 
-  val queue_count = RegInit(0.U)
-  when(LogData.io.enq.fire){
+  val queue_count = RegInit(0.U(log2Ceil(BufferLen).W))
+  when(LogData.io.enq.fire) {
     queue_count := queue_count + 1.U
   }
 
@@ -249,11 +256,9 @@ class DebugVMEBufferNode(BufferLen: Int = 20, ID: Int, Bore_ID: Int)
   val writeFinished = Wire(Bool())
   writeFinished := false.B
   BoringUtils.addSink(writeFinished, "RunFinished" + ID)
-  //Insert
-  //  BoringUtils.addSink(writeFinished, "writefinish" + ID)
 
   LogData.io.enq.bits := queue_data
-  LogData.io.enq.valid := queue_valid && io.Enable
+  LogData.io.enq.valid := queue_valid & io.Enable
   queue_ready := LogData.io.enq.ready
 
   io.vmeOut.cmd.bits.addr := io.addrDebug
@@ -263,12 +268,11 @@ class DebugVMEBufferNode(BufferLen: Int = 20, ID: Int, Bore_ID: Int)
 
   switch(wState) {
     is(sIdel) {
-      when((writeFinished && LogData.io.deq.valid) || (LogData.io.count.asUInt() === N.asUInt()/2.U)) {
+      when((writeFinished && LogData.io.deq.valid) || (LogData.io.count.asUInt() === N.asUInt() / 2.U)) {
         wState := sReq
       }
     }
     is(sReq) {
-//      LogData.io.enq.ready := false.B
       queue_ready := false.B
       when(io.vmeOut.cmd.fire()) {
         wState := sBusy
@@ -292,24 +296,6 @@ class DebugVMEBufferNode(BufferLen: Int = 20, ID: Int, Bore_ID: Int)
     io.vmeOut.data.valid := LogData.io.deq.valid
     LogData.io.deq.ready := io.vmeOut.data.ready
   }
-
-
-
-
-  //  st_node.io.InData.bits := DataBundle(LogData.io.deq.bits)
-  //  st_node.io.InData.valid := LogData.io.deq.valid
-  //  LogData.io.deq.ready := st_node.io.InData.ready
-
-  //  var (addr_cnt, wrap) = Counter(st_node.io.InData.fire, 4096)
-
-
-  //  val addr_offset = node_cnt * 20.U
-  //  val addr = addr_offset + (addr_cnt << 2.U).asUInt()
-  //
-  //
-  //  st_node.io.GepAddr.bits := DataBundle(addr)
-  //  st_node.io.GepAddr.valid := true.B
-
 
 }
 
