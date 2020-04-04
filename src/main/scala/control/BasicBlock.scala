@@ -264,10 +264,6 @@ class BasicBlockNoMaskFastNode(BID: Int, val NumInputs: Int = 1, val NumOuts: In
   //    case (a, b) => a | b
   //  } reduce (_ | _)
 
-  val predicate_val = in_data_R.map(_.control).reduce(_ | _)
-
-  output_R := ControlBundle.default(predicate_val, in_task_ID)
-
 
   val output_valid_map = for (i <- 0 until NumInputs) yield {
     val ret = Mux(io.predicateIn(i).fire, true.B, in_data_valid_R(i))
@@ -278,6 +274,11 @@ class BasicBlockNoMaskFastNode(BID: Int, val NumInputs: Int = 1, val NumOuts: In
     val ret = Mux(io.predicateIn(i).fire, io.predicateIn(i).bits.control, in_data_R(i).control)
     ret
   }
+
+  val predicate_val = output_data_map.reduce(_ | _)
+
+  output_R := ControlBundle.default(predicate_val, in_task_ID)
+
 
   //Connecting output signals
   for (i <- 0 until NumOuts) {

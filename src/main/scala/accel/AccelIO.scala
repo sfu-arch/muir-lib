@@ -87,6 +87,9 @@ abstract class DandelionAccelDebugModule(val numDebugNode: Int, val boreIDList: 
   with HasAccelShellParams {
   override lazy val io = IO(new DandelionAccelDebugIO(numDebugNode))
 
+  require(numDebugNode > 0,
+    s"To test debug module, you should have at least one debug node\n")
+
   require(numDebugNode == boreIDList.length,
     s"You the size boreIDs should be equalt to number debug nodes\n")
 }

@@ -169,7 +169,6 @@ class WithAccelConfig(inParams: DandelionAccelParams = DandelionAccelParams())
   extends Config((site, here, up) => {
     // Core
     case DandelionConfigKey => inParams
-
   }
 
   )
