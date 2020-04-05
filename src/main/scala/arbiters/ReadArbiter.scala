@@ -63,7 +63,7 @@ class  WordRegFile(Size: Int, NReads: Int, NWrites: Int)(implicit val p: Paramet
   // Feed arbiter output to Regfile input port.
   RegFile.io.raddr1 := ReadArbiterReg.address
   // Feed Regfile output port to Demux port
-  ReadRespDeMux.io.input.data   := RegFile.io.rdata1
+  ReadRespDeMux.io.input.bits.data   := RegFile.io.rdata1
 
   ReadRespDeMux.io.sel := ReadOutputChosen
   ReadRespDeMux.io.en := ReadOutputValid
@@ -103,12 +103,12 @@ class  WordRegFile(Size: Int, NReads: Int, NWrites: Int)(implicit val p: Paramet
   //WriteRespDeMux.io.input.valid   := 1.U
   WriteRespDeMux.io.sel := WriteOutputChosen
   WriteRespDeMux.io.en := WriteOutputValid
-  WriteRespDeMux.io.input.done := true.B
-  WriteRespDeMux.io.input.RouteID := 0.U
+  WriteRespDeMux.io.input.bits.done := true.B
+  WriteRespDeMux.io.input.bits.RouteID := 0.U
   WriteRespDeMux.io.input.valid := false.B
 
   ReadRespDeMux.io.input.valid := false.B
-  ReadRespDeMux.io.input.RouteID := 0.U
+  ReadRespDeMux.io.input.bits.RouteID := 0.U
 
   RegFile.io.raddr2 := 0.U
 

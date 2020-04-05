@@ -512,7 +512,6 @@ class cilk_spawn_test02DF(implicit p: Parameters) extends cilk_spawn_test02DFIO(
   alloca0.io.allocaInputIO.bits.size      := 1.U
   alloca0.io.allocaInputIO.bits.numByte   := 4.U
   alloca0.io.allocaInputIO.bits.predicate := true.B
-  alloca0.io.allocaInputIO.bits.valid     := true.B
   alloca0.io.allocaInputIO.valid          := true.B  // Manually added
 
   // Connecting Alloca to Stack
@@ -524,7 +523,6 @@ class cilk_spawn_test02DF(implicit p: Parameters) extends cilk_spawn_test02DFIO(
   alloca1.io.allocaInputIO.bits.size      := 1.U
   alloca1.io.allocaInputIO.bits.numByte   := 4.U
   alloca1.io.allocaInputIO.bits.predicate := true.B
-  alloca1.io.allocaInputIO.bits.valid     := true.B
   alloca1.io.allocaInputIO.valid          := true.B  // Manually added
 
   // Connecting Alloca to Stack

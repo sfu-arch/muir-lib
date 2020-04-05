@@ -671,7 +671,6 @@ class fibDF(implicit p: Parameters) extends fibDFIO()(p) {
     alloca0.io.allocaInputIO.bits.size      := 1.U
     alloca0.io.allocaInputIO.bits.numByte   := 4.U
     alloca0.io.allocaInputIO.bits.predicate := true.B
-    alloca0.io.allocaInputIO.bits.valid     := true.B
     alloca0.io.allocaInputIO.valid          := true.B
 
     // Connecting Alloca to Stack
@@ -683,7 +682,6 @@ class fibDF(implicit p: Parameters) extends fibDFIO()(p) {
     alloca1.io.allocaInputIO.bits.size      := 1.U
     alloca1.io.allocaInputIO.bits.numByte   := 4.U
     alloca1.io.allocaInputIO.bits.predicate := true.B
-    alloca1.io.allocaInputIO.bits.valid     := true.B
     alloca1.io.allocaInputIO.valid          := true.B
 
     // Connecting Alloca to Stack
@@ -695,7 +693,6 @@ class fibDF(implicit p: Parameters) extends fibDFIO()(p) {
     alloca2.io.allocaInputIO.bits.size      := 1.U
     alloca2.io.allocaInputIO.bits.numByte   := 4.U
     alloca2.io.allocaInputIO.bits.predicate := true.B
-    alloca2.io.allocaInputIO.bits.valid     := true.B
     alloca2.io.allocaInputIO.valid          := true.B
 
     // Connecting Alloca to Stack

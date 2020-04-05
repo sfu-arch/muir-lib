@@ -33,7 +33,7 @@ abstract class WriteEntryIO()(implicit val p: Parameters)
 
     //Memory interface
     val MemReq  = Decoupled(new MemReq)
-    val MemResp = Input(new MemResp)
+    val MemResp = Flipped(Valid(new MemResp))
 
     // val Output 
     val output = Decoupled(new WriteResp)
@@ -46,7 +46,7 @@ abstract class WriteEntryIO()(implicit val p: Parameters)
 /**
   * @brief Read Table Entry
   * @note [long description]
-  * @param ID [Read table IDs]
+  * @param id [Read table IDs]
   * @return [description]
   */
 class WriteTableEntry(id: Int)(implicit p: Parameters) extends WriteEntryIO( )(p) {
@@ -94,7 +94,7 @@ class WriteTableEntry(id: Int)(implicit p: Parameters) extends WriteEntryIO( )(p
   // @todo: (done and valid are redundant. Need to cleanup at some point in the future)
   io.output.valid := 0.U
   io.output.bits.done := true.B
-  io.output.bits.valid := true.B
+  io.output.valid := true.B
   io.output.bits.RouteID := request_R.RouteID
   io.MemReq.valid := 0.U
   io.MemReq.bits.addr := ReqAddress + Cat(ptr, 0.U(log2Ceil(xlen_bytes).W))
@@ -108,7 +108,6 @@ class WriteTableEntry(id: Int)(implicit p: Parameters) extends WriteEntryIO( )(p
   val isWrite = RegNext(true.B, init = false.B)
   io.MemReq.bits.iswrite := isWrite
   io.MemReq.bits.taskID := request_R.taskID
-  io.MemReq.bits.tile := 0.U
 
 
   /*=======================================================
@@ -168,7 +167,7 @@ class WriteTableEntry(id: Int)(implicit p: Parameters) extends WriteEntryIO( )(p
     io.output.valid := 1.U
     ptr := 0.U
     // Valid write 
-    io.output.bits.valid := true.B
+    io.output.valid := true.B
     // Output driver demux tree has forwarded output (may not have reached receiving node yet)
     when(io.output.fire( )) {
       state := s_idle

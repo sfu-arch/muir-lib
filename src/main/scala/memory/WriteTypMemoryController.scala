@@ -87,7 +87,6 @@ class WriteTypTableEntry
   // Is a write?
   io.MemReq.bits.iswrite := true.B
   io.MemReq.bits.taskID := request_R.taskID
-  io.MemReq.bits.tile := 0.U
 
 
   /*=======================================================
@@ -144,7 +143,7 @@ class WriteTypTableEntry
   io.output.bits.RouteID := request_R.RouteID
   io.output.valid := false.B
   io.output.bits.done := false.B
-  io.output.bits.valid := true.B
+  io.output.valid := true.B
   when(state === s_Done) {
     // For the demux
     io.output.valid := 1.U

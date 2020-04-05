@@ -6,14 +6,16 @@ import dandelion.interfaces._
 import chipsalliance.rocketchip.config._
 import dandelion.config._
 
-// Design Doc
-//////////
-/// DRIVER ///
-/// 1. FU response only available atleast 1 cycle after request
-//  2. Need registers for pipeline handshaking e.g., _valid,
-// _ready need to latch ready and valid signals.
-//////////
-
+/**
+ * FPDiv
+ * Design Doc:
+ * 1. FU response only available atleast 1 cycle after request
+ * 2. Need registers for pipeline handshaking e.g., _valid,
+ * @param NumOuts Number of outputs
+ *
+ * @param argTypes
+ * @param p
+ */
 class FPDivSqrtIO(NumOuts: Int,
                   argTypes: Seq[Int])
                  (implicit p: Parameters)
@@ -25,7 +27,7 @@ class FPDivSqrtIO(NumOuts: Int,
   // FU request
   val FUReq  = Decoupled(new FUReq(argTypes))
   // FU response.
-  val FUResp = Input(Flipped(new FUResp()))
+  val FUResp = Flipped(Valid(new FUResp()))
 
   override def cloneType = new FPDivSqrtIO(NumOuts, argTypes).asInstanceOf[this.type]
 }
@@ -157,7 +159,7 @@ class FPDivSqrtNode(NumOuts: Int,
       when(io.FUResp.valid) {
 
         // Set data output registers
-        data_R.data := io.FUResp.data
+        data_R.data := io.FUResp.bits.data
         data_R.predicate := true.B
         //data_R.valid := true.B
         ValidOut( )

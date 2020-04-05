@@ -3,23 +3,11 @@ package dandelion.interfaces
 
 import chisel3._
 import chisel3.util.Decoupled
-import chipsalliance.rocketchip.config._
 import utility.Constants._
 import dandelion.config._
 import chipsalliance.rocketchip.config._
 
 import scala.collection.immutable.ListMap
-
-/*==============================================================================
-=            Notes
-           1. AVOID DECLARING IOs, DECLARE BUNDLES. Create IOs within your node.
-           2.             =
-==============================================================================*/
-
-trait ValidT extends AccelBundle {
-  val valid = Bool()
-}
-
 
 trait RouteID extends AccelBundle {
   val RouteID = UInt(glen.W)
@@ -34,12 +22,10 @@ trait PredicateT extends AccelBundle {
 }
 
 // Maximum of 16MB Stack Array.
-
 class AllocaIO(implicit p: Parameters) extends AccelBundle()(p) {
   val size = UInt(xlen.W)
   val numByte = UInt(xlen.W)
   val predicate = Bool()
-  val valid = Bool()
 }
 
 object AllocaIO {
@@ -48,7 +34,6 @@ object AllocaIO {
     temp_w.size := 0.U
     temp_w.numByte := 0.U
     temp_w.predicate := true.B
-    temp_w.valid := false.B
     temp_w
   }
 }
@@ -72,8 +57,7 @@ object AllocaReq {
 
 // ptr is the address returned back to the alloca call.
 // Valid and Data flipped.
-class AllocaResp(implicit p: Parameters)
-  extends ValidT with RouteID {
+class AllocaResp(implicit p: Parameters) extends RouteID {
   val ptr = UInt(xlen.W)
 }
 
@@ -82,24 +66,20 @@ object AllocaResp {
     val wire = Wire(new AllocaResp)
     wire.RouteID := 0.U
     wire.ptr := 0.U
-    wire.valid := false.B
     wire
   }
 }
 
 
-class AllocaRespTest(implicit p: Parameters)
-  extends ValidT with RouteID {
+class AllocaRespTest(implicit p: Parameters) extends RouteID {
   val ptr = UInt(xlen.W)
-
-
 }
 
 
-
-// Read interface into Scratchpad stack
-//  address: Word aligned address to read from
-//  node : dataflow node id to return data to
+/**
+ * Memory read request interface
+ * @param p
+ */
 class ReadReq(implicit p: Parameters)
   extends RouteID {
   val address = UInt(xlen.W)
@@ -121,14 +101,11 @@ object ReadReq {
 
 
 //  data : data returned from scratchpad
-class ReadResp(implicit p: Parameters)
-  extends ValidT
-    with RouteID {
+class ReadResp(implicit p: Parameters) extends RouteID {
   val data = UInt(xlen.W)
 
   override def toPrintable: Printable = {
     p"ReadResp {\n" +
-      p"  valid  : ${valid}\n" +
       p"  RouteID: ${RouteID}\n" +
       p"  data   : 0x${Hexadecimal(data)} }"
   }
@@ -139,7 +116,6 @@ object ReadResp {
     val wire = Wire(new ReadResp)
     wire.data := 0.U
     wire.RouteID := 0.U
-    wire.valid := false.B
     wire
   }
 }
@@ -177,21 +153,16 @@ object WriteReq {
 }
 
 // Explicitly indicate done flag
-class WriteResp(implicit p: Parameters)
-  extends ValidT
-    with RouteID {
+class WriteResp(implicit p: Parameters) extends RouteID {
   val done = Bool()
 }
 
 //  data : data returned from scratchpad
-class FUResp(implicit p: Parameters)
-  extends ValidT
-    with RouteID {
+class FUResp(implicit p: Parameters) extends RouteID {
   val data = UInt(xlen.W)
 
   override def toPrintable: Printable = {
     p"FUResp {\n" +
-      p"  valid  : ${valid}\n" +
       p"  RouteID: ${RouteID}\n" +
       p"  data   : 0x${Hexadecimal(data)} }"
   }
@@ -202,7 +173,6 @@ object FUResp {
     val wire = Wire(new FUResp)
     wire.data := 0.U
     wire.RouteID := 0.U
-    wire.valid := false.B
     wire
   }
 }
@@ -214,19 +184,7 @@ class MemReq(implicit p: Parameters) extends AccelBundle()(p) {
   val tag = UInt((List(1, mshrLen).max).W)
   val taskID = UInt(tlen.W)
   val iswrite = Bool()
-  val tile = UInt(xlen.W)
 
-  def clone_and_set_tile_id(tile: UInt): MemReq = {
-    val wire = Wire(new MemReq())
-    wire.addr := this.addr
-    wire.data := this.data
-    wire.mask := this.mask
-    wire.tag := this.tag
-    wire.taskID := this.taskID
-    wire.iswrite := this.iswrite
-    wire.tile := tile
-    wire
-  }
 }
 
 object MemReq {
@@ -238,35 +196,23 @@ object MemReq {
     wire.tag := 0.U
     wire.taskID := 0.U
     wire.iswrite := false.B
-    wire.tile := 0.U
     wire
   }
 }
 
-class MemResp(implicit p: Parameters) extends AccelBundle()(p) with ValidT {
+class MemResp(implicit p: Parameters) extends AccelBundle()(p) {
   val data = UInt(xlen.W)
   val tag = UInt((List(1, mshrLen).max).W)
   val iswrite = Bool()
-  val tile = UInt(xlen.W)
 
-  def clone_and_set_tile_id(tile: UInt): MemResp = {
-    val wire = Wire(new MemResp())
-    wire.data := this.data
-    wire.tag := this.tag
-    wire.iswrite := this.iswrite
-    wire.tile := tile
-    wire
-  }
 }
 
 object MemResp {
   def default(implicit p: Parameters): MemResp = {
     val wire = Wire(new MemResp())
-    wire.valid := false.B
     wire.data := 0.U
     wire.tag := 0.U
     wire.iswrite := false.B
-    wire.tile := 0.U
     wire
   }
 }
@@ -288,7 +234,6 @@ class RelayOutput(implicit p: Parameters) extends AccelBundle()(p) {
   * @param p : implicit
   * @return
   */
-//class DataBundle(implicit p: Parameters) extends ValidT with PredicateT
 class DataBundle(implicit p: Parameters) extends PredicateT with TaskID {
   // Data packet
   val data = UInt(xlen.W)
@@ -366,7 +311,7 @@ object DataBundle {
   }
 }
 
-class TypBundle(implicit p: Parameters) extends ValidT with PredicateT with TaskID {
+class TypBundle(implicit p: Parameters) extends PredicateT with TaskID {
   // Type Packet
   val data = UInt(typeSize.W)
 }
@@ -378,7 +323,6 @@ object TypBundle {
     wire.data := 0.U
     wire.predicate := false.B
     wire.taskID := 0.U
-    wire.valid := false.B
     wire
   }
 }

@@ -5,42 +5,37 @@ import chisel3.util._
 import chipsalliance.rocketchip.config._
 import chisel3.util.experimental.BoringUtils
 import dandelion.interfaces._
-import utility.Constants._
 
-class LoadIO(NumPredOps: Int,
-             NumSuccOps: Int,
-             NumOuts: Int,
-             Debug : Boolean =false)(implicit p: Parameters)
+class LoadCacheIO(NumPredOps: Int,
+                  NumSuccOps: Int,
+                  NumOuts: Int,
+                  Debug: Boolean = false)(implicit p: Parameters)
   extends HandShakingIOPS(NumPredOps, NumSuccOps, NumOuts, Debug)(new DataBundle) {
-  // GepAddr: The calculated address comming from GEP node
   val GepAddr = Flipped(Decoupled(new DataBundle))
-  // Memory request
-  val memReq = Decoupled(new ReadReq())
-  // Memory response.
-  val memResp = Flipped(Valid(new ReadResp()))
+  val MemReq = Decoupled(new MemReq)
+  val MemResp = Flipped(Valid(new MemResp))
 
-  override def cloneType = new LoadIO(NumPredOps, NumSuccOps, NumOuts, Debug).asInstanceOf[this.type]
+  override def cloneType = new LoadCacheIO(NumPredOps, NumSuccOps, NumOuts, Debug).asInstanceOf[this.type]
 }
 
 /**
-  * @brief Load Node. Implements load operations
-  * @details [load operations can either reference values in a scratchpad or cache]
-  * @param NumPredOps [Number of predicate memory operations]
-  */
-class UnTypLoad(NumPredOps: Int,
-                NumSuccOps: Int,
-                NumOuts: Int,
-                Typ: UInt = MT_D,
-                ID: Int,
-                RouteID: Int
-               , Debug : Boolean =false
-               , GuardVal : Int = 0)
-               (implicit p: Parameters,
-                name: sourcecode.Name,
-                file: sourcecode.File)
+ * @brief Load Node. Implements load operations
+ * @details [load operations can either reference values in a scratchpad or cache]
+ * @param NumPredOps [Number of predicate memory operations]
+ */
+class UnTypLoadCache(NumPredOps: Int,
+                     NumSuccOps: Int,
+                     NumOuts: Int,
+                     ID: Int,
+                     RouteID: Int,
+                     Debug: Boolean = false,
+                     GuardVal: Int = 0)
+                    (implicit p: Parameters,
+                     name: sourcecode.Name,
+                     file: sourcecode.File)
   extends HandShaking(NumPredOps, NumSuccOps, NumOuts, ID, Debug)(new DataBundle)(p) {
 
-  override lazy val io = IO(new LoadIO(NumPredOps, NumSuccOps, NumOuts, Debug))
+  override lazy val io = IO(new LoadCacheIO(NumPredOps, NumSuccOps, NumOuts, Debug))
   // Printf debugging
   val node_name = name.value
   val module_name = file.value.split("/").tail.last.split("\\.").head.capitalize
@@ -79,7 +74,7 @@ class UnTypLoad(NumPredOps: Int,
   var log_id = WireInit(ID.U((4).W))
   var GuardFlag = WireInit(0.U(1.W))
 
-  var log_out_reg = RegInit(0.U((xlen-5).W))
+  var log_out_reg = RegInit(0.U((xlen - 5).W))
   val writeFinish = RegInit(false.B)
   //log_id := ID.U
   //test_value := Cat(GuardFlag,log_id, log_out)
@@ -99,17 +94,14 @@ class UnTypLoad(NumPredOps: Int,
     BoringUtils.addSink(test_value_ready, "ready" + ID)
 
 
-
-    when(enable_valid_R ) {
+    when(enable_valid_R) {
       test_value_valid_r := true.B
     }
-    when(state === s_Done){
+    when(state === s_Done) {
       test_value_valid_r := false.B
     }
 
   }
-
-
 
 
   /*============================================
@@ -128,18 +120,19 @@ class UnTypLoad(NumPredOps: Int,
     io.Out(i).bits.taskID := addr_R.taskID | enable_R.taskID
   }
 
-  io.memReq.valid := false.B
-  io.memReq.bits.address := addr_R.data
-  io.memReq.bits.Typ := Typ
-  io.memReq.bits.RouteID := RouteID.U
-  io.memReq.bits.taskID := addr_R.taskID
+  // Initilizing the MemRequest bus
+  io.MemReq.valid := false.B
+  io.MemReq.bits.data := 0.U
+  io.MemReq.bits.addr := addr_R.data
+  io.MemReq.bits.tag := RouteID.U
+  io.MemReq.bits.taskID := addr_R.taskID
+  io.MemReq.bits.mask := 0.U
+  io.MemReq.bits.iswrite := false.B
 
   // Connect successors outputs to the enable status
   when(io.enable.fire()) {
     succ_bundle_R.foreach(_ := io.enable.bits)
   }
-
-
 
 
   /*=============================================
@@ -151,8 +144,8 @@ class UnTypLoad(NumPredOps: Int,
     is(s_idle) {
       when(enable_valid_R && mem_req_fire) {
         when(enable_R.control && predicate) {
-          io.memReq.valid := true.B
-          when(io.memReq.ready) {
+          io.MemReq.valid := true.B
+          when(io.MemReq.ready) {
             state := s_RECEIVING
           }
         }.otherwise {
@@ -164,20 +157,20 @@ class UnTypLoad(NumPredOps: Int,
       }
     }
     is(s_RECEIVING) {
-      when(io.memResp.valid) {
+      when(io.MemResp.valid) {
 
         // Set data output registers
-        data_R.data := io.memResp.bits.data
+        data_R.data := io.MemResp.bits.data
 
         if (Debug) {
           when(data_R.data =/= GuardVal.U) {
             GuardFlag := 1.U
-            log_out_reg :=  data_R.data
+            log_out_reg := data_R.data
             data_R.data := GuardVal.U
 
           }.otherwise {
             GuardFlag := 0.U
-            log_out_reg :=  data_R.data
+            log_out_reg := data_R.data
           }
         }
 
@@ -195,10 +188,10 @@ class UnTypLoad(NumPredOps: Int,
       when(complete) {
         // Clear all the valid states.
         // Reset address
-        // addr_R := DataBundle.default
+        addr_R := DataBundle.default
         addr_valid_R := false.B
         // Reset data
-        // data_R := DataBundle.default
+        data_R := DataBundle.default
         data_valid_R := false.B
         // Reset state.
         Reset()
@@ -211,24 +204,5 @@ class UnTypLoad(NumPredOps: Int,
         }
       }
     }
-  }
-  // Trace detail.
-  if (log == true && (comp contains "LOAD")) {
-    val x = RegInit(0.U(xlen.W))
-    x := x + 1.U
-    verb match {
-      case "high" => {}
-      case "med" => {}
-      case "low" => {
-        printfInfo("Cycle %d : { \"Inputs\": {\"GepAddr\": %x},", x, (addr_valid_R))
-        printf("\"State\": {\"State\": \"%x\", \"data_R(Valid,Data,Pred)\":\"%x,%x,%x\" },", state, data_valid_R, data_R.data, data_R.predicate)
-        printf("\"Outputs\": {\"Out\": %x}", io.Out(0).fire())
-        printf("}")
-      }
-      case everythingElse => {}
-    }
-  }
-  def isDebug(): Boolean = {
-    Debug
   }
 }

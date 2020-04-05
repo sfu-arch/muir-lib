@@ -79,8 +79,8 @@ class SharedFPU(NumOps: Int, PipeDepth: Int)(t: FType)
 
   out_demux.io.enable := ds.io.outValid_div || ds.io.outValid_sqrt
   RouteQ.io.deq.ready := ds.io.outValid_div || ds.io.outValid_sqrt
-  out_demux.io.input.data := fNFromRecFN(t.expWidth, t.sigWidth, ds.io.out)
-  out_demux.io.input.RouteID := RouteQ.io.deq.bits
+  out_demux.io.input.bits.data := fNFromRecFN(t.expWidth, t.sigWidth, ds.io.out)
+  out_demux.io.input.bits.RouteID := RouteQ.io.deq.bits
   out_demux.io.input.valid := ds.io.outValid_div || ds.io.outValid_sqrt
   // Use RouteQ value to demux the output of fn
   val x = fNFromRecFN(t.expWidth, t.sigWidth, ds.io.out)

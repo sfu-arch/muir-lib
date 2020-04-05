@@ -263,12 +263,15 @@ class TypCompute[T <: Numbers : OperatorLike](NumOuts: Int, ID: Int, opCode: Str
    *===========================================*/
   // OP Inputs
   val left_R = RegInit(TypBundle.default)
+  val left_valid_R = RegInit(false.B)
 
   // Memory Response
   val right_R = RegInit(TypBundle.default)
+  val right_valid_R = RegInit(false.B)
 
   // Output register
   val data_R = RegInit(TypBundle.default)
+  val data_valid_R = RegInit(false.B)
 
   val s_idle :: s_LATCH :: s_COMPUTE :: Nil = Enum(3)
   val state                                 = RegInit(s_idle)
@@ -278,7 +281,7 @@ class TypCompute[T <: Numbers : OperatorLike](NumOuts: Int, ID: Int, opCode: Str
    *==========================================*/
 
   val predicate = left_R.predicate & right_R.predicate & IsEnable( )
-  val start     = left_R.valid & right_R.valid & IsEnableValid( )
+  val start     = left_valid_R & right_valid_R & IsEnableValid( )
 
   /*===============================================*
    *            Latch inputs. Wire up output       *
@@ -289,28 +292,27 @@ class TypCompute[T <: Numbers : OperatorLike](NumOuts: Int, ID: Int, opCode: Str
 
   //printfInfo("start: %x\n", start)
 
-  io.LeftIO.ready := ~left_R.valid
+  io.LeftIO.ready := ~left_valid_R
   when(io.LeftIO.fire( )) {
     //printfInfo("Latch left data\n")
     state := s_LATCH
     left_R.data := io.LeftIO.bits.data
-    left_R.valid := true.B
+    left_valid_R := true.B
     left_R.predicate := io.LeftIO.bits.predicate
   }
 
-  io.RightIO.ready := ~right_R.valid
+  io.RightIO.ready := ~right_valid_R
   when(io.RightIO.fire( )) {
     //printfInfo("Latch right data\n")
     state := s_LATCH
     right_R.data := io.RightIO.bits.data
-    right_R.valid := true.B
+    right_valid_R := true.B
     right_R.predicate := io.RightIO.bits.predicate
   }
 
   // Wire up Outputs
   for (i <- 0 until NumOuts) {
     io.Out(i).bits.data := data_R.data
-    io.Out(i).bits.valid := true.B
     io.Out(i).bits.predicate := predicate
     io.Out(i).bits.taskID := left_R.taskID | right_R.taskID | enable_R.taskID
   }
@@ -325,9 +327,9 @@ class TypCompute[T <: Numbers : OperatorLike](NumOuts: Int, ID: Int, opCode: Str
   FU.io.b.bits := (right_R.data).asTypeOf(gen)
   data_R.data := (FU.io.o.bits).asTypeOf(UInt(typeSize.W))
   pred_R := predicate
-  FU.io.a.valid := left_R.valid
-  FU.io.b.valid := right_R.valid
-  data_R.valid := FU.io.o.valid
+  FU.io.a.valid := left_valid_R
+  FU.io.b.valid := right_valid_R
+  data_valid_R := FU.io.o.valid
   //  This is written like this to enable FUs that are dangerous in the future.
   // If you don't start up then no value passed into function
   when(start & predicate & state =/= s_COMPUTE) {
@@ -343,6 +345,9 @@ class TypCompute[T <: Numbers : OperatorLike](NumOuts: Int, ID: Int, opCode: Str
     left_R := TypBundle.default
     right_R := TypBundle.default
     data_R := TypBundle.default
+    left_valid_R := false.B
+    right_valid_R := false.B
+    data_valid_R := false.B
     Reset( )
     state := s_idle
   }
@@ -358,7 +363,7 @@ class TypCompute[T <: Numbers : OperatorLike](NumOuts: Int, ID: Int, opCode: Str
       case "high" => {}
       case "med" => {}
       case "low" => {
-        printfInfo("Cycle %d : { \"Inputs\": {\"Left\": %x, \"Right\": %x},", x, (left_R.valid), (right_R.valid))
+        printfInfo("Cycle %d : { \"Inputs\": {\"Left\": %x, \"Right\": %x},", x, (left_valid_R), (right_valid_R))
         printf("\"State\": {\"State\": \"%x\", \"(L,R)\": \"%x,%x\",  \"O(V,D,P)\": \"%x,%x,%x\" },", state, left_R.data, right_R.data, io.Out(0).valid, data_R.data, io.Out(0).bits.predicate)
         printf("\"Outputs\": {\"Out\": %x}", io.Out(0).fire( ))
         printf("}")

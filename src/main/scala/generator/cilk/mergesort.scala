@@ -762,7 +762,6 @@ class mergesortDF(implicit p: Parameters) extends mergesortDFIO()(p) {
   alloca0.io.allocaInputIO.bits.size      := 1.U
   alloca0.io.allocaInputIO.bits.numByte   := 20.U
   alloca0.io.allocaInputIO.bits.predicate := true.B
-  alloca0.io.allocaInputIO.bits.valid     := true.B
   alloca0.io.allocaInputIO.valid          := true.B
 
   // Connecting Alloca to Stack

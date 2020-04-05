@@ -10,13 +10,12 @@ import dandelion.config._
 import dandelion.interfaces._
 import dandelion.config._
 
-class Demux[T <: ValidT](gen: T, Nops: Int) extends Module {
+class Demux[T <: Data](gen: T, Nops: Int) extends Module {
   val io = IO(new Bundle {
     val en      = Input(Bool( ))
-    val input   = Input(gen)
+    val input   = Flipped(Valid(gen))
     val sel     = Input(UInt(max(1, log2Ceil(Nops)).W))
-    val outputs = Output(Vec(Nops, gen))
-    // val outputvalid = Output(Bool())
+    val outputs = Vec(Nops, Valid(gen))
   })
 
   val x = io.sel
@@ -69,12 +68,12 @@ abstract class AbstractDeMuxTree[T <: RouteID](Nops: Int, gen: T)(implicit p: Pa
   extends Module with HasAccelParams {
   val io = IO(new Bundle {
     val outputs = Vec(Nops, Output(gen))
-    val input   = Input(gen)
+    val input   = Flipped(Valid(gen))
     val enable  = Input(Bool( ))
   })
 }
 
-class DeMuxTree[T <: RouteID with ValidT](BaseSize: Int, NumOps: Int, gen: T)(implicit val p: Parameters) extends AbstractDeMuxTree(NumOps, gen)(p) {
+class DeMuxTree[T <: RouteID ](BaseSize: Int, NumOps: Int, gen: T)(implicit val p: Parameters) extends AbstractDeMuxTree(NumOps, gen)(p) {
   require(NumOps > 0)
   require(isPow2(BaseSize))
   var prev            = Seq.fill(0) {
@@ -105,7 +104,7 @@ class DeMuxTree[T <: RouteID with ValidT](BaseSize: Int, NumOps: Int, gen: T)(im
         val demuxvalidreg = RegNext(init = false.B, next = Demuxes(i / BaseSize).outputs(indexcalc(i, BaseSize)).valid)
         prev(i).input := demuxInputReg
         prev(i).en := demuxvalidreg
-        prev(i).sel := demuxInputReg.RouteID(SelHIndex + log2Ceil(BaseSize) - 1, SelHIndex)
+        prev(i).sel := demuxInputReg.bits.RouteID(SelHIndex + log2Ceil(BaseSize) - 1, SelHIndex)
         // prev(i).input <> Demuxes(i/BaseSize).outputs(indexcalc(i,BaseSize)) 
         // prev(i).en    := Demuxes(i/BaseSize).outputs(indexcalc(i,BaseSize)).valid
         // prev(i).sel   := Demuxes(i/BaseSize).outputs(indexcalc(i,BaseSize)).RouteID(SelHIndex+log2Ceil(BaseSize)-1,SelHIndex)
@@ -135,7 +134,7 @@ class DeMuxTree[T <: RouteID with ValidT](BaseSize: Int, NumOps: Int, gen: T)(im
   // println("z:"+z+","+(z+log2Ceil(BaseSize)-1))
   prev(0).input <> io.input
   prev(0).en := io.enable
-  prev(0).sel := io.input.RouteID(SelHIndex + log2Ceil(BaseSize) - 1, SelHIndex)
+  prev(0).sel := io.input.bits.RouteID(SelHIndex + log2Ceil(BaseSize) - 1, SelHIndex)
 
   object indexcalc {
     def apply(i: Int, BaseSize: Int): Int = {
@@ -146,10 +145,10 @@ class DeMuxTree[T <: RouteID with ValidT](BaseSize: Int, NumOps: Int, gen: T)(im
 }
 
 
-class Mux[T <: ValidT](gen: T, Nops: Int) extends Module {
+class Mux[T <: Data](gen: T, Nops: Int) extends Module {
   val io = IO(new Bundle {
     val en     = Input(Bool( ))
-    val output = Output(gen)
+    val output = Valid(gen)
     val sel    = Input(UInt(max(1, log2Ceil(Nops)).W))
     val inputs = Input(Vec(Nops, gen))
   })

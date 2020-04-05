@@ -24,9 +24,9 @@ import util._
 import dandelion.config._
 
 
-  /* ================================================================== *
-   *                   PRINTING PORTS DEFINITION                        *
-   * ================================================================== */
+/* ================================================================== *
+ *                   PRINTING PORTS DEFINITION                        *
+ * ================================================================== */
 
 abstract class mergeDFIO(implicit val p: Parameters) extends Module with HasAccelParams {
   val io = IO(new Bundle {
@@ -58,7 +58,6 @@ class mergeDF(implicit p: Parameters) extends mergeDFIO()(p) {
   InputSplitter.io.In <> io.in
 
 
-
   /* ================================================================== *
    *                   PRINTING LOOP HEADERS                            *
    * ================================================================== */
@@ -66,7 +65,6 @@ class mergeDF(implicit p: Parameters) extends mergeDFIO()(p) {
   val Loop_0 = Module(new LoopBlockNode(NumIns = List(1, 1, 1, 2, 1, 1), NumOuts = List(), NumCarry = List(1, 1, 1), NumExits = 1, ID = 1))
 
   val Loop_1 = Module(new LoopBlockNode(NumIns = List(1, 1, 1, 1, 1), NumOuts = List(), NumCarry = List(1), NumExits = 1, ID = 2))
-
 
 
   /* ================================================================== *
@@ -102,13 +100,12 @@ class mergeDF(implicit p: Parameters) extends mergeDFIO()(p) {
   val bb_loopexit13 = Module(new BasicBlockNoMaskFastNode(NumInputs = 2, NumOuts = 1, BID = 13))
 
 
-
   /* ================================================================== *
    *                   PRINTING INSTRUCTION NODES                       *
    * ================================================================== */
 
   //  %5 = alloca [2048 x i64], align 16, !UID !78
-  val alloca_0 = Module(new AllocaNode(NumOuts=4, ID = 0, RouteID=0))
+  val alloca_0 = Module(new AllocaNode(NumOuts = 4, ID = 0, RouteID = 0))
 
   //  %6 = bitcast [2048 x i64]* %5 to i8*, !dbg !83, !UID !84
   val bitcast_1 = Module(new BitCastNode(NumOuts = 1, ID = 1))
@@ -303,7 +300,6 @@ class mergeDF(implicit p: Parameters) extends mergeDFIO()(p) {
   val ret_64 = Module(new RetNode2(retTypes = List(), ID = 64))
 
 
-
   /* ================================================================== *
    *                   PRINTING CONSTANTS NODES                         *
    * ================================================================== */
@@ -342,7 +338,6 @@ class mergeDF(implicit p: Parameters) extends mergeDFIO()(p) {
   val const10 = Module(new ConstFastNode(value = 1, ID = 10))
 
 
-
   /* ================================================================== *
    *                   BASICBLOCK -> PREDICATE INSTRUCTION              *
    * ================================================================== */
@@ -376,7 +371,6 @@ class mergeDF(implicit p: Parameters) extends mergeDFIO()(p) {
   bb_loopexit13.io.predicateIn(0) <> br_63.io.Out(0)
 
 
-
   /* ================================================================== *
    *                   BASICBLOCK -> PREDICATE LOOP                     *
    * ================================================================== */
@@ -394,11 +388,9 @@ class mergeDF(implicit p: Parameters) extends mergeDFIO()(p) {
   bb_loopexit_loopexit12.io.predicateIn(0) <> Loop_0.io.loopExit(0)
 
 
-
   /* ================================================================== *
    *                   PRINTING PARALLEL CONNECTIONS                    *
    * ================================================================== */
-
 
 
   /* ================================================================== *
@@ -418,11 +410,9 @@ class mergeDF(implicit p: Parameters) extends mergeDFIO()(p) {
   Loop_1.io.loopFinish(0) <> br_33.io.FalseOutput(0)
 
 
-
   /* ================================================================== *
    *                   ENDING INSTRUCTIONS                              *
    * ================================================================== */
-
 
 
   /* ================================================================== *
@@ -450,7 +440,6 @@ class mergeDF(implicit p: Parameters) extends mergeDFIO()(p) {
   Loop_1.io.InLiveIn(3) <> alloca_0.io.Out(1)
 
   Loop_1.io.InLiveIn(4) <> sext21.io.Out(0)
-
 
 
   /* ================================================================== *
@@ -482,17 +471,14 @@ class mergeDF(implicit p: Parameters) extends mergeDFIO()(p) {
   icmp_32.io.RightIO <> Loop_1.io.OutLiveIn.elements("field4")(0)
 
 
-
   /* ================================================================== *
    *                   LOOP DATA LIVE-OUT DEPENDENCIES                  *
    * ================================================================== */
 
 
-
   /* ================================================================== *
    *                   LOOP LIVE OUT DEPENDENCIES                       *
    * ================================================================== */
-
 
 
   /* ================================================================== *
@@ -508,7 +494,6 @@ class mergeDF(implicit p: Parameters) extends mergeDFIO()(p) {
   Loop_1.io.CarryDepenIn(0) <> binaryOp_24.io.Out(0)
 
 
-
   /* ================================================================== *
    *                   LOOP DATA CARRY DEPENDENCIES                     *
    * ================================================================== */
@@ -520,7 +505,6 @@ class mergeDF(implicit p: Parameters) extends mergeDFIO()(p) {
   phi40.io.InData(0) <> Loop_0.io.CarryDepenOut.elements("field2")(0)
 
   phi23.io.InData(0) <> Loop_1.io.CarryDepenOut.elements("field0")(0)
-
 
 
   /* ================================================================== *
@@ -744,8 +728,6 @@ class mergeDF(implicit p: Parameters) extends mergeDFIO()(p) {
   ret_64.io.In.enable <> bb_loopexit13.io.Out(0)
 
 
-
-
   /* ================================================================== *
    *                   CONNECTING PHI NODES                             *
    * ================================================================== */
@@ -763,19 +745,14 @@ class mergeDF(implicit p: Parameters) extends mergeDFIO()(p) {
   phi59.io.Mask <> bb_11.io.MaskBB(1)
 
 
-
   /* ================================================================== *
    *                   PRINT ALLOCA OFFSET                              *
    * ================================================================== */
 
-  alloca_0.io.allocaInputIO.bits.size      := 1.U
-  alloca_0.io.allocaInputIO.bits.numByte   := 16384.U
+  alloca_0.io.allocaInputIO.bits.size := 1.U
+  alloca_0.io.allocaInputIO.bits.numByte := 16384.U
   alloca_0.io.allocaInputIO.bits.predicate := true.B
-  alloca_0.io.allocaInputIO.bits.valid     := true.B
-  alloca_0.io.allocaInputIO.valid          := true.B
-
-
-
+  alloca_0.io.allocaInputIO.valid := true.B
 
 
   /* ================================================================== *
@@ -811,11 +788,9 @@ class mergeDF(implicit p: Parameters) extends mergeDFIO()(p) {
   st_55.io.memResp <> MemCtrl.io.WriteOut(2)
 
 
-
   /* ================================================================== *
    *                   PRINT SHARED CONNECTIONS                         *
    * ================================================================== */
-
 
 
   /* ================================================================== *
@@ -987,7 +962,6 @@ class mergeDF(implicit p: Parameters) extends mergeDFIO()(p) {
   st_52.io.Out(0).ready := true.B
 
   st_55.io.Out(0).ready := true.B
-
 
 
   /* ================================================================== *

@@ -4,22 +4,12 @@ import chisel3._
 import chisel3.util._
 import chipsalliance.rocketchip.config._
 import chisel3.util.experimental.BoringUtils
+import dandelion.config._
 import dandelion.interfaces._
 import utility.Constants._
+import utility.UniformPrintfs
 
-/**
- * Design Doc
- * 1. Memory response only available atleast 1 cycle after request
- * 2. Need registers for pipeline handshaking e.g., _valid,
- * @param NumPredOps Number of parents
- * @param NumSuccOps Number of successors
- * @param NumOuts    Number of outputs
- *
- *
- * @param Debug
- * @param p
- */
-class StoreIO(NumPredOps: Int,
+class StoreCacheIO(NumPredOps: Int,
               NumSuccOps: Int,
               NumOuts: Int, Debug: Boolean = false)(implicit p: Parameters)
   extends HandShakingIOPS(NumPredOps, NumSuccOps, NumOuts, Debug)(new DataBundle) {
@@ -29,11 +19,11 @@ class StoreIO(NumPredOps: Int,
   // Store data.
   val inData = Flipped(Decoupled(new DataBundle))
   // Memory request
-  val memReq = Decoupled(new WriteReq())
+  val MemReq = Decoupled(new MemReq)
   // Memory response.
-  val memResp = Flipped(Valid(new WriteResp()))
+  val MemResp = Flipped(Valid(new MemResp))
 
-  override def cloneType = new StoreIO(NumPredOps, NumSuccOps, NumOuts, Debug).asInstanceOf[this.type]
+  override def cloneType = new StoreCacheIO(NumPredOps, NumSuccOps, NumOuts, Debug).asInstanceOf[this.type]
 }
 
 /**
@@ -41,7 +31,7 @@ class StoreIO(NumPredOps: Int,
   * @details [long description]
   * @param NumPredOps [Number of predicate memory operations]
   */
-class UnTypStore(NumPredOps: Int,
+class UnTypStoreCache(NumPredOps: Int,
                  NumSuccOps: Int,
                  NumOuts: Int = 1,
                  Typ: UInt = MT_W, ID: Int, RouteID: Int, Debug: Boolean = false, GuardValData : Int = 0 , GuardValAddr : Int = 0)
@@ -51,7 +41,7 @@ class UnTypStore(NumPredOps: Int,
   extends HandShaking(NumPredOps, NumSuccOps, NumOuts, ID, Debug)(new DataBundle)(p) {
 
   // Set up StoreIO
-  override lazy val io = IO(new StoreIO(NumPredOps, NumSuccOps, NumOuts, Debug))
+  override lazy val io = IO(new StoreCacheIO(NumPredOps, NumSuccOps, NumOuts, Debug))
   // Printf debugging
   val node_name = name.value
   val module_name = file.value.split("/").tail.last.split("\\.").head.capitalize
@@ -150,15 +140,13 @@ class UnTypStore(NumPredOps: Int,
   }
   // Outgoing Address Req ->
   //here
-  io.memReq.bits.address := addr_R.data
-  io.memReq.bits.data := data_R.data
-  io.memReq.bits.Typ := Typ
-  io.memReq.bits.RouteID := RouteID.U
-  io.memReq.bits.taskID := data_R.taskID | addr_R.taskID | enable_R.taskID
-  io.memReq.bits.mask := 15.U
-  io.memReq.valid := false.B
-
-  dontTouch(io.memResp)
+  io.MemReq.bits.addr := addr_R.data
+  io.MemReq.bits.data := data_R.data
+  io.MemReq.bits.tag := RouteID.U
+  io.MemReq.bits.taskID := data_R.taskID | addr_R.taskID | enable_R.taskID
+  io.MemReq.bits.mask := "hFF".U
+  io.MemReq.bits.iswrite := true.B
+  io.MemReq.valid := false.B
 
   /*=============================================
   =            ACTIONS (possibly dangerous)     =
@@ -171,7 +159,7 @@ class UnTypStore(NumPredOps: Int,
       when(enable_valid_R) {
         when(data_valid_R && addr_valid_R) {
           when(enable_R.control && mem_req_fire) {
-            io.memReq.valid := true.B
+            io.MemReq.valid := true.B
 
             if (Debug) {
               when(data_R.data =/= GuardValData.U || addr_R.data =/= GuardValAddr.U ) {
@@ -187,7 +175,7 @@ class UnTypStore(NumPredOps: Int,
                 log_addr_reg := addr_R.data
               }
             }
-            when(io.memReq.ready) {
+            when(io.MemReq.ready) {
               state := s_RECEIVING
             }
           }.otherwise {
@@ -200,7 +188,7 @@ class UnTypStore(NumPredOps: Int,
       }
     }
     is(s_RECEIVING) {
-      when(io.memResp.valid) {
+      when(io.MemResp.valid) {
         ValidSucc()
         ValidOut()
         state := s_Done
@@ -226,26 +214,6 @@ class UnTypStore(NumPredOps: Int,
         }
       }
     }
-  }
-  // Trace detail.
-  if (log == true && (comp contains "STORE")) {
-    val x = RegInit(0.U(xlen.W))
-    x := x + 1.U
-    verb match {
-      case "high" => {}
-      case "med" => {}
-      case "low" => {
-        printfInfo("Cycle %d : { \"Inputs\": {\"GepAddr\": %x},", x, (addr_valid_R))
-        printf("\"State\": {\"State\": \"%x\", \"data_R(Valid,Data,Pred)\": \"%x,%x,%x\" },", state, data_valid_R, data_R.data, io.Out(0).bits.predicate)
-        printf("\"Outputs\": {\"Out\": %x}", io.Out(0).fire())
-        printf("}")
-      }
-      case everythingElse => {}
-    }
-  }
-
-  def isDebug(): Boolean = {
-    Debug
   }
 
 }

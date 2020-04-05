@@ -25,7 +25,7 @@ class TypLoadIO(NumPredOps: Int, NumSuccOps: Int, NumOuts: Int)(implicit p: Para
   // Memory request
   val memReq  = Decoupled(new ReadReq( ))
   // Memory response.
-  val memResp = Input(Flipped(new ReadResp( )))
+  val memResp = Flipped(Valid(new ReadResp()))
 
   override def cloneType = new TypLoadIO(NumPredOps, NumSuccOps, NumOuts).asInstanceOf[this.type]
 }
@@ -135,7 +135,7 @@ class TypLoad(NumPredOps: Int,
     }
     is(s_RECEIVING) {
       when(io.memResp.valid && (recvptr =/= (beats).U)) {
-        linebuffer(recvptr) := io.memResp.data
+        linebuffer(recvptr) := io.memResp.bits.data
         recvptr := recvptr + 1.U
       }
       when(recvptr === (beats).U) {

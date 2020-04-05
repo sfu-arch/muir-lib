@@ -109,6 +109,7 @@ class TypReduceCompute[T <: Numbers : OperatorReductionLike](NumOuts: Int, ID: I
    *===========================================*/
   // OP Inputs
   val left_R = RegInit(TypBundle.default)
+  val left_valid_R = RegInit(false.B)
 
   // Output register
   val data_R = RegInit(DataBundle.default)
@@ -121,7 +122,7 @@ class TypReduceCompute[T <: Numbers : OperatorReductionLike](NumOuts: Int, ID: I
    *==========================================*/
 
   val predicate = left_R.predicate & IsEnable( )
-  val start     = left_R.valid & IsEnableValid( )
+  val start     = left_valid_R & IsEnableValid( )
 
   /*===============================================*
    *            Latch inputs. Wire up output       *
@@ -132,12 +133,12 @@ class TypReduceCompute[T <: Numbers : OperatorReductionLike](NumOuts: Int, ID: I
 
   //printfInfo("start: %x\n", start)
 
-  io.LeftIO.ready := ~left_R.valid
+  io.LeftIO.ready := ~left_valid_R
   when(io.LeftIO.fire( )) {
     //printfInfo("Latch left data\n")
     state := s_LATCH
     left_R.data := io.LeftIO.bits.data
-    left_R.valid := true.B
+    left_valid_R := true.B
     left_R.predicate := io.LeftIO.bits.predicate
   }
 
@@ -157,7 +158,7 @@ class TypReduceCompute[T <: Numbers : OperatorReductionLike](NumOuts: Int, ID: I
   FU.io.a.bits := (left_R.data).asTypeOf(gen)
   data_R.data := (FU.io.o.bits)
   pred_R := predicate
-  FU.io.a.valid := left_R.valid
+  FU.io.a.valid := left_valid_R
   //  This is written like this to enable FUs that are dangerous in the future.
   // If you don't start up then no value passed into function
   when(start & predicate & state =/= s_COMPUTE) {
@@ -171,6 +172,7 @@ class TypReduceCompute[T <: Numbers : OperatorReductionLike](NumOuts: Int, ID: I
 
   when(IsOutReady( ) && state === s_COMPUTE) {
     left_R := TypBundle.default
+    left_valid_R := false.B
     data_R := TypBundle.default
     Reset( )
     state := s_idle
@@ -187,7 +189,7 @@ class TypReduceCompute[T <: Numbers : OperatorReductionLike](NumOuts: Int, ID: I
       case "high" => {}
       case "med" => {}
       case "low" => {
-        printfInfo("Cycle %d : { \"Inputs\": {\"Left\": %x},", x, (left_R.valid))
+        printfInfo("Cycle %d : { \"Inputs\": {\"Left\": %x},", x, (left_valid_R))
         printf("\"State\": {\"State\": \"%x\", \"(L)\": \"%x\",  \"O(V,D,P)\": \"%x,%x,%x\" },", state, left_R.data, io.Out(0).valid, data_R.data, io.Out(0).bits.predicate)
         printf("\"Outputs\": {\"Out\": %x}", io.Out(0).fire( ))
         printf("}")

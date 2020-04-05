@@ -8,13 +8,6 @@ import util._
 import dandelion.interfaces._
 import utility.UniformPrintfs
 
-//XXX
-//TODO put VEC insid Outputs
-//OUTPUT(VECXXX)
-//
-//TODO Make readOut and readValid as a bundle
-//
-
 /**
   * @param Size    : Size of Register file to be allocated and managed
   * @param NReads  : Number of static reads to be connected. Controls size of arbiter and Demux

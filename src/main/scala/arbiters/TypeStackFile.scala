@@ -1,27 +1,13 @@
 package dandelion.arbiters
-import scala.math._
 import chisel3._
-import chisel3.util._
 import chisel3.Module
-import chipsalliance.rocketchip.config._
 import dandelion.config._
-
 import regfile._
 import chipsalliance.rocketchip.config._
 import util._
 import dandelion.interfaces._
-import muxes._
-import dandelion.accel._
 import dandelion.memory._
-import utility.Constants._
 import utility.UniformPrintfs
-
-//XXX
-//TODO put VEC insid Outputs
-//OUTPUT(VECXXX)
-//
-//TODO Make readOut and readValid as a bundle
-//
 
 /**
  * @param Size    : Size of Register file to be allocated and managed
@@ -108,8 +94,7 @@ class TypeStackFile(ID: Int,
   WriteController.io.MemResp.valid    := WriteValid
   WriteController.io.MemResp.bits.tag := WriteReq.tag
   WriteController.io.MemResp.bits.iswrite := true.B
-  WriteController.io.MemResp.bits.valid := true.B
-  WriteController.io.MemResp.bits.tile := 0.U
+  WriteController.io.MemResp.valid := true.B
 
 
 /*==============================================
@@ -121,9 +106,8 @@ class TypeStackFile(ID: Int,
   ReadController.io.MemResp.valid     := ReadValid
   ReadController.io.MemResp.bits.tag  := ReadReq.tag
   ReadController.io.MemResp.bits.data := RegFile.io.rdata1
-  ReadController.io.MemResp.bits.valid  := true.B
+  ReadController.io.MemResp.valid  := true.B
   ReadController.io.MemResp.bits.data := 0.U
-  ReadController.io.MemResp.bits.tile := 0.U
 
   ReadController.io.MemResp.bits.iswrite := false.B
 
@@ -131,11 +115,4 @@ class TypeStackFile(ID: Int,
   override val printfSigil = "RFile: " + ID + " Type " + (typeSize)
 
 
-  // printf(p"\n : ${ReadController.io.MemReq.fire()} Tag: ${ReadReq.tag} ")
-  // printf(p"\n Cache Request ${WriteController.io.MemReq}")
-   // printf(p"Demux out:  ${io.WriteOut(0)}")
-  // Read in parallel after shifting.
-  // seq
-  // for (i <- 0 until typesize)
-  // {
 }

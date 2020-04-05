@@ -403,8 +403,7 @@ class cilk_spawn_test01DF(implicit p: Parameters) extends cilk_spawn_test01DFIO(
   alloca0.io.allocaInputIO.bits.size      := 1.U
   alloca0.io.allocaInputIO.bits.numByte   := 4.U
   alloca0.io.allocaInputIO.bits.predicate := true.B
-  alloca0.io.allocaInputIO.bits.valid     := true.B // Redundant and unused
-  alloca0.io.allocaInputIO.valid          := true.B  // Manually added
+  alloca0.io.allocaInputIO.valid          := true.B
 
   // Connecting Alloca to Stack
   StackPointer.io.InData(0) <> alloca0.io.allocaReqIO

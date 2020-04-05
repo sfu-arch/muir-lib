@@ -112,7 +112,7 @@ class UnTypDebugStore(
     // Memory request
     val memReq = Decoupled(new WriteReq())
     // Memory response.
-    val memResp = Input(Flipped(new WriteResp()))
+    val memResp = Flipped(Valid(new WriteResp()))
   })
   // Printf debugging
   val node_name = name.value

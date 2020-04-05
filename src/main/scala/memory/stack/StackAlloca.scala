@@ -19,7 +19,7 @@ import dandelion.config._
 class StackIO(NumOps: Int)
              (implicit p: Parameters) extends AccelBundle()(p) {
   val InData = Vec(NumOps, Flipped(Decoupled(new AllocaReq)))
-  val OutData = Vec(NumOps, Output(new AllocaResp))
+  val OutData = Vec(NumOps, Valid(new AllocaResp))
 
   override def cloneType = new StackIO(NumOps).asInstanceOf[this.type]
 }
@@ -56,8 +56,8 @@ class Stack(NumOps: Int)
   // Copy arbiter output and pointer to all outputs.
   // Assert valid to the output corresponding to the arbiter grant
   for (i <- 0 until NumOps) {
-    io.OutData(i).ptr := SP
-    io.OutData(i).RouteID := in_arbiter.io.out.bits.RouteID
+    io.OutData(i).bits.ptr := SP
+    io.OutData(i).bits.RouteID := in_arbiter.io.out.bits.RouteID
     io.OutData(i).valid := false.B
   }
   io.OutData(in_arbiter.io.chosen).valid := in_arbiter.io.out.valid
