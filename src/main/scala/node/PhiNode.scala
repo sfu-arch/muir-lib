@@ -1,15 +1,9 @@
 package dandelion.node
 
 import chisel3._
-import chisel3.iotesters.{ChiselFlatSpec, Driver, OrderedDecoupledHWIOTester, PeekPokeTester}
 import chisel3.Module
-import chisel3.testers._
-import chisel3.util._
-import org.scalatest.{FlatSpec, Matchers}
 import chipsalliance.rocketchip.config._
-import dandelion.config._
 import dandelion.interfaces._
-import muxes._
 import util._
 import utility.UniformPrintfs
 import dandelion.config._
@@ -190,7 +184,9 @@ class PhiFastNode(NumInputs: Int = 2, NumOutputs: Int = 1, ID: Int, Res: Boolean
                  (implicit p: Parameters,
                   name: sourcecode.Name,
                   file: sourcecode.File)
-  extends PhiFastNodeIO(NumInputs, NumOutputs, ID)(p) with HasAccelShellParams {
+  extends PhiFastNodeIO(NumInputs, NumOutputs, ID)(p)
+    with HasAccelShellParams
+    with HasDebugCodes{
 
   // Printf debugging
   override val printfSigil = "Node (PHIFast) ID: " + ID + " "
@@ -229,9 +225,10 @@ class PhiFastNode(NumInputs: Int = 2, NumOutputs: Int = 1, ID: Int, Res: Boolean
    */
   val guard_values = if (Debug) Some(VecInit(GuardVals.map(_.U(xlen.W)))) else None
 
-  val log_flag = WireInit(0.U(dbgParams.gLen.W)) // 1
-  val log_id = WireInit(ID.U((dbgParams.IdLen).W)) // 4
-  val log_mask = WireInit(0.U(NumInputs.W)) // 2
+  val log_flag = WireInit(0.U(dbgParams.gLen.W))
+  val log_id = WireInit(ID.U(dbgParams.idLen.W))
+  val log_code = WireInit(DbgPhiData)
+  val log_mask = WireInit(0.U(NumInputs.W))
   val log_iteration = WireInit(0.U(dbgParams.iterLen.W)) // 10
   val log_data = WireInit(0.U((dbgParams.dataLen - NumInputs).W)) // 64 - 17
   val isBuggy = RegInit(false.B)
@@ -285,10 +282,18 @@ class PhiFastNode(NumInputs: Int = 2, NumOutputs: Int = 1, ID: Int, Res: Boolean
   //Getting mask for fired nodes
   val fire_mask = (fire_R zip io.Out.map(_.fire)).map { case (a, b) => a | b }
 
+  def IsInputValid(): Bool = {
+    in_data_valid_R.reduce(_ & _)
+  }
+
+  def isInFire(): Bool = {
+    enable_valid_R && IsInputValid() && enable_R.control && state === s_idle
+  }
+
   //***************************BORE Connection*************************************
 
   val log_value = WireInit(0.U(xlen.W))
-  log_value := Cat(log_flag, log_id, log_mask, log_iteration, log_data)
+  log_value := Cat(log_flag, log_id, log_iteration, log_code, log_mask, log_data)
 
 
   if (Debug) {
@@ -318,14 +323,6 @@ class PhiFastNode(NumInputs: Int = 2, NumOutputs: Int = 1, ID: Int, Res: Boolean
 
   //*******************************************************************
 
-
-  def IsInputValid(): Bool = {
-    in_data_valid_R.reduce(_ & _)
-  }
-
-  def isInFire(): Bool = {
-    enable_valid_R && IsInputValid() && enable_R.control && state === s_idle
-  }
 
 
   for (i <- 0 until NumOutputs) {

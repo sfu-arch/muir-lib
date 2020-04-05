@@ -33,9 +33,9 @@ trait AccelParams {
 }
 
 /**
-  * VCR parameters.
-  * These parameters are used on VCR interfaces and modules.
-  */
+ * VCR parameters.
+ * These parameters are used on VCR interfaces and modules.
+ */
 trait DCRParams {
   val nCtrl: Int
   val nECnt: Int
@@ -45,9 +45,9 @@ trait DCRParams {
 }
 
 /**
-  * DME parameters.
-  * These parameters are used on DME interfaces and modules.
-  */
+ * DME parameters.
+ * These parameters are used on DME interfaces and modules.
+ */
 trait DMEParams {
   val nReadClients: Int
   val nWriteClients: Int
@@ -98,9 +98,9 @@ case class DandelionAccelParams(
 }
 
 /**
-  * DCR parameters.
-  * These parameters are used on DCR interfaces and modules.
-  */
+ * DCR parameters.
+ * These parameters are used on DCR interfaces and modules.
+ */
 case class DandelionDCRParams(numCtrl: Int = 1,
                               numEvent: Int = 1,
                               numVals: Int = 2,
@@ -114,11 +114,11 @@ case class DandelionDCRParams(numCtrl: Int = 1,
 }
 
 /**
-  * DME parameters.
-  * These parameters are used on DME interfaces and modules.
-  */
+ * DME parameters.
+ * These parameters are used on DME interfaces and modules.
+ */
 case class DandelionDMEParams(numRead: Int = 1,
-                              numWrite: Int = 1) {
+                              numWrite: Int = 1) extends DMEParams {
   val nReadClients: Int = numRead
   val nWriteClients: Int = numWrite
   require(nReadClients > 0,
@@ -129,17 +129,20 @@ case class DandelionDMEParams(numRead: Int = 1,
 }
 
 /**
-  * Debug Parameters
-  * These parameters are used on Debug nodes.
-  */
+ * Debug Parameters
+ * These parameters are used on Debug nodes.
+ */
 case class DebugParams(len_data: Int = 64,
                        len_id: Int = 4,
+                       len_code: Int = 5,
                        iteration_len: Int = 10,
-                       len_guard: Int = 1) {
-  val IdLen = len_id
+                       len_guard: Int = 2) {
   val gLen = len_guard
+  val idLen = len_id
+  val codeLen = len_code
   val iterLen = iteration_len
-  val dataLen = len_data - (len_id + len_guard + iteration_len)
+  val dataLen = len_data - (gLen + idLen + codeLen + + iterLen)
+  val packetLen = len_data
 }
 
 
@@ -210,6 +213,20 @@ trait HasAccelShellParams {
   def dbgParams: DebugParams = p(DebugParamKey)
 
 }
+
+trait HasDebugCodes {
+  implicit val p: Parameters
+
+  def debugParams: DebugParams = p(DebugParamKey)
+
+  val DbgLoadAddress = "b00001".U(debugParams.codeLen.W)
+  val DbgLoadData = "b00010".U(debugParams.codeLen.W)
+  val DbgStoreAddress = "b0011".U(debugParams.codeLen.W)
+  val DbgStoreData = "b0100".U(debugParams.codeLen.W)
+  val DbgComputeData = "b0101".U(debugParams.codeLen.W)
+  val DbgPhiData = "b0110".U(debugParams.codeLen.W)
+}
+
 
 abstract class AccelBundle(implicit val p: Parameters) extends DandelionParameterizedBundle()(p)
   with HasAccelParams

@@ -4,6 +4,7 @@ import chisel3._
 import chisel3.util._
 import chipsalliance.rocketchip.config._
 import chisel3.util.experimental.BoringUtils
+import dandelion.config.{HasAccelShellParams, HasDebugCodes}
 import dandelion.interfaces._
 
 class LoadCacheIO(NumPredOps: Int,
@@ -29,11 +30,13 @@ class UnTypLoadCache(NumPredOps: Int,
                      ID: Int,
                      RouteID: Int,
                      Debug: Boolean = false,
-                     GuardVal: Int = 0)
+                     GuardVals: Seq[Int] = List())
                     (implicit p: Parameters,
                      name: sourcecode.Name,
                      file: sourcecode.File)
-  extends HandShaking(NumPredOps, NumSuccOps, NumOuts, ID, Debug)(new DataBundle)(p) {
+  extends HandShaking(NumPredOps, NumSuccOps, NumOuts, ID, Debug)(new DataBundle)(p)
+    with HasAccelShellParams
+    with HasDebugCodes {
 
   override lazy val io = IO(new LoadCacheIO(NumPredOps, NumSuccOps, NumOuts, Debug))
   // Printf debugging
@@ -43,9 +46,9 @@ class UnTypLoadCache(NumPredOps: Int,
   override val printfSigil = "[" + module_name + "] " + node_name + ": " + ID + " "
 
 
-  /*=============================================
-  =            Registers                        =
-  =============================================*/
+  /**
+   * Registers
+   */
   // OP Inputs
   val addr_R = RegInit(DataBundle.default)
   val addr_valid_R = RegInit(false.B)
@@ -70,54 +73,64 @@ class UnTypLoadCache(NumPredOps: Int,
     addr_valid_R := true.B
   }
 
-  //**********************************************************************
-  var log_id = WireInit(ID.U((4).W))
-  var GuardFlag = WireInit(0.U(1.W))
-
-  var log_out_reg = RegInit(0.U((xlen - 5).W))
-  val writeFinish = RegInit(false.B)
-  //log_id := ID.U
-  //test_value := Cat(GuardFlag,log_id, log_out)
-  val log_value = WireInit(0.U(xlen.W))
-  log_value := Cat(GuardFlag, log_id, log_out_reg)
-
-
-  //test_value := log_out
-  if (Debug) {
-    val test_value_valid = Wire(Bool())
-    val test_value_ready = Wire(Bool())
-    val test_value_valid_r = RegInit(false.B)
-    test_value_valid := test_value_valid_r
-    test_value_ready := false.B
-    BoringUtils.addSource(log_value, "data" + ID)
-    BoringUtils.addSource(test_value_valid, "valid" + ID)
-    BoringUtils.addSink(test_value_ready, "ready" + ID)
-
-
-    when(enable_valid_R) {
-      test_value_valid_r := true.B
-    }
-    when(state === s_Done) {
-      test_value_valid_r := false.B
-    }
-
-  }
-
-
   /*============================================
   =            Predicate Evaluation            =
   ============================================*/
 
-  val complete = IsSuccReady() && IsOutReady()
+  def isAddrFire(): Bool = {
+    enable_valid_R && addr_valid_R && enable_R.control && state === s_idle && io.MemReq.ready
+  }
+
+  def complete(): Bool = {
+    IsSuccReady() && IsOutReady()
+  }
+
   val predicate = addr_R.predicate && enable_R.control
   val mem_req_fire = addr_valid_R && IsPredValid()
 
 
+  //**********************************************************************
+
+  val (guard_index, _) = Counter(isAddrFire(), GuardVals.length)
+
+  /**
+   * Debug variables
+   */
+  val guard_values = if (Debug) Some(VecInit(GuardVals.map(_.U(xlen.W)))) else None
+  val log_data = WireInit(0.U((dbgParams.packetLen).W))
+
+  val log_address_packet = DebugPacket(gflag = 0.U, id = ID.U, code = DbgLoadAddress, iteration = guard_index, data = addr_R.data)(dbgParams)
+  //  val log_data_packet = DebugPacket(gflag = 0.U, id = ID.U, code = DbgLoadData, iteration = 0.U, data = data_R.data)(dbgParams)
+
+  val isBuggy = RegInit(false.B)
+
+  log_data := log_address_packet.packet()
+
+
+  if (Debug) {
+    val test_value_valid = Wire(Bool())
+    val test_value_ready = Wire(Bool())
+    val test_value_valid_w = WireInit(false.B)
+    test_value_valid := test_value_valid_w
+    test_value_ready := false.B
+    BoringUtils.addSource(log_data, "data" + ID)
+    BoringUtils.addSource(test_value_valid, "valid" + ID)
+    BoringUtils.addSink(test_value_ready, "ready" + ID)
+
+
+    when(enable_valid_R && enable_R.control && mem_req_fire && state === s_idle) {
+      test_value_valid_w := true.B
+    }.otherwise {
+      test_value_valid_w := false.B
+    }
+
+  }
+
+  val correct_address_val = RegNext(if (Debug) DataBundle(guard_values.get(guard_index)) else DataBundle.default)
+
   // Wire up Outputs
   for (i <- 0 until NumOuts) {
-    io.Out(i).bits := data_R
-    io.Out(i).bits.predicate := predicate
-    io.Out(i).bits.taskID := addr_R.taskID | enable_R.taskID
+    io.Out(i).bits := Mux(isBuggy, correct_address_val, data_R)
   }
 
   // Initilizing the MemRequest bus
@@ -147,6 +160,24 @@ class UnTypLoadCache(NumPredOps: Int,
           io.MemReq.valid := true.B
           when(io.MemReq.ready) {
             state := s_RECEIVING
+
+            /**
+             * This is where we fire memory request
+             */
+            if (Debug) {
+              when(addr_R.data =/= guard_values.get(guard_index)) {
+                log_address_packet.gFlag := 1.U
+                data_R.data := guard_values.get(guard_index)
+
+                if (log) {
+                  printf("[DEBUG] [" + module_name + "] [TID->%d] [PHI] " + node_name +
+                    " Produced value: %d, correct value: %d\n",
+                    addr_R.taskID, addr_R.data, guard_values.get(guard_index))
+                }
+              }
+            }
+
+
           }
         }.otherwise {
           data_R.predicate := false.B
@@ -162,18 +193,18 @@ class UnTypLoadCache(NumPredOps: Int,
         // Set data output registers
         data_R.data := io.MemResp.bits.data
 
-        if (Debug) {
-          when(data_R.data =/= GuardVal.U) {
-            GuardFlag := 1.U
-            log_out_reg := data_R.data
-            data_R.data := GuardVal.U
-
-          }.otherwise {
-            GuardFlag := 0.U
-            log_out_reg := data_R.data
-          }
-        }
-
+        //        if (Debug) {
+        //          when(data_R.data =/= GuardVal.U) {
+        //            GuardFlag := 1.U
+        //            log_out_reg := data_R.data
+        //            data_R.data := GuardVal.U
+        //
+        //          }.otherwise {
+        //            GuardFlag := 0.U
+        //            log_out_reg := data_R.data
+        //          }
+        //        }
+        //
 
         data_R.predicate := true.B
 
@@ -200,7 +231,6 @@ class UnTypLoadCache(NumPredOps: Int,
         if (log) {
           printf("[LOG] " + "[" + module_name + "] [TID->%d] [LOAD] " + node_name + ": Output fired @ %d, Address:%d, Value: %d\n",
             enable_R.taskID, cycleCount, addr_R.data, data_R.data)
-          //printf("DEBUG " + node_name + ": $%d = %d\n", addr_R.data, data_R.data)
         }
       }
     }

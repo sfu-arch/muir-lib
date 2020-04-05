@@ -97,22 +97,9 @@ class ComputeNode(NumOuts: Int, ID: Int, opCode: String)
     right_valid_R := true.B
   }
 
-  /*hs
-  val address = 512.U
-  if (Debug){
-   when(io.DebugEnable.get){
-     dbg_counter.inc()
-     //CaptureLog(state, address)
-    CaptureLog( state , (dbg_counter.value << 2.U).asUInt())
-
-
-   }
-  }
-
-  hs*/
-  var log_id = WireInit(ID.U((dparam.IdLen).W))
-  var GuardFlag = WireInit(0.U(dparam.gLen.W))
-  var log_out_reg = RegInit(0.U((dparam.dataLen).W))
+  val log_id = WireInit(ID.U((dparam.idLen).W))
+  val GuardFlag = WireInit(0.U(dparam.gLen.W))
+  val log_out_reg = RegInit(0.U((dparam.dataLen).W))
   val writeFinish = RegInit(false.B)
   val test_value = WireInit(0.U(xlen.W))
   test_value := Cat(GuardFlag, log_id, log_out_reg)
