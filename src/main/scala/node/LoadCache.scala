@@ -31,7 +31,8 @@ class UnTypLoadCache(NumPredOps: Int,
                      ID: Int,
                      RouteID: Int,
                      Debug: Boolean = false,
-                     GuardVals: Seq[Int] = List())
+                     GuardAddress: Seq[Int] = List(),
+                     GuardData: Seq[Int] = List())
                     (implicit p: Parameters,
                      name: sourcecode.Name,
                      file: sourcecode.File)
@@ -75,58 +76,92 @@ class UnTypLoadCache(NumPredOps: Int,
     addr_valid_R := true.B
   }
 
+  /**
+   * Debug signals
+   */
+  val address_value_valid = WireInit(false.B)
+  val address_value_ready = WireInit(true.B)
+
+  val data_value_valid = WireInit(false.B)
+  val data_value_ready = WireInit(true.B)
+
+  val arb = Module(new Arbiter(UInt(dbgParams.packetLen.W), 2))
+  val data_queue = Module(new Queue(UInt(dbgParams.packetLen.W), entries = 20))
+
+
   /*============================================
   =            Predicate Evaluation            =
   ============================================*/
 
   def isAddrFire(): Bool = {
-    enable_valid_R && addr_valid_R && enable_R.control && state === s_idle && io.MemReq.ready
+    enable_valid_R && addr_valid_R && enable_R.control && state === s_idle && io.MemReq.ready && address_value_ready
   }
 
   def complete(): Bool = {
     IsSuccReady() && IsOutReady()
   }
 
-  val predicate = addr_R.predicate && enable_R.control
+  def isRespValid(): Bool = {
+    state === s_Done && complete() && data_value_ready
+  }
+
+
+  val predicate = enable_R.control
   val mem_req_fire = addr_valid_R && IsPredValid()
 
 
   //**********************************************************************
 
-  val (guard_index, _) = Counter(isAddrFire(), GuardVals.length)
+  val (guard_address_index, _) = Counter(isAddrFire(), GuardAddress.length)
+  val (guard_data_index, _) = Counter(isRespValid(), GuardAddress.length)
 
   /**
    * Debug variables
    */
-  val guard_values = if (Debug) Some(VecInit(GuardVals.map(_.U(xlen.W)))) else None
-  val log_data = WireInit(0.U((dbgParams.packetLen).W))
+  val is_data_buggy = RegInit(false.B)
 
-  val log_address_packet = DebugPacket(gflag = 0.U, id = ID.U, code = DbgLoadAddress, iteration = guard_index, data = addr_R.data)(dbgParams)
-  //  val log_data_packet = DebugPacket(gflag = 0.U, id = ID.U, code = DbgLoadData, iteration = 0.U, data = data_R.data)(dbgParams)
+  val guard_address_values = if (Debug) Some(VecInit(GuardAddress.map(_.U(xlen.W)))) else None
+  val guard_data_values = if (Debug) Some(VecInit(GuardData.map(_.U(xlen.W)))) else None
 
-  val isBuggy = RegInit(false.B)
+  val log_address_data = WireInit(0.U((dbgParams.packetLen).W))
+  val log_data_data = WireInit(0.U((dbgParams.packetLen).W))
 
-  log_data := log_address_packet.packet()
+  val log_address_packet = DebugPacket(gflag = 0.U, id = ID.U, code = DbgLoadAddress, iteration = guard_address_index, data = addr_R.data)(dbgParams)
+  val log_data_packet = DebugPacket(gflag = is_data_buggy, id = ID.U, code = DbgLoadData, iteration = guard_data_index, data = data_R.data)(dbgParams)
 
 
-  val test_value_valid = Wire(Bool())
-  val test_value_ready = Wire(Bool())
-  test_value_valid := false.B
-  test_value_ready := true.B
+  log_address_data := log_address_packet.packet()
+  log_data_data := log_data_packet.packet()
+
+
+  arb.io.in(0).bits := log_address_data
+  arb.io.in(0).valid := address_value_valid
+  address_value_ready := arb.io.in(0).ready
+
+  arb.io.in(1).bits := log_data_data
+  arb.io.in(1).valid := data_value_valid
+  data_value_ready := arb.io.in(1).ready
+
+  val bore_queue_ready = WireInit(false.B)
+
+  data_queue.io.enq <> arb.io.out
+  data_queue.io.deq.ready := bore_queue_ready
 
   if (Debug) {
-    BoringUtils.addSource(log_data, s"data${ID}")
-    BoringUtils.addSource(test_value_valid, s"valid${ID}")
-    BoringUtils.addSink(test_value_ready, s"Buffer_ready${ID}")
+    BoringUtils.addSource(data_queue.io.deq.bits, s"data${ID}")
+    BoringUtils.addSource(data_queue.io.deq.valid, s"valid${ID}")
+    BoringUtils.addSink(bore_queue_ready, s"Buffer_ready${ID}")
+
+    address_value_valid := isAddrFire()
+    data_value_valid := isRespValid()
   }
 
-  test_value_valid := enable_valid_R && enable_R.control && mem_req_fire && state === s_idle
-
-  val correct_address_val = RegNext(if (Debug) DataBundle(guard_values.get(guard_index)) else DataBundle.default)
+  val correct_address_val = RegNext(if (Debug) DataBundle(guard_address_values.get(guard_address_index)) else DataBundle.default)
+  val correct_data_val = RegNext(if (Debug) DataBundle(guard_data_values.get(guard_data_index)) else DataBundle.default)
 
   // Wire up Outputs
   for (i <- 0 until NumOuts) {
-    io.Out(i).bits := Mux(isBuggy, correct_address_val, data_R)
+    io.Out(i).bits := Mux(is_data_buggy, correct_data_val, data_R)
   }
 
   // Initilizing the MemRequest bus
@@ -151,7 +186,7 @@ class UnTypLoadCache(NumPredOps: Int,
 
   switch(state) {
     is(s_idle) {
-      when(enable_valid_R && mem_req_fire && test_value_ready) {
+      when(enable_valid_R && mem_req_fire && address_value_ready) {
         when(enable_R.control && predicate) {
           io.MemReq.valid := true.B
           when(io.MemReq.ready) {
@@ -161,62 +196,59 @@ class UnTypLoadCache(NumPredOps: Int,
              * This is where we fire memory request
              */
             if (Debug) {
-              when(addr_R.data =/= guard_values.get(guard_index)) {
+              when(addr_R.data =/= guard_address_values.get(guard_address_index)) {
                 log_address_packet.gFlag := 1.U
-                data_R.data := guard_values.get(guard_index)
+                //addr_R.data := guard_address_values.get(guard_address_index)
+                //io.MemReq.bits.addr := guard_address_values.get(guard_address_index)
 
                 if (log) {
                   printf("[DEBUG] [" + module_name + "] [TID->%d] [PHI] " + node_name +
-                    " Produced value: %d, correct value: %d\n",
-                    addr_R.taskID, addr_R.data, guard_values.get(guard_index))
+                    " Sent address value: %d, correct value: %d\n",
+                    addr_R.taskID, addr_R.data, guard_address_values.get(guard_address_index))
                 }
               }
             }
-
-
           }
         }.otherwise {
           data_R.predicate := false.B
           ValidSucc()
           ValidOut()
-          // Completion state.
         }
       }
     }
     is(s_RECEIVING) {
       when(io.MemResp.valid) {
-
         // Set data output registers
         data_R.data := io.MemResp.bits.data
-
-        //        if (Debug) {
-        //          when(data_R.data =/= GuardVal.U) {
-        //            GuardFlag := 1.U
-        //            log_out_reg := data_R.data
-        //            data_R.data := GuardVal.U
-        //
-        //          }.otherwise {
-        //            GuardFlag := 0.U
-        //            log_out_reg := data_R.data
-        //          }
-        //        }
-        //
-
         data_R.predicate := true.B
-
         ValidSucc()
         ValidOut()
+
+        addr_R := DataBundle.default
+        addr_valid_R := false.B
         // Completion state.
         state := s_Done
+
+        if (Debug) {
+          when(io.MemResp.bits.data =/= guard_data_values.get(guard_data_index)) {
+            log_data_packet.gFlag := 1.U
+            data_R.data := guard_address_values.get(guard_address_index)
+
+            if (log) {
+              printf("[DEBUG] [" + module_name + "] [TID->%d] [PHI] " + node_name +
+                " Received data value: %d, correct value: %d\n",
+                data_R.taskID, data_R.data, guard_data_values.get(guard_data_index))
+            }
+          }
+        }
+
 
       }
     }
     is(s_Done) {
-      when(complete) {
+      when(complete && data_value_ready) {
         // Clear all the valid states.
         // Reset address
-        addr_R := DataBundle.default
-        addr_valid_R := false.B
         // Reset data
         data_R := DataBundle.default
         data_valid_R := false.B

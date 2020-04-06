@@ -296,18 +296,17 @@ class PhiFastNode(NumInputs: Int = 2, NumOutputs: Int = 1, ID: Int, Res: Boolean
   log_value := Cat(log_flag, log_id, log_iteration, log_code, log_mask, log_data)
 
 
-  val test_value_valid = Wire(Bool())
-  val test_value_ready = Wire(Bool())
-  test_value_valid := false.B
-  test_value_ready := true.B
+  val test_value_valid = WireInit(false.B)
+  val test_value_ready = WireInit(true.B)
 
   if (Debug) {
     BoringUtils.addSource(log_value, s"data${ID}")
     BoringUtils.addSource(test_value_valid, s"valid${ID}")
     BoringUtils.addSink(test_value_ready, s"Buffer_ready${ID}")
+
+    test_value_valid := enable_valid_R && !(state === s_fire)
   }
 
-  test_value_valid := enable_valid_R && !(state === s_fire)
 
   val (guard_index, _) = Counter(isInFire(), GuardVals.length)
   val correctVal = RegNext(if (Debug) DataBundle(guard_values.get(guard_index)) else DataBundle.default)
