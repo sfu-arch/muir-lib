@@ -188,6 +188,17 @@ class MemReq(implicit p: Parameters) extends AccelBundle()(p) {
 }
 
 object MemReq {
+  def apply()(implicit p: Parameters): MemReq = {
+    val wire = Wire(new MemReq())
+    wire.addr := 0.U
+    wire.data := 0.U
+    wire.mask := 0.U
+    wire.tag := 0.U
+    wire.taskID := 0.U
+    wire.iswrite := false.B
+    wire
+  }
+
   def default(implicit p: Parameters): MemReq = {
     val wire = Wire(new MemReq())
     wire.addr := 0.U

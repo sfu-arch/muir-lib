@@ -133,7 +133,7 @@ case class DandelionDMEParams(numRead: Int = 1,
  * These parameters are used on Debug nodes.
  */
 case class DebugParams(len_data: Int = 64,
-                       len_id: Int = 4,
+                       len_id: Int = 8,
                        len_code: Int = 5,
                        iteration_len: Int = 10,
                        len_guard: Int = 2) {

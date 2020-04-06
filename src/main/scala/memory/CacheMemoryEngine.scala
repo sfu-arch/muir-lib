@@ -48,6 +48,20 @@ class CMEClientVector(NumOps: Int)(implicit val p: Parameters) extends Bundle wi
 }
 
 
+/**
+ * @TODO: Currently we have mixed memory command with with memory data
+ *       the better way to implement and pipeline the design is to separate
+ *       memory commands from memory data and make them independent
+ *       so we can also design a simple MSHR and have multiple
+ *       memory request on the fly. At this moment for the sake of simplification
+ *       we have serialize all the memory accesses.
+ *       By just breaking down the memory accesses into two nodes
+ *       or make a centeralized memory unit with separate channel for read and write
+ *       we can have better parallelization.
+ * @param ID
+ * @param NumOps
+ * @param p
+ */
 class CacheMemoryEngine(ID: Int, NumOps: Int)(implicit val p: Parameters) extends Module with HasAccelParams with HasAccelShellParams {
 
   val io = IO(new Bundle {
