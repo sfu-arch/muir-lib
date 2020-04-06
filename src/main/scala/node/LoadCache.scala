@@ -89,10 +89,6 @@ class UnTypLoadCache(NumPredOps: Int,
   val data_queue = Module(new Queue(UInt(dbgParams.packetLen.W), entries = 20))
 
 
-  /*============================================
-  =            Predicate Evaluation            =
-  ============================================*/
-
   def isAddrFire(): Bool = {
     enable_valid_R && addr_valid_R && enable_R.control && state === s_idle && io.MemReq.ready && address_value_ready
   }
@@ -110,14 +106,9 @@ class UnTypLoadCache(NumPredOps: Int,
   val mem_req_fire = addr_valid_R && IsPredValid()
 
 
-  //**********************************************************************
-
   val (guard_address_index, _) = Counter(isAddrFire(), GuardAddress.length)
-  val (guard_data_index, _) = Counter(isRespValid(), GuardAddress.length)
+  val (guard_data_index, _) = Counter(isRespValid(), GuardData.length)
 
-  /**
-   * Debug variables
-   */
   val is_data_buggy = RegInit(false.B)
 
   val guard_address_values = if (Debug) Some(VecInit(GuardAddress.map(_.U(xlen.W)))) else None
