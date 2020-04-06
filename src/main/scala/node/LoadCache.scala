@@ -12,6 +12,7 @@ class LoadCacheIO(NumPredOps: Int,
                   NumOuts: Int,
                   Debug: Boolean = false)(implicit p: Parameters)
   extends HandShakingIOPS(NumPredOps, NumSuccOps, NumOuts, Debug)(new DataBundle) {
+
   val GepAddr = Flipped(Decoupled(new DataBundle))
   val MemReq = Decoupled(new MemReq)
   val MemResp = Flipped(Valid(new MemResp))
@@ -39,6 +40,7 @@ class UnTypLoadCache(NumPredOps: Int,
     with HasDebugCodes {
 
   override lazy val io = IO(new LoadCacheIO(NumPredOps, NumSuccOps, NumOuts, Debug))
+
   // Printf debugging
   val node_name = name.value
   val module_name = file.value.split("/").tail.last.split("\\.").head.capitalize
@@ -107,24 +109,18 @@ class UnTypLoadCache(NumPredOps: Int,
   log_data := log_address_packet.packet()
 
 
+  val test_value_valid = Wire(Bool())
+  val test_value_ready = Wire(Bool())
+  test_value_valid := false.B
+  test_value_ready := true.B
+
   if (Debug) {
-    val test_value_valid = Wire(Bool())
-    val test_value_ready = Wire(Bool())
-    val test_value_valid_w = WireInit(false.B)
-    test_value_valid := test_value_valid_w
-    test_value_ready := false.B
-    BoringUtils.addSource(log_data, "data" + ID)
-    BoringUtils.addSource(test_value_valid, "valid" + ID)
-    BoringUtils.addSink(test_value_ready, "ready" + ID)
-
-
-    when(enable_valid_R && enable_R.control && mem_req_fire && state === s_idle) {
-      test_value_valid_w := true.B
-    }.otherwise {
-      test_value_valid_w := false.B
-    }
-
+    BoringUtils.addSource(log_data, s"data${ID}")
+    BoringUtils.addSource(test_value_valid, s"valid${ID}")
+    BoringUtils.addSink(test_value_ready, s"Buffer_ready${ID}")
   }
+
+  test_value_valid := enable_valid_R && enable_R.control && mem_req_fire && state === s_idle
 
   val correct_address_val = RegNext(if (Debug) DataBundle(guard_values.get(guard_index)) else DataBundle.default)
 
@@ -155,7 +151,7 @@ class UnTypLoadCache(NumPredOps: Int,
 
   switch(state) {
     is(s_idle) {
-      when(enable_valid_R && mem_req_fire) {
+      when(enable_valid_R && mem_req_fire && test_value_ready) {
         when(enable_R.control && predicate) {
           io.MemReq.valid := true.B
           when(io.MemReq.ready) {

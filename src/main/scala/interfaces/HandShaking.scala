@@ -577,7 +577,7 @@ class HandShaking[T <: Data](val NumPredOps: Int,
                              val NumOuts: Int,
                              val ID: Int,
 			     val Debug: Boolean = false)(gen: T)(implicit val p: Parameters)
-  extends Module with HasAccelParams with UniformPrintfs {
+  extends MultiIOModule with HasAccelParams with UniformPrintfs {
 
   lazy val io = IO(new HandShakingIOPS(NumPredOps, NumSuccOps, NumOuts ,Debug)(gen))
 
@@ -656,22 +656,6 @@ class HandShaking[T <: Data](val NumPredOps: Int,
   /*=====================================
   =            Helper Checks            =
   =====================================*/
-
-
-  /*hs
-  if(Debug){
-    io.LogCheck.get.valid := false.B
-    io.LogCheck.get.bits := DataBundle.default
-  }
-
-  def CaptureLog(data: UInt): Unit = {
-    if (Debug) {
-      io.LogCheck.get.bits := DataBundle(data)
-      io.LogCheck.get.valid := true.B
-    }
-  }
-  hs*/
-
 
 
   def IsEnable(): Bool = {

@@ -25,7 +25,7 @@ class PhiNodeIO(NumInputs: Int, NumOuts: Int, Debug: Boolean = false)
 
 abstract class PhiFastNodeIO(val NumInputs: Int = 2, val NumOutputs: Int = 1, val ID: Int, Debug: Boolean = false, GuardVal: Int = 0)
                             (implicit val p: Parameters)
-  extends Module with HasAccelParams with UniformPrintfs {
+  extends MultiIOModule with HasAccelParams with UniformPrintfs {
 
   val io = IO(new Bundle {
     //Control signal
@@ -186,7 +186,7 @@ class PhiFastNode(NumInputs: Int = 2, NumOutputs: Int = 1, ID: Int, Res: Boolean
                   file: sourcecode.File)
   extends PhiFastNodeIO(NumInputs, NumOutputs, ID)(p)
     with HasAccelShellParams
-    with HasDebugCodes{
+    with HasDebugCodes {
 
   // Printf debugging
   override val printfSigil = "Node (PHIFast) ID: " + ID + " "
@@ -296,24 +296,18 @@ class PhiFastNode(NumInputs: Int = 2, NumOutputs: Int = 1, ID: Int, Res: Boolean
   log_value := Cat(log_flag, log_id, log_iteration, log_code, log_mask, log_data)
 
 
+  val test_value_valid = Wire(Bool())
+  val test_value_ready = Wire(Bool())
+  test_value_valid := false.B
+  test_value_ready := true.B
+
   if (Debug) {
-    val test_value_valid = Wire(Bool())
-    val test_value_ready = Wire(Bool())
-    val test_value_valid_w = WireInit(false.B)
-    test_value_valid := test_value_valid_w
-    test_value_ready := false.B
-    BoringUtils.addSource(log_value, "data" + ID)
-    BoringUtils.addSource(test_value_valid, "valid" + ID)
-    BoringUtils.addSink(test_value_ready, "ready" + ID)
-
-
-    when(enable_valid_R) {
-      test_value_valid_w := true.B
-    }
-    when(state === s_fire) {
-      test_value_valid_w := false.B
-    }
+    BoringUtils.addSource(log_value, s"data${ID}")
+    BoringUtils.addSource(test_value_valid, s"valid${ID}")
+    BoringUtils.addSink(test_value_ready, s"Buffer_ready${ID}")
   }
+
+  test_value_valid := enable_valid_R && !(state === s_fire)
 
   val (guard_index, _) = Counter(isInFire(), GuardVals.length)
   val correctVal = RegNext(if (Debug) DataBundle(guard_values.get(guard_index)) else DataBundle.default)
@@ -324,7 +318,6 @@ class PhiFastNode(NumInputs: Int = 2, NumOutputs: Int = 1, ID: Int, Res: Boolean
   //*******************************************************************
 
 
-
   for (i <- 0 until NumOutputs) {
     io.Out(i).bits := Mux(isBuggy, correctVal, in_data_R(sel))
     io.Out(i).valid := out_valid_R(i)
@@ -332,7 +325,7 @@ class PhiFastNode(NumInputs: Int = 2, NumOutputs: Int = 1, ID: Int, Res: Boolean
 
   switch(state) {
     is(s_idle) {
-      when(enable_valid_R && IsInputValid()) {
+      when(enable_valid_R && IsInputValid() && test_value_ready) {
         //Make outputs valid
         out_valid_R.foreach(_ := true.B)
         when(enable_R.control) {

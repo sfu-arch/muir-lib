@@ -55,9 +55,9 @@ class DebugBufferNode(
   val queue_valid = WireInit(false.B)
   val queue_ready = WireInit(false.B)
 
-  BoringUtils.addSink(queue_data, "data" + Bore_ID)
-  BoringUtils.addSink(queue_valid, "valid" + Bore_ID)
-  BoringUtils.addSource(queue_ready, "ready" + Bore_ID)
+  BoringUtils.addSink(queue_data, s"data${Bore_ID}")
+  BoringUtils.addSink(queue_valid, s"valid${Bore_ID}")
+  BoringUtils.addSource(queue_ready, s"Buffer_ready${Bore_ID}")
 
   LogData.io.enq.bits := queue_data
   LogData.io.enq.valid := queue_valid && io.Enable
@@ -212,14 +212,17 @@ class DebugVMEBufferNode(BufferLen: Int = 20, ID: Int, Bore_ID: Int)
                         (implicit val p: Parameters,
                          name: sourcecode.Name,
                          file: sourcecode.File)
-  extends Module with HasAccelParams with HasAccelShellParams with UniformPrintfs {
+  extends MultiIOModule with HasAccelParams with HasAccelShellParams with UniformPrintfs {
 
 
   val io = IO(new Bundle {
-
     val addrDebug = Input(UInt(memParams.addrBits.W))
     val vmeOut = new DMEWriteMaster
     val Enable = Input(Bool())
+  })
+
+  val buf = IO(new Bundle {
+    val port = Flipped(Decoupled(UInt(xlen.W)))
   })
 
   val node_name = name.value
@@ -243,23 +246,13 @@ class DebugVMEBufferNode(BufferLen: Int = 20, ID: Int, Bore_ID: Int)
     queue_count := queue_count + 1.U
   }
 
-  LogData.io.enq.bits := 0.U
-
-  val queue_data = WireInit(0.U((xlen).W))
-  val queue_valid = WireInit(false.B)
-  val queue_ready = WireInit(false.B)
-
-  BoringUtils.addSink(queue_data, "data" + Bore_ID)
-  BoringUtils.addSink(queue_valid, "valid" + Bore_ID)
-  BoringUtils.addSource(queue_ready, "ready" + Bore_ID)
-
   val writeFinished = Wire(Bool())
   writeFinished := false.B
-  BoringUtils.addSink(writeFinished, "RunFinished" + ID)
+  BoringUtils.addSink(writeFinished, s"RunFinished${ID}")
 
-  LogData.io.enq.bits := queue_data
-  LogData.io.enq.valid := queue_valid & io.Enable
-  queue_ready := LogData.io.enq.ready
+  LogData.io.enq.bits := buf.port.bits
+  LogData.io.enq.valid := buf.port.valid & io.Enable
+  buf.port.ready := LogData.io.enq.ready
 
   io.vmeOut.cmd.bits.addr := io.addrDebug
   io.vmeOut.cmd.bits.len := queue_count - 1.U
@@ -273,7 +266,6 @@ class DebugVMEBufferNode(BufferLen: Int = 20, ID: Int, Bore_ID: Int)
       }
     }
     is(sReq) {
-      queue_ready := false.B
       when(io.vmeOut.cmd.fire()) {
         wState := sBusy
       }
