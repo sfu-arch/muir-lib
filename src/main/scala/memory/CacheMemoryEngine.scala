@@ -59,21 +59,28 @@ class CMEClientVector(NumOps: Int)(implicit val p: Parameters) extends Bundle wi
  *       or make a centeralized memory unit with separate channel for read and write
  *       we can have better parallelization.
  * @param ID
- * @param NumOps
+ * @param NumRead
+ * @param NumWrite
  * @param p
  */
-class CacheMemoryEngine(ID: Int, NumOps: Int)(implicit val p: Parameters) extends Module with HasAccelParams with HasAccelShellParams {
+class CacheMemoryEngine(ID: Int, NumRead: Int, NumWrite: Int)(implicit val p: Parameters) extends Module with HasAccelParams with HasAccelShellParams {
 
   val io = IO(new Bundle {
-    val accel = new CMEClientVector(NumOps)
+    val rd = new CMEClientVector(NumRead)
+    val wr = new CMEClientVector(NumWrite)
     val cache = new CMEMaster
   })
 
+  val NumOps = NumRead + NumWrite
   val in_arb = Module(new Arbiter(new MemReq, NumOps))
   val in_arb_chosen = RegEnable(in_arb.io.chosen, in_arb.io.out.fire())
 
-  for (i <- 0 until NumOps) {
-    in_arb.io.in(i) <> io.accel.mem(i).MemReq
+  for (i <- 0 until NumRead) {
+    in_arb.io.in(i) <> io.rd.mem(i).MemReq
+  }
+
+  for (i <- 0 until NumWrite) {
+    in_arb.io.in(i + NumRead) <> io.wr.mem(i).MemReq
   }
 
   val sMemIdle :: sMemAddr :: sMemData :: Nil = Enum(3)
@@ -88,14 +95,6 @@ class CacheMemoryEngine(ID: Int, NumOps: Int)(implicit val p: Parameters) extend
     is(sMemAddr) {
       when(io.cache.MemReq.ready) {
         mstate := sMemData
-        //Make sure the statice routeID is the same as arbiter index
-        //The compiler in mac doesn't support time_stamp() function
-        //at this moment
-        val osName: String = System.getProperty("os.name").toLowerCase
-        val isMacOs: Boolean = osName.startsWith("mac os x")
-        if (!isMacOs) {
-          assert(io.cache.MemReq.bits.tag === in_arb_chosen)
-        }
       }
     }
     is(sMemData) {
@@ -105,9 +104,14 @@ class CacheMemoryEngine(ID: Int, NumOps: Int)(implicit val p: Parameters) extend
     }
   }
 
-  for (i <- 0 until NumOps) {
-    io.accel.mem(i).MemResp.valid := (in_arb_chosen === i.U) && (in_arb_chosen === io.cache.MemResp.bits.tag) && io.cache.MemResp.valid
-    io.accel.mem(i).MemResp.bits <> io.cache.MemResp.bits
+  for (i <- 0 until NumRead) {
+    io.rd.mem(i).MemResp.valid := (in_arb_chosen === i.U) && (in_arb_chosen === io.cache.MemResp.bits.tag) && io.cache.MemResp.valid
+    io.rd.mem(i).MemResp.bits <> io.cache.MemResp.bits
+  }
+
+  for (i <- NumRead until NumRead + NumWrite) {
+    io.wr.mem(i - NumRead).MemResp.valid := (in_arb_chosen === (i).U) && (in_arb_chosen === io.cache.MemResp.bits.tag) && io.cache.MemResp.valid
+    io.wr.mem(i - NumRead).MemResp.bits <> io.cache.MemResp.bits
   }
 
   val in_data_reg = RegEnable(init = MemReq.default, enable = in_arb.io.out.fire, next = in_arb.io.out.bits)

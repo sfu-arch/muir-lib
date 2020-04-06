@@ -193,7 +193,7 @@ class UnTypLoadCache(NumPredOps: Int,
                 //io.MemReq.bits.addr := guard_address_values.get(guard_address_index)
 
                 if (log) {
-                  printf("[DEBUG] [" + module_name + "] [TID->%d] [PHI] " + node_name +
+                  printf("[DEBUG] [" + module_name + "] [TID->%d] [LOAD] " + node_name +
                     " Sent address value: %d, correct value: %d\n",
                     addr_R.taskID, addr_R.data, guard_address_values.get(guard_address_index))
                 }
