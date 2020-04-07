@@ -259,12 +259,6 @@ class BasicBlockNoMaskFastNode(BID: Int, val NumInputs: Int = 1, val NumOuts: In
   val out_fire_mask = (output_fire_R zip io.Out.map(_.fire)) map { case (a, b) => a | b }
 
 
-  //Masking output value
-  //  val output_value = (io.predicateIn.map(_.bits.control) zip in_data_R.map(_.control)) map {
-  //    case (a, b) => a | b
-  //  } reduce (_ | _)
-
-
   val output_valid_map = for (i <- 0 until NumInputs) yield {
     val ret = Mux(io.predicateIn(i).fire, true.B, in_data_valid_R(i))
     ret

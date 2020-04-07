@@ -183,6 +183,10 @@ class UnTypLoadCache(NumPredOps: Int,
           when(io.MemReq.ready) {
             state := s_RECEIVING
 
+            //Release addr
+            addr_R := DataBundle.default
+            addr_valid_R := false.B
+
             /**
              * This is where we fire memory request
              */
@@ -237,9 +241,6 @@ class UnTypLoadCache(NumPredOps: Int,
     is(s_Done) {
       when(complete && data_value_ready) {
         // Clear all the valid states.
-        // Reset address
-        addr_R := DataBundle.default
-        addr_valid_R := false.B
         // Reset data
         data_R := DataBundle.default
         data_valid_R := false.B
