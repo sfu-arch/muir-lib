@@ -155,10 +155,6 @@ class UnTypStoreCache(NumPredOps: Int,
             when(io.MemReq.ready) {
               state := s_RECEIVING
 
-              // Reset address
-              addr_R := DataBundle.default
-              addr_valid_R := false.B
-
               /**
                * This is where we fire memory request
                */
@@ -195,6 +191,11 @@ class UnTypStoreCache(NumPredOps: Int,
     }
     is(s_Done) {
       when(complete) {
+
+        // Reset address
+        addr_R := DataBundle.default
+        addr_valid_R := false.B
+
         // Reset data.
         data_R := DataBundle.default
         data_valid_R := false.B
@@ -203,8 +204,11 @@ class UnTypStoreCache(NumPredOps: Int,
         // Reset state.
         state := s_idle
         if (log) {
-          printf("[LOG] " + "[" + module_name + "] [TID->%d] [STORE]" + node_name + ": Fired @ %d Mem[%d] = %d\n",
-            enable_R.taskID, cycleCount, addr_R.data, data_R.data)
+          printf(p"[LOG] [${module_name}] [TID: ${enable_R.taskID}] [STORE] " +
+            p"[${node_name}] [Pred: ${enable_R.control}] " +
+            p"[Addr: 0x${Hexadecimal(addr_R.data)}] " +
+            p"[Data: 0x${Hexadecimal(data_R.data)}] " +
+            p"[Cycle: ${cycleCount}]\n")
         }
       }
     }

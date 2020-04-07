@@ -182,11 +182,6 @@ class UnTypLoadCache(NumPredOps: Int,
           io.MemReq.valid := true.B
           when(io.MemReq.ready) {
             state := s_RECEIVING
-
-            //Release addr
-            addr_R := DataBundle.default
-            addr_valid_R := false.B
-
             /**
              * This is where we fire memory request
              */
@@ -208,17 +203,17 @@ class UnTypLoadCache(NumPredOps: Int,
           data_R.predicate := false.B
           ValidSucc()
           ValidOut()
+          state := s_Done
         }
       }
     }
     is(s_RECEIVING) {
       when(io.MemResp.valid) {
-        // Set data output registers
         data_R.data := io.MemResp.bits.data
         data_R.predicate := true.B
+
         ValidSucc()
         ValidOut()
-
         // Completion state.
         state := s_Done
 
@@ -241,6 +236,8 @@ class UnTypLoadCache(NumPredOps: Int,
     is(s_Done) {
       when(complete && data_value_ready) {
         // Clear all the valid states.
+        addr_R := DataBundle.default
+        addr_valid_R := false.B
         // Reset data
         data_R := DataBundle.default
         data_valid_R := false.B
@@ -249,8 +246,11 @@ class UnTypLoadCache(NumPredOps: Int,
         // Reset state.
         state := s_idle
         if (log) {
-          printf("[LOG] " + "[" + module_name + "] [TID->%d] [LOAD] " + node_name + ": Output fired @ %d, Address:%d, Value: %d\n",
-            enable_R.taskID, cycleCount, addr_R.data, data_R.data)
+          printf(p"[LOG] [${module_name}] [TID: ${enable_R.taskID}] [LOAD] " +
+            p"[${node_name}] [Pred: ${enable_R.control}] " +
+            p"[Addr: 0x${Hexadecimal(addr_R.data)}] " +
+            p"[Data: 0x${Hexadecimal(data_R.data)}] " +
+            p"[Cycle: ${cycleCount}]\n")
         }
       }
     }

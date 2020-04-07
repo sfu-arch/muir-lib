@@ -10,12 +10,12 @@ import util._
 
 
 /**
-  * @brief BasicBlockIO class definition
-  * @note Implimentation of BasickBlockIO
-  * @param NumInputs Number of predecessors
-  * @param NumOuts   Number of successor instructions
-  * @param NumPhi    Number existing phi nodes
-  */
+ * @brief BasicBlockIO class definition
+ * @note Implimentation of BasickBlockIO
+ * @param NumInputs Number of predecessors
+ * @param NumOuts   Number of successor instructions
+ * @param NumPhi    Number existing phi nodes
+ */
 
 class BasicBlockIO(NumInputs: Int,
                    NumOuts: Int,
@@ -29,17 +29,17 @@ class BasicBlockIO(NumInputs: Int,
 }
 
 /**
-  * @brief BasicBlockIO class definition
-  * @note Implimentation of BasickBlockIO
-  * @param NumInputs Number of predecessors
-  * @param NumOuts   Number of successor instructions
-  * @param NumPhi    Number existing phi nodes
-  * @param BID       BasicBlock ID
-  * @note The logic for BasicBlock nodes differs from Compute nodes.
-  *       In the BasicBlock nodes, as soon as one of the input signals get fires
-  *       all the inputs should get not ready, since we don't need to wait for other
-  *       inputs.
-  */
+ * @brief BasicBlockIO class definition
+ * @note Implimentation of BasickBlockIO
+ * @param NumInputs Number of predecessors
+ * @param NumOuts   Number of successor instructions
+ * @param NumPhi    Number existing phi nodes
+ * @param BID       BasicBlock ID
+ * @note The logic for BasicBlock nodes differs from Compute nodes.
+ *       In the BasicBlock nodes, as soon as one of the input signals get fires
+ *       all the inputs should get not ready, since we don't need to wait for other
+ *       inputs.
+ */
 
 class BasicBlockNode(NumInputs: Int,
                      NumOuts: Int,
@@ -96,8 +96,8 @@ class BasicBlockNode(NumInputs: Int,
   // Wire up Outputs
   for (i <- 0 until NumOuts) {
     io.Out(i).bits.control := predicate
-    io.Out(i).bits.taskID  := predicate_task
-    io.Out(i).bits.debug   := predicate_debug
+    io.Out(i).bits.taskID := predicate_task
+    io.Out(i).bits.debug := predicate_debug
   }
 
   // Wire up mask output
@@ -143,10 +143,10 @@ class BasicBlockNode(NumInputs: Int,
 
 
 /**
-  * @brief BasicBlockIO class definition
-  * @note Implimentation of BasickBlockIO
-  * @param NumOuts Number of successor instructions
-  */
+ * @brief BasicBlockIO class definition
+ * @note Implimentation of BasickBlockIO
+ * @param NumOuts Number of successor instructions
+ */
 
 class BasicBlockNoMaskDepIO(NumOuts: Int)
                            (implicit p: Parameters)
@@ -159,14 +159,14 @@ class BasicBlockNoMaskDepIO(NumOuts: Int)
 
 
 /**
-  * BasicBlockNoMaskFastNode
-  *
-  * @param BID
-  * @param NumOuts
-  * @param p
-  * @param name
-  * @param file
-  */
+ * BasicBlockNoMaskFastNode
+ *
+ * @param BID
+ * @param NumOuts
+ * @param p
+ * @param name
+ * @param file
+ */
 
 class BasicBlockNoMaskFastIO(val NumOuts: Int)(implicit p: Parameters)
   extends AccelBundle()(p) {
@@ -188,22 +188,22 @@ class BasicBlockNoMaskFastVecIO(val NumInputs: Int, val NumOuts: Int)(implicit p
 }
 
 /**
-  * BasicBLockNoMaskFastNode details:
-  * 1) Node can one one or multiple predicates as input and their type is controlBundle
-  * 2) State machine inside the node waits for all the inputs to arrive and then fire.
-  * 3) The ouput value is OR of all the input values
-  * 4) Node can fire outputs at the same cycle if all the inputs. Since, basic block node
-  * is only for circuit simplification therefore, in case that we know output is valid
-  * we don't want to waste one cycle for latching purpose. Therefore, output can be zero
-  * cycle.
-  *
-  * @param BID
-  * @param NumInputs
-  * @param NumOuts
-  * @param p
-  * @param name
-  * @param file
-  */
+ * BasicBLockNoMaskFastNode details:
+ * 1) Node can one one or multiple predicates as input and their type is controlBundle
+ * 2) State machine inside the node waits for all the inputs to arrive and then fire.
+ * 3) The ouput value is OR of all the input values
+ * 4) Node can fire outputs at the same cycle if all the inputs. Since, basic block node
+ * is only for circuit simplification therefore, in case that we know output is valid
+ * we don't want to waste one cycle for latching purpose. Therefore, output can be zero
+ * cycle.
+ *
+ * @param BID
+ * @param NumInputs
+ * @param NumOuts
+ * @param p
+ * @param name
+ * @param file
+ */
 
 class BasicBlockNoMaskFastNode(BID: Int, val NumInputs: Int = 1, val NumOuts: Int, val fast: Boolean = true)
                               (implicit val p: Parameters,
@@ -299,7 +299,7 @@ class BasicBlockNoMaskFastNode(BID: Int, val NumInputs: Int = 1, val NumOuts: In
         else {
           in_data_valid_R.reduceLeft(_ & _)
         }
-      ){
+      ) {
         if (fast) {
           io.Out.foreach(_.valid := true.B)
         }
@@ -308,16 +308,8 @@ class BasicBlockNoMaskFastNode(BID: Int, val NumInputs: Int = 1, val NumOuts: In
 
         state := s_fire
 
-        when(predicate_val) {
-          if (log) {
-            printf("[LOG] " + "[" + module_name + "] [TID->%d] [BB]   "
-              + node_name + ": Output [T] fired @ %d\n", output_R.taskID, cycleCount)
-          }
-        }.otherwise {
-          if (log) {
-            printf("[LOG] " + "[" + module_name + "] [TID->%d] [BB]   "
-              + node_name + ": Output [F] fired @ %d\n", output_R.taskID, cycleCount)
-          }
+        if (log) {
+          printf(p"[LOG] [${module_name}] [TID: ${output_R.taskID}] [BB] [${node_name}] [Out: ${predicate_val}] [Cycle: ${cycleCount}]\n")
         }
       }
     }

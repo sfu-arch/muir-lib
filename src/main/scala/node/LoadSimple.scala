@@ -159,7 +159,6 @@ class UnTypLoad(NumPredOps: Int,
           data_R.predicate := false.B
           ValidSucc()
           ValidOut()
-          // Completion state.
         }
       }
     }
@@ -207,28 +206,8 @@ class UnTypLoad(NumPredOps: Int,
         if (log) {
           printf("[LOG] " + "[" + module_name + "] [TID->%d] [LOAD] " + node_name + ": Output fired @ %d, Address:%d, Value: %d\n",
             enable_R.taskID, cycleCount, addr_R.data, data_R.data)
-          //printf("DEBUG " + node_name + ": $%d = %d\n", addr_R.data, data_R.data)
         }
       }
     }
-  }
-  // Trace detail.
-  if (log == true && (comp contains "LOAD")) {
-    val x = RegInit(0.U(xlen.W))
-    x := x + 1.U
-    verb match {
-      case "high" => {}
-      case "med" => {}
-      case "low" => {
-        printfInfo("Cycle %d : { \"Inputs\": {\"GepAddr\": %x},", x, (addr_valid_R))
-        printf("\"State\": {\"State\": \"%x\", \"data_R(Valid,Data,Pred)\":\"%x,%x,%x\" },", state, data_valid_R, data_R.data, data_R.predicate)
-        printf("\"Outputs\": {\"Out\": %x}", io.Out(0).fire())
-        printf("}")
-      }
-      case everythingElse => {}
-    }
-  }
-  def isDebug(): Boolean = {
-    Debug
   }
 }

@@ -849,10 +849,10 @@ class LoopBlockNode(ID: Int, NumIns: Seq[Int], NumCarry: Seq[Int], NumOuts: Seq[
 
   def IsStoreDepnValid(): Bool = {
     if (NumStore == 0) {
-      return true.B
+      true.B
     }
     else {
-      return store_depen_valid_R.reduce(_ & _)
+      store_depen_valid_R.reduce(_ & _)
     }
   }
 
@@ -967,8 +967,8 @@ class LoopBlockNode(ID: Int, NumIns: Seq[Int], NumCarry: Seq[Int], NumOuts: Seq[
           state := s_active
 
           if (log) {
-            printf("[LOG] " + "[" + module_name + "] [TID->%d] [LOOP]   "
-              + node_name + ": Restarted fired @ %d\n", io.activate_loop_start.bits.taskID, cycleCount)
+            printf(p"[LOG] [${module_name}] [TID->${io.activate_loop_start.bits.taskID}]" +
+              p" [LOOP] [${node_name}] [RESTARTED] [Cycle: ${cycleCount}\n")
           }
 
         }.elsewhen(loop_finish_R.map(_.control).reduce(_ | _)) { //last iteration
@@ -985,12 +985,12 @@ class LoopBlockNode(ID: Int, NumIns: Seq[Int], NumCarry: Seq[Int], NumOuts: Seq[
 
           //Change state
           if (log) {
-            printf("[LOG] " + "[" + module_name + "] [TID->%d] [LOOP]   "
-              + node_name + ": Output fired @ %d ", io.activate_loop_start.bits.taskID, cycleCount)
+            printf(p"[LOG] [${module_name}] [TID: ${io.activate_loop_start.bits.taskID}] [LOOP]" +
+              p" [${node_name}] [FIRED] [Cycle: ${cycleCount}]\n")
             for (i <- 0 until NumOuts.size) {
-              printf(" Out[%d]: %d", i.U, in_live_out_R(i).data)
+              printf(p"\tOut[${i.U}] [Val: ${Hexadecimal(in_live_out_R(i).data)}\n")
             }
-            printf("\n")
+            if(NumOuts.size > 0) printf("\n")
           }
           state := s_end
           //in live out should be dumped
@@ -1000,8 +1000,8 @@ class LoopBlockNode(ID: Int, NumIns: Seq[Int], NumCarry: Seq[Int], NumOuts: Seq[
 
 
           if (log) {
-            printf("[LOG] " + "[" + module_name + "] [TID->%d] [LOOP]   "
-              + node_name + ": Final loop output fired @ %d\n", io.activate_loop_start.bits.taskID, cycleCount)
+            printf(p"[LOG] [${module_name}] [TID: ${io.activate_loop_start.bits.taskID}] [LOOP]" +
+              p" [${node_name}] [FINAL] [Cycle: ${cycleCount}]\n")
           }
         }
 

@@ -179,7 +179,7 @@ class CBranchFastNode(ID: Int)
  * This class is the fast version of CBranch which the IO supports
  * a vector of output for each side True/False
  *
- * @param ID         Node id
+ * @param ID Node id
  */
 
 @deprecated("Use CBranchFastNodeVariable2 instead. The behaviour is not deterministic", "dandelion-1.0")
@@ -372,7 +372,7 @@ class CBranchFastNodeVariable(val NumTrue: Int = 1, val NumFalse: Int = 1, val I
  * This class is the fast version of CBranch which the IO supports
  * a vector of output for each side True/False
  *
- * @param ID         Node id
+ * @param ID Node id
  */
 
 
@@ -612,22 +612,16 @@ class UBranchNode(NumPredOps: Int = 0,
         state := s_OUTPUT
         ValidOut()
         io.Out.foreach(_.valid := true.B)
-        when(enable_R.control) {
-          if (log) {
-            printf("[LOG] " + "[" + module_name + "] [TID->%d] [UBR] "
-              + node_name + ": Output fired [T] @ %d,\n",
-              enable_R.taskID, cycleCount)
-          }
-        }.otherwise {
-          if (log) {
-            printf("[LOG] " + "[" + module_name + "] [TID->%d] [UBR] "
-              + node_name + ": Output fired [F] @ %d,\n",
-              enable_R.taskID, cycleCount)
-          }
+        if (log) {
+          printf(p"[LOG] [${module_name}] [TID: ${enable_R.taskID}] " +
+            p"[UBR] " +
+            p"[${node_name}] " +
+            p"[Out: ${enable_R.control}] " +
+            p"[Cycle: ${cycleCount}]\n")
         }
-
       }
     }
+
     is(s_OUTPUT) {
       when(IsOutReady()) {
         state := s_idle
@@ -813,7 +807,7 @@ class CompareBranchNode(ID: Int, opCode: String)
  * This class is the fast version of CBranch which the IO supports
  * a vector of output for each side True/False
  *
- * @param ID         Node id
+ * @param ID Node id
  */
 
 class UBranchNodeVariable(val NumOutputs: Int = 1, val ID: Int)

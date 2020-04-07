@@ -146,9 +146,11 @@ class ConstFastNode(value: Int, ID: Int)
           enable_R <> io.enable.bits
         }
         if (log) {
-          printf("[LOG] " + "[" + module_name + "] " + "[TID->%d] [CONST] "
-            + node_name + ": Output fired @ %d, Value: %d\n",
-            taskID, cycleCount, output_value.asSInt())
+          printf(p"[LOG] [${module_name}] [TID: ${taskID}] [CONST] " +
+            p"[${module_name}] " +
+            p"[Pred: ${enable_R.control}] " +
+            p"[Val: 0x${Hexadecimal(output_value)}] " +
+            p"[Cycle: ${cycleCount}]\n")
         }
       }
     }

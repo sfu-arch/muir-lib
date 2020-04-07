@@ -63,11 +63,11 @@ class ComputeNode(NumOuts: Int, ID: Int, opCode: String)
 
   val GuardVal_reg = RegInit(GuardVal.U)
   /**
-    * val debug = RegInit(0.U)
-    * debug := io.DebugIO.get
-    *
-    * val debug = RegNext(io.DebugIO.get, init = 0.U)
-    */
+   * val debug = RegInit(0.U)
+   * debug := io.DebugIO.get
+   *
+   * val debug = RegNext(io.DebugIO.get, init = 0.U)
+   */
 
   //Output register
   val out_data_R = RegNext(Mux(enable_R.control, FU.io.out, 0.U), init = 0.U)
@@ -137,10 +137,10 @@ class ComputeNode(NumOuts: Int, ID: Int, opCode: String)
     is(s_IDLE) {
       when(enable_valid_R && left_valid_R && right_valid_R) {
         /**
-          * Debug logic: The output of FU is compared against Guard value
-          * and if the value is not equal to expected value the correct value
-          * will become available
-          */
+         * Debug logic: The output of FU is compared against Guard value
+         * and if the value is not equal to expected value the correct value
+         * will become available
+         */
         if (Debug) {
           when(FU.io.out =/= GuardVal.U) {
             GuardFlag := 1.U
@@ -168,8 +168,13 @@ class ComputeNode(NumOuts: Int, ID: Int, opCode: String)
         right_valid_R := false.B
         state := s_COMPUTE
         if (log) {
-          printf("[LOG] " + "[" + module_name + "] " + "[TID->%d] [COMPUTE] " +
-            node_name + ": Output fired @ %d, Value: %d (%d + %d)\n", taskID, cycleCount, FU.io.out, left_R.data, right_R.data)
+          printf(p"[LOG] [${module_name}] [TID: ${taskID}] [COMPUTE] [${node_name}] " +
+            p"[Pred: ${enable_R.control}] " +
+            p"[In(0): 0x${Hexadecimal(left_R.data)}] " +
+            p"[In(1) 0x${Hexadecimal(right_R.data)}] " +
+            p"[Out: 0x${Hexadecimal(FU.io.out)}] " +
+            p"[OpCode: ${opCode}] " +
+            p"[Cycle: ${cycleCount}]\n")
         }
       }
     }
