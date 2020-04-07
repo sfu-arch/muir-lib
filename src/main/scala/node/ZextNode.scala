@@ -12,16 +12,9 @@ import dandelion.config._
 class ZextNodeIO(val src: Int, val des: Int, val nout: Int)
                 (implicit p: Parameters) extends AccelBundle()(p) {
 
-  //Input for Zext
   val Input = Flipped(Decoupled(new DataBundle()))
-  //val Input = Flipped(Decoupled(UInt(src.W)))
-
-  //Enabl signal
   val enable = Flipped(Decoupled(new ControlBundle()))
-
-  //Output of the input (Zexted version)
   val Out = Vec(nout, Decoupled(new DataBundle()))
-  //val Out = Output(Vec(nout, Decoupled(UInt(des.W))))
 
   override def cloneType = new ZextNodeIO(src, des, nout).asInstanceOf[this.type]
 
@@ -77,8 +70,9 @@ class ZextNode(val SrcW: Int = 0, val DesW: Int = 0, val NumOuts: Int = 1, val I
 
   // Defalut values for output
 
+  val output_data = Mux(io.Input.fire, io.Input.bits, input_R)
   for (i <- 0 until NumOuts) {
-    io.Out(i).bits <> input_R
+    io.Out(i).bits <> output_data
     io.Out(i).valid <> output_valid_R(i)
   }
 
@@ -92,11 +86,11 @@ class ZextNode(val SrcW: Int = 0, val DesW: Int = 0, val NumOuts: Int = 1, val I
   val fire_mask = (fire_R zip io.Out.map(_.fire)).map { case (a, b) => a | b }
 
   def IsEnableValid(): Bool = {
-    return enable_valid_R || io.enable.fire
+    enable_valid_R || io.enable.fire
   }
 
   def IsInputValid(): Bool = {
-    return input_valid_R || io.Input.fire
+    input_valid_R || io.Input.fire
   }
 
 
@@ -111,14 +105,18 @@ class ZextNode(val SrcW: Int = 0, val DesW: Int = 0, val NumOuts: Int = 1, val I
 
       when(IsEnableValid() && IsInputValid()) {
 
+        io.Out.foreach(_.valid := true.B)
         output_valid_R.foreach(_ := true.B)
 
         state := s_fire
 
         if (log) {
-          printf(f"[LOG] " + "[" + module_name + "] " + "[TID->%d] "
-            + node_name + ": Output fired @ %d, Value: %d\n",
-            task_input, cycleCount, input_R.data)
+          printf(p"[LOG] [${module_name}] " +
+            p"[TID: ${task_input}] " +
+            p"[${node_name} " +
+            p"[Pred: ${enable_R.control}] " +
+            p"[Out: ${output_data.data}] " +
+            p"[Cycle: ${cycleCount}\n")
         }
       }
     }

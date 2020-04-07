@@ -967,7 +967,7 @@ class LoopBlockNode(ID: Int, NumIns: Seq[Int], NumCarry: Seq[Int], NumOuts: Seq[
           state := s_active
 
           if (log) {
-            printf(p"[LOG] [${module_name}] [TID->${io.activate_loop_start.bits.taskID}]" +
+            printf(p"[LOG] [${module_name}] [TID: ${io.activate_loop_start.bits.taskID}]" +
               p" [LOOP] [${node_name}] [RESTARTED] [Cycle: ${cycleCount}\n")
           }
 

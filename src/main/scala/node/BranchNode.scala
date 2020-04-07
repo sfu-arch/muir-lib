@@ -1290,22 +1290,19 @@ class CBranchNodeVariable(val NumTrue: Int = 1, val NumFalse: Int = 1, val NumPr
         when(enable_R.control) {
           when(cmp_R.control) {
             if (log) {
-              printf("[LOG] " + "[" + module_name + "] [TID->%d] [CBR] "
-                + node_name + ": Output fired [T F] @ %d,\n",
-                enable_R.taskID, cycleCount)
+              printf(p"[LOG] [${module_name}] [TID: ${task_id}] [CBR] " +
+                p"${node_name} [Out: T:1 - F:0] [Cycle: ${cycleCount}]\n")
             }
           }.otherwise {
             if (log) {
-              printf("[LOG] " + "[" + module_name + "] [TID->%d] [CBR] "
-                + node_name + ": Output fired [F T] @ %d,\n",
-                enable_R.taskID, cycleCount)
+              printf(p"[LOG] [${module_name}] [TID: ${task_id}] [CBR] " +
+                p"${node_name} [Out: T:0 - F:1] [Cycle: ${cycleCount}]\n")
             }
           }
         }.otherwise {
           if (log) {
-            printf("[LOG] " + "[" + module_name + "] [TID->%d] [CBR] "
-              + node_name + ": Output fired [F F] @ %d,\n",
-              enable_R.taskID, cycleCount)
+            printf(p"[LOG] [${module_name}] [TID: ${task_id}] [CBR] " +
+              p"${node_name} [Out: T:0 - F:0] [Cycle: ${cycleCount}]\n")
           }
         }
       }

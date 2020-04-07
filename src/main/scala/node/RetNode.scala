@@ -218,9 +218,10 @@ class RetNode2(retTypes: Seq[Int], ID: Int , Debug: Boolean = false, NumBores : 
 
         state := s_IDLE
         if (log) {
-          printf("[LOG] " + "[" + module_name + "] "
-            + "[TID->%d] " + node_name +
-            ": Output fired @ %d\n", output_R.enable.taskID, cycleCount)
+          printf(p"[LOG] [${module_name}] " +
+            p"[TID: ${output_R.enable.taskID}] " +
+            p"[${node_name}] " +
+            p"[Cycle: ${cycleCount}]\n")
         }
       }
     }
