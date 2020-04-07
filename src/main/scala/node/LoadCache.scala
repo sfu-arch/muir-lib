@@ -215,8 +215,6 @@ class UnTypLoadCache(NumPredOps: Int,
         ValidSucc()
         ValidOut()
 
-        addr_R := DataBundle.default
-        addr_valid_R := false.B
         // Completion state.
         state := s_Done
 
@@ -240,6 +238,8 @@ class UnTypLoadCache(NumPredOps: Int,
       when(complete && data_value_ready) {
         // Clear all the valid states.
         // Reset address
+        addr_R := DataBundle.default
+        addr_valid_R := false.B
         // Reset data
         data_R := DataBundle.default
         data_valid_R := false.B

@@ -75,7 +75,7 @@ class ReadWriteArbiter()
   // Driver Circuit
   // Cache response Demux
   cacheresp_demux.io.en := io.MemResp.valid
-  cacheresp_demux.io.input := io.MemResp.bits
+  cacheresp_demux.io.input := io.MemResp
   //Note RdIdx == 0 , so is isSt for Loads
   //ToDO this could be dangerous - fix this
   cacheresp_demux.io.sel := io.MemResp.bits.iswrite

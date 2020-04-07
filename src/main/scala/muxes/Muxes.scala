@@ -93,21 +93,12 @@ class DeMuxTree[T <: RouteID ](BaseSize: Int, NumOps: Int, gen: T)(implicit val 
     }
 
     if (prev.length != 0) {
-      // val pipereg = Reg(Vec(prev.length,gen))
-      //  for (k <- 0 until prev.length) {
-      //   pipereg(k).valid := false.B
-      // }
       for (i <- 0 until prev.length) {
-        // println("Sink["+i+"]"+"Source Demux["+i/BaseSize+","+indexcalc(i,BaseSize)+"]")
-        // println("z:"+z+","+(z+log2Ceil(BaseSize)-1))
         val demuxInputReg = RegNext(Demuxes(i / BaseSize).outputs(indexcalc(i, BaseSize)))
         val demuxvalidreg = RegNext(init = false.B, next = Demuxes(i / BaseSize).outputs(indexcalc(i, BaseSize)).valid)
         prev(i).input := demuxInputReg
         prev(i).en := demuxvalidreg
         prev(i).sel := demuxInputReg.bits.RouteID(SelHIndex + log2Ceil(BaseSize) - 1, SelHIndex)
-        // prev(i).input <> Demuxes(i/BaseSize).outputs(indexcalc(i,BaseSize)) 
-        // prev(i).en    := Demuxes(i/BaseSize).outputs(indexcalc(i,BaseSize)).valid
-        // prev(i).sel   := Demuxes(i/BaseSize).outputs(indexcalc(i,BaseSize)).RouteID(SelHIndex+log2Ceil(BaseSize)-1,SelHIndex)
       }
       SelHIndex = SelHIndex + log2Ceil(BaseSize)
     }
@@ -128,10 +119,6 @@ class DeMuxTree[T <: RouteID ](BaseSize: Int, NumOps: Int, gen: T)(implicit val 
       Muxes_Per_Level = (Muxes_Per_Level + BaseSize - 1) / BaseSize
     }
   }
-  //printf(p"Top Demuxes: ${toplevel(1).outputs}\n")
-  //printf(p"Bottom Demuxes: ${prev(0).outputs}\n")
-
-  // println("z:"+z+","+(z+log2Ceil(BaseSize)-1))
   prev(0).input <> io.input
   prev(0).en := io.enable
   prev(0).sel := io.input.bits.RouteID(SelHIndex + log2Ceil(BaseSize) - 1, SelHIndex)

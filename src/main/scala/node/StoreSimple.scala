@@ -75,10 +75,10 @@ class UnTypStore(NumPredOps: Int,
   val ReqValid = RegInit(false.B)
 
   //------------------------------
-  var log_id = WireInit(ID.U((4).W))
+  var log_id = WireInit(ID.U((6).W))
   var GuardFlag = WireInit(0.U(1.W))
 
-  var log_data_reg = RegInit(0.U((xlen-20).W))
+  var log_data_reg = RegInit(0.U((xlen-26).W))
   var log_addr_reg = RegInit(0.U(15.W))
   val writeFinish = RegInit(false.B)
   //log_id := ID.U

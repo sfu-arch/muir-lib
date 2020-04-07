@@ -110,7 +110,7 @@ class CacheMemoryEngine(ID: Int, NumRead: Int, NumWrite: Int)(implicit val p: Pa
   }
 
   for (i <- NumRead until NumRead + NumWrite) {
-    io.wr.mem(i - NumRead).MemResp.valid := (in_arb_chosen === (i).U) && (in_arb_chosen === io.cache.MemResp.bits.tag) && io.cache.MemResp.valid
+    io.wr.mem(i - NumRead).MemResp.valid := (in_arb_chosen === i.U) && (in_arb_chosen === io.cache.MemResp.bits.tag) && io.cache.MemResp.valid
     io.wr.mem(i - NumRead).MemResp.bits <> io.cache.MemResp.bits
   }
 

@@ -76,10 +76,10 @@ class UnTypLoad(NumPredOps: Int,
   }
 
   //**********************************************************************
-  var log_id = WireInit(ID.U((4).W))
+  var log_id = WireInit(ID.U((6).W))
   var GuardFlag = WireInit(0.U(1.W))
 
-  var log_out_reg = RegInit(0.U((xlen-5).W))
+  var log_out_reg = RegInit(0.U((xlen-7).W))
   val writeFinish = RegInit(false.B)
   //log_id := ID.U
   //test_value := Cat(GuardFlag,log_id, log_out)

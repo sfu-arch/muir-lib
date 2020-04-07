@@ -286,13 +286,14 @@ class ReadMemoryController (NumOps: Int, BaseSize: Int, NumEntries: Int, Seriali
 
   // Cache response Demux
   cacheresp_demux.io.en := io.MemResp.valid
-  cacheresp_demux.io.input := io.MemResp.bits
+  cacheresp_demux.io.input := io.MemResp
   cacheresp_demux.io.sel := io.MemResp.bits.tag
 
   // Output arbiter -> Demux
   out_arb.io.out.ready := true.B
   out_demux.io.enable := out_arb.io.out.fire()
-  out_demux.io.input := out_arb.io.out.bits
+  out_demux.io.input.bits := out_arb.io.out.bits
+  out_demux.io.input.valid := out_arb.io.out.valid
 
   /**
    * Currently our cache doesn't support multiple memory request on the fly

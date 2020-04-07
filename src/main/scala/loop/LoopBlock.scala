@@ -10,7 +10,6 @@ import dandelion.junctions._
 import dandelion.node._
 import utility.UniformPrintfs
 import dandelion.config._
-
 import chisel3.util.experimental.BoringUtils
 
 /**
@@ -905,7 +904,6 @@ class LoopBlockNode(ID: Int, NumIns: Seq[Int], NumCarry: Seq[Int], NumOuts: Seq[
         **/
       //Wait for all the inputs and enable signal to latch
       when(IsLiveInValid() && IsEnableValid()) {
-
         when(IsEnable()) {
           //If loop is in the if(true) path go to active state
           // Set the loop liveIN data as valid
@@ -930,7 +928,7 @@ class LoopBlockNode(ID: Int, NumIns: Seq[Int], NumCarry: Seq[Int], NumOuts: Seq[
           loop_exit_R.foreach(_ := ControlBundle.deactivate())
           loop_exit_valid_R.foreach(_ := true.B)
 
-          //Change state`
+          //Change state
           state := s_end
         }
       }

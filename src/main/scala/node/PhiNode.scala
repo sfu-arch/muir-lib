@@ -309,7 +309,6 @@ class PhiFastNode(NumInputs: Int = 2, NumOutputs: Int = 1, ID: Int, Res: Boolean
 
 
   val (guard_index, _) = Counter(isInFire(), GuardVals.length)
-  val correctVal = RegNext(if (Debug) DataBundle(guard_values.get(guard_index)) else DataBundle.default)
   log_data := in_data_R(sel).data
   log_iteration := guard_index
   log_mask := sel
@@ -318,7 +317,8 @@ class PhiFastNode(NumInputs: Int = 2, NumOutputs: Int = 1, ID: Int, Res: Boolean
 
 
   for (i <- 0 until NumOutputs) {
-    io.Out(i).bits := Mux(isBuggy, correctVal, in_data_R(sel))
+    //io.Out(i).bits := Mux(isBuggy, correctVal, in_data_R(sel))
+    io.Out(i).bits := in_data_R(sel)
     io.Out(i).valid := out_valid_R(i)
   }
 
@@ -349,7 +349,7 @@ class PhiFastNode(NumInputs: Int = 2, NumOutputs: Int = 1, ID: Int, Res: Boolean
           if (log) {
             printf("[LOG] " + "[" + module_name + "] [TID->%d] [PHI] "
               + node_name + ": Output fired @ %d, Value: %d\n",
-              io.InData(sel).bits.taskID, cycleCount, correctVal.data)
+              io.InData(sel).bits.taskID, cycleCount, in_data_R(sel).data)
           }
         }.otherwise {
           state := s_not_predicated
