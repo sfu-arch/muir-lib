@@ -1212,7 +1212,7 @@ class CBranchNodeVariable(val NumTrue: Int = 1, val NumFalse: Int = 1, val NumPr
   for (i <- 0 until NumPredecessor) {
     io.PredOp(i).ready := ~predecessor_valid_R(i)
     when(io.PredOp(i).fire) {
-      predecessor_R(i) <> io.PredOp(i).bits
+      predecessor_R(i) := io.PredOp(i).bits
       predecessor_valid_R(i) := true.B
     }
   }
