@@ -126,9 +126,8 @@ class BasicBlockNode(NumInputs: Int,
 
         when(predicate) {
           if (log) {
-            printf("[LOG] " + "[" + module_name + "] [TID->%d] [BB]   " +
-              node_name + ": Output fired @ %d, Mask: %d\n", predicate_task
-              , cycleCount, predicate_control_R.asUInt())
+            printf(p"[LOG] [${module_name}] [TID: ${predicate_task}] [BB] " +
+              p"${node_name}] [Mask: 0x${Hexadecimal(predicate_control_R.asUInt())}\n")
           }
         }.otherwise {
           if (log) {

@@ -11,7 +11,7 @@ import util._
  * [FPComputeNodeIO description]
  */
 class FPComputeNodeIO(NumOuts: Int)
-                   (implicit p: Parameters)
+                     (implicit p: Parameters)
   extends HandShakingIONPS(NumOuts)(new DataBundle) {
   // LeftIO: Left input data for computation
   val LeftIO = Flipped(Decoupled(new DataBundle()))
@@ -27,10 +27,10 @@ class FPComputeNodeIO(NumOuts: Int)
  * [FPComputeNode description]
  */
 class FPComputeNode(NumOuts: Int, ID: Int, opCode: String)
-                 (t: FType)
-                 (implicit p: Parameters,
-                  name: sourcecode.Name,
-                  file: sourcecode.File)
+                   (t: FType)
+                   (implicit p: Parameters,
+                    name: sourcecode.Name,
+                    file: sourcecode.File)
   extends HandShakingNPS(NumOuts, ID)(new DataBundle())(p) {
   override lazy val io = IO(new FPComputeNodeIO(NumOuts))
 
@@ -56,20 +56,20 @@ class FPComputeNode(NumOuts: Int, ID: Int, opCode: String)
   val task_ID_R = RegNext(next = enable_R.taskID)
 
   //Output register
-  val out_data_R = RegInit(DataBundle.default)
-
   val s_IDLE :: s_COMPUTE :: Nil = Enum(2)
   val state = RegInit(s_IDLE)
 
+  val FU = Module(new FPUALU(xlen, opCode, t))
 
-  val predicate = left_R.predicate & right_R.predicate// & IsEnable()
+  val out_data_R = RegNext(Mux(enable_R.control, FU.io.out, 0.U), init = 0.U)
+  val predicate = Mux(enable_valid_R, enable_R.control, io.enable.bits.control)
+  val taskID = Mux(enable_valid_R, enable_R.taskID, io.enable.bits.taskID)
 
   /*===============================================*
    *            Latch inputs. Wire up output       *
    *===============================================*/
 
   //Instantiate ALU with selected code. IEEE ALU. IEEE in/IEEE out
-  val FU = Module(new FPUALU(xlen, opCode, t))
   FU.io.in1 := left_R.data
   FU.io.in2 := right_R.data
 
@@ -86,58 +86,40 @@ class FPComputeNode(NumOuts: Int, ID: Int, opCode: String)
   }
 
   // Wire up Outputs
-  for (i <- 0 until NumOuts) {
-    //io.Out(i).bits.data := FU.io.out
-    //io.Out(i).bits.predicate := predicate
-    // The taskID's should be identical except in the case
-    // when one input is tied to a constant.  In that case
-    // the taskID will be zero.  Logical OR'ing the IDs
-    // Should produce a valid ID in either case regardless of
-    // which input is constant.
-    //io.Out(i).bits.taskID := left_R.taskID | right_R.taskID
-    io.Out(i).bits := out_data_R
-  }
+
+  io.Out.foreach(_.bits := DataBundle(out_data_R, taskID, predicate))
 
   /*============================================*
    *            State Machine                   *
    *============================================*/
   switch(state) {
     is(s_IDLE) {
-      when(enable_valid_R) {
-        when(left_valid_R && right_valid_R) {
-          ValidOut()
-          io.Out.map(_.valid) foreach(_ := true.B)
-          when(enable_R.control) {
-            out_data_R.data := FU.io.out
-            out_data_R.predicate := predicate
-            out_data_R.taskID := left_R.taskID | right_R.taskID | enable_R.taskID
-          }
-          state := s_COMPUTE
+      when(enable_valid_R && left_valid_R && right_valid_R) {
+        io.Out.foreach(_.bits := DataBundle(FU.io.out, enable_R.taskID, predicate))
+        io.Out.foreach(_.valid := true.B)
+        ValidOut()
+        state := s_COMPUTE
+        left_valid_R := false.B
+        right_valid_R := false.B
+        if (log) {
+          printf(p"[LOG] [${module_name}] [TID: ${task_ID_R}] " +
+            p"[${node_name}] " +
+            p"[Out: 0x${Hexadecimal(FU.io.out)}] " +
+            p"[Cycle: ${cycleCount}]\n")
         }
       }
     }
     is(s_COMPUTE) {
       when(IsOutReady()) {
-        // Reset data
-        //left_R := DataBundle.default
-        //right_R := DataBundle.default
-        left_valid_R := false.B
-        right_valid_R := false.B
-        //Reset state
         state := s_IDLE
+        out_data_R := 0.U
         //Reset output
-        out_data_R.predicate := false.B
         Reset()
-        if (log) {
-          printf("[LOG] " + "[" + module_name + "] " + "[TID->%d] "
-            + node_name + ": Output fired @ %d, Value: %x\n", task_ID_R, cycleCount, FU.io.out)
-        }
       }
     }
   }
 
 }
-
 
 
 class altfp_adder_13(DATA: Int = 32, ADDR: Int = 32) extends BlackBox with HasBlackBoxResource {
@@ -191,9 +173,6 @@ class altfp_divider_33(DATA: Int = 32, ADDR: Int = 32) extends BlackBox with Has
   addResource("/verilog/altfp_divider_33.v")
 
 }
-
-
-
 
 
 class FPAdder(DATA: Int = 32, ADDR: Int = 32) extends Module {
@@ -269,10 +248,10 @@ class FPDivider(DATA: Int = 32, ADDR: Int = 32) extends Module {
  * [FPComputeNode description]
  */
 class FPCustomAdderNode(NumOuts: Int, ID: Int, opCode: String)
-                 (t: FType)
-                 (implicit p: Parameters,
-                  name: sourcecode.Name,
-                  file: sourcecode.File)
+                       (t: FType)
+                       (implicit p: Parameters,
+                        name: sourcecode.Name,
+                        file: sourcecode.File)
   extends HandShakingNPS(NumOuts, ID)(new DataBundle())(p) {
   override lazy val io = IO(new FPComputeNodeIO(NumOuts))
 
@@ -304,7 +283,7 @@ class FPCustomAdderNode(NumOuts: Int, ID: Int, opCode: String)
   val state = RegInit(s_IDLE)
 
 
-  val predicate = left_R.predicate & right_R.predicate// & IsEnable()
+  val predicate = left_R.predicate & right_R.predicate // & IsEnable()
 
   /*===============================================*
    *            Latch inputs. Wire up output       *
@@ -382,14 +361,11 @@ class FPCustomAdderNode(NumOuts: Int, ID: Int, opCode: String)
 }
 
 
-
-
-
 class FPCustomSubtractorNode(NumOuts: Int, ID: Int, opCode: String)
-                 (t: FType)
-                 (implicit p: Parameters,
-                  name: sourcecode.Name,
-                  file: sourcecode.File)
+                            (t: FType)
+                            (implicit p: Parameters,
+                             name: sourcecode.Name,
+                             file: sourcecode.File)
   extends HandShakingNPS(NumOuts, ID)(new DataBundle())(p) {
   override lazy val io = IO(new FPComputeNodeIO(NumOuts))
 
@@ -421,7 +397,7 @@ class FPCustomSubtractorNode(NumOuts: Int, ID: Int, opCode: String)
   val state = RegInit(s_IDLE)
 
 
-  val predicate = left_R.predicate & right_R.predicate// & IsEnable()
+  val predicate = left_R.predicate & right_R.predicate // & IsEnable()
 
   /*===============================================*
    *            Latch inputs. Wire up output       *
@@ -500,10 +476,10 @@ class FPCustomSubtractorNode(NumOuts: Int, ID: Int, opCode: String)
 
 
 class FPCustomMultiplierNode(NumOuts: Int, ID: Int, opCode: String)
-                 (t: FType)
-                 (implicit p: Parameters,
-                  name: sourcecode.Name,
-                  file: sourcecode.File)
+                            (t: FType)
+                            (implicit p: Parameters,
+                             name: sourcecode.Name,
+                             file: sourcecode.File)
   extends HandShakingNPS(NumOuts, ID)(new DataBundle())(p) {
   override lazy val io = IO(new FPComputeNodeIO(NumOuts))
 
@@ -535,7 +511,7 @@ class FPCustomMultiplierNode(NumOuts: Int, ID: Int, opCode: String)
   val state = RegInit(s_IDLE)
 
 
-  val predicate = left_R.predicate & right_R.predicate// & IsEnable()
+  val predicate = left_R.predicate & right_R.predicate // & IsEnable()
 
   /*===============================================*
    *            Latch inputs. Wire up output       *
@@ -614,10 +590,10 @@ class FPCustomMultiplierNode(NumOuts: Int, ID: Int, opCode: String)
 
 
 class FPCustomDividerNode(NumOuts: Int, ID: Int, opCode: String)
-                 (t: FType)
-                 (implicit p: Parameters,
-                  name: sourcecode.Name,
-                  file: sourcecode.File)
+                         (t: FType)
+                         (implicit p: Parameters,
+                          name: sourcecode.Name,
+                          file: sourcecode.File)
   extends HandShakingNPS(NumOuts, ID)(new DataBundle())(p) {
   override lazy val io = IO(new FPComputeNodeIO(NumOuts))
 
@@ -649,7 +625,7 @@ class FPCustomDividerNode(NumOuts: Int, ID: Int, opCode: String)
   val state = RegInit(s_IDLE)
 
 
-  val predicate = left_R.predicate & right_R.predicate// & IsEnable()
+  val predicate = left_R.predicate & right_R.predicate // & IsEnable()
 
   /*===============================================*
    *            Latch inputs. Wire up output       *
