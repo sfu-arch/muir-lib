@@ -1291,18 +1291,18 @@ class CBranchNodeVariable(val NumTrue: Int = 1, val NumFalse: Int = 1, val NumPr
           when(cmp_R.control) {
             if (log) {
               printf(p"[LOG] [${module_name}] [TID: ${task_id}] [CBR] " +
-                p"${node_name} [Out: T:1 - F:0] [Cycle: ${cycleCount}]\n")
+                p"[${node_name}] [Out: T:1 - F:0] [Cycle: ${cycleCount}]\n")
             }
           }.otherwise {
             if (log) {
               printf(p"[LOG] [${module_name}] [TID: ${task_id}] [CBR] " +
-                p"${node_name} [Out: T:0 - F:1] [Cycle: ${cycleCount}]\n")
+                p"[${node_name}] [Out: T:0 - F:1] [Cycle: ${cycleCount}]\n")
             }
           }
         }.otherwise {
           if (log) {
             printf(p"[LOG] [${module_name}] [TID: ${task_id}] [CBR] " +
-              p"${node_name} [Out: T:0 - F:0] [Cycle: ${cycleCount}]\n")
+              p"[${node_name}] [Out: T:0 - F:0] [Cycle: ${cycleCount}]\n")
           }
         }
       }

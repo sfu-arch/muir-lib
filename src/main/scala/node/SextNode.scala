@@ -76,8 +76,9 @@ class SextNode(val SrcW: Int = 0, val DesW: Int = 0, val NumOuts: Int = 1, val I
 
   // Defalut values for output
 
+  val output_data = Mux(io.Input.fire, io.Input.bits, input_R)
   for (i <- 0 until NumOuts) {
-    io.Out(i).bits <> input_R
+    io.Out(i).bits <> output_data
     io.Out(i).valid <> output_valid_R(i)
   }
 
@@ -110,15 +111,21 @@ class SextNode(val SrcW: Int = 0, val DesW: Int = 0, val NumOuts: Int = 1, val I
 
       when(IsEnableValid() && IsInputValid()) {
 
+        io.Out.foreach(_.valid := true.B)
         output_valid_R.foreach(_ := true.B)
 
         state := s_fire
 
         if (log) {
-          printf(f"[LOG] " + "[" + module_name + "] " + "[TID->%d] "
-            + node_name + ": Output fired @ %d, Value: %d\n",
-            task_input, cycleCount, input_R.data)
+          printf(p"[LOG] [${module_name}] " +
+            p"[TID: ${task_input}] " +
+            p"[SEXT]" +
+            p"[${node_name} " +
+            p"[Pred: ${enable_R.control}] " +
+            p"[Out: ${output_data.data}] " +
+            p"[Cycle: ${cycleCount}\n")
         }
+
       }
     }
 
