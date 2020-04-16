@@ -12,7 +12,7 @@ import chipsalliance.rocketchip.config._
 import dandelion.config._
 
 
-class ComputeNodeIO(NumOuts: Int, Debug: Boolean, GuardVal: Int = 0)
+class ComputeNodeIO(NumOuts: Int, Debug: Boolean, GuardVals: Seq[Int] = List())
                    (implicit p: Parameters)
   extends HandShakingIONPS(NumOuts, Debug)(new DataBundle) {
   val LeftIO = Flipped(Decoupled(new DataBundle()))
@@ -23,12 +23,14 @@ class ComputeNodeIO(NumOuts: Int, Debug: Boolean, GuardVal: Int = 0)
 }
 
 class ComputeNode(NumOuts: Int, ID: Int, opCode: String)
-                 (sign: Boolean, Debug: Boolean = false, GuardVal: Int = 0)
+                 (sign: Boolean, Debug: Boolean = false, GuardVals: Seq[Int] = List())
                  (implicit p: Parameters,
                   name: sourcecode.Name,
                   file: sourcecode.File)
-  extends HandShakingNPS(NumOuts, ID, Debug)(new DataBundle())(p) with HasAccelShellParams {
-  override lazy val io = IO(new ComputeNodeIO(NumOuts, Debug, GuardVal))
+  extends HandShakingNPS(NumOuts, ID, Debug)(new DataBundle())(p)
+    with HasAccelShellParams
+    with HasDebugCodes {
+  override lazy val io = IO(new ComputeNodeIO(NumOuts, Debug, GuardVals))
 
   val dparam = dbgParams
 
@@ -61,13 +63,27 @@ class ComputeNode(NumOuts: Int, ID: Int, opCode: String)
   val s_IDLE :: s_COMPUTE :: Nil = Enum(2)
   val state = RegInit(s_IDLE)
 
-  val GuardVal_reg = RegInit(GuardVal.U)
   /**
-   * val debug = RegInit(0.U)
-   * debug := io.DebugIO.get
-   *
-   * val debug = RegNext(io.DebugIO.get, init = 0.U)
+   * Debug variables
    */
+
+  def IsInputValid(): Bool = {
+    right_valid_R && left_valid_R
+  }
+
+  def isInFire(): Bool = {
+    enable_valid_R && IsInputValid() && enable_R.control && state === s_IDLE
+  }
+
+  val guard_values = if (Debug) Some(VecInit(GuardVals.map(_.U(xlen.W)))) else None
+
+  val log_flag = WireInit(0.U(dbgParams.gLen.W))
+  val log_id = WireInit(ID.U(dbgParams.idLen.W))
+  val log_code = WireInit(DbgComputeData)
+  val log_iteration = WireInit(0.U(dbgParams.iterLen.W)) // 10
+  val log_data = WireInit(0.U((dbgParams.dataLen).W)) // 64 - 17
+  val isBuggy = RegInit(false.B)
+
 
   //Output register
   val out_data_R = RegNext(Mux(enable_R.control, FU.io.out, 0.U), init = 0.U)
@@ -97,36 +113,26 @@ class ComputeNode(NumOuts: Int, ID: Int, opCode: String)
     right_valid_R := true.B
   }
 
-  val log_id = WireInit(ID.U((dparam.idLen).W))
-  val GuardFlag = WireInit(0.U(dparam.gLen.W))
-  val log_out_reg = RegInit(0.U((dparam.dataLen).W))
-  val writeFinish = RegInit(false.B)
-  val test_value = WireInit(0.U(xlen.W))
-  test_value := Cat(GuardFlag, log_id, log_out_reg)
+
+  val log_value = WireInit(0.U(xlen.W))
+  log_value := Cat(log_flag, log_id, log_iteration, log_code, log_data)
+
+  val test_value_valid = WireInit(false.B)
+  val test_value_ready = WireInit(true.B)
 
   if (Debug) {
-    val test_value_valid = Wire(Bool())
-    val test_value_ready = Wire(Bool())
-    val test_value_valid_r = RegInit(false.B)
-    test_value_valid := test_value_valid_r
-    test_value_ready := false.B
-    BoringUtils.addSource(test_value, "data" + ID)
-    BoringUtils.addSource(test_value_valid, "valid" + ID)
-    BoringUtils.addSink(test_value_ready, "ready" + ID)
+    BoringUtils.addSource(log_value, s"data${ID}")
+    BoringUtils.addSource(test_value_valid, s"valid${ID}")
+    BoringUtils.addSink(test_value_ready, s"Buffer_ready${ID}")
 
-
-    val writefinishready = Wire(Bool())
-    writefinishready := false.B
-    // BoringUtils.addSource(writeFinish, "writefinish" + ID)
-
-    when(enable_valid_R && left_valid_R && right_valid_R) {
-      test_value_valid_r := true.B
-    }
-    when(state === s_COMPUTE) {
-      test_value_valid_r := false.B
-    }
+    test_value_valid := enable_valid_R && !(state === s_COMPUTE)
 
   }
+
+  val (guard_index, _) = Counter(isInFire(), GuardVals.length)
+  log_data := out_data_R
+  log_iteration := guard_index
+
 
   io.Out.foreach(_.bits := DataBundle(out_data_R, taskID, predicate))
 
@@ -135,32 +141,29 @@ class ComputeNode(NumOuts: Int, ID: Int, opCode: String)
    *============================================*/
   switch(state) {
     is(s_IDLE) {
-      when(enable_valid_R && left_valid_R && right_valid_R) {
+      when(enable_valid_R && left_valid_R && right_valid_R && test_value_ready) {
         /**
          * Debug logic: The output of FU is compared against Guard value
          * and if the value is not equal to expected value the correct value
          * will become available
          */
         if (Debug) {
-          when(FU.io.out =/= GuardVal.U) {
-            GuardFlag := 1.U
-            io.Out.foreach(_.bits := DataBundle(GuardVal.U, taskID, predicate))
-            log_out_reg := FU.io.out.asUInt()
+          when(FU.io.out =/= guard_values.get(guard_index)) {
+            isBuggy := true.B
+            log_flag := 1.U
+            io.Out.foreach(_.bits := DataBundle(guard_values.get(guard_index), taskID, predicate))
 
             if (log) {
-              printf("[LOG] [DEBUG]" + "[" + module_name + "] " + "[TID->%d] [COMPUTE] " +
-                node_name + ": Output fired @ %d, Value(W): %d -> Value(C): %d\n", taskID, cycleCount, FU.io.out, GuardVal.U)
+              printf(p"[LOG] [DEBUG] [${module_name}] [TID: taskID] [COMPUTE] " +
+                p"[${node_name}]  [Out:${FU.io.out} ] [Correct:${guard_values.get(guard_index)} ] [Cycle: ${cycleCount}]\n")
             }
 
           }.otherwise {
-            GuardFlag := 0.U
             io.Out.foreach(_.bits := DataBundle(FU.io.out, taskID, predicate))
-            log_out_reg := FU.io.out.asUInt()
           }
         }
         else {
           io.Out.foreach(_.bits := DataBundle(FU.io.out, taskID, predicate))
-          log_out_reg := FU.io.out.asUInt()
         }
         io.Out.foreach(_.valid := true.B)
         ValidOut()
@@ -181,7 +184,7 @@ class ComputeNode(NumOuts: Int, ID: Int, opCode: String)
     is(s_COMPUTE) {
       when(IsOutReady()) {
         // Reset data
-        writeFinish := true.B
+        isBuggy := false.B
         out_data_R := 0.U
 
         //Reset state

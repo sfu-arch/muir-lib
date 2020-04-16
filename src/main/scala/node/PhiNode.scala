@@ -317,7 +317,7 @@ class PhiFastNode(NumInputs: Int = 2, NumOutputs: Int = 1, ID: Int, Res: Boolean
 
 
   for (i <- 0 until NumOutputs) {
-    //io.Out(i).bits := Mux(isBuggy, correctVal, in_data_R(sel))
+//    io.Out(i).bits := Mux(isBuggy, correctVal, in_data_R(sel))
     io.Out(i).bits := in_data_R(sel)
     io.Out(i).valid := out_valid_R(i)
   }

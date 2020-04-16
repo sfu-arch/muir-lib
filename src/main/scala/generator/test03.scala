@@ -56,7 +56,7 @@ class test03DebugDF(ArgsIn: Seq[Int] = List(32, 32), Returns: Seq[Int] = List(32
   val select_1 = Module(new SelectNode(NumOuts = 1, ID = 1)(fast = false))
 
   //  %5 = sub nsw i32 %0, %4, !UID !5
-  val binaryOp_2 = Module(new ComputeNode(NumOuts = 1, ID = 2, opCode = "sub")(sign = false, Debug = true , GuardVal = 45))
+  val binaryOp_2 = Module(new ComputeNode(NumOuts = 1, ID = 2, opCode = "sub")(sign = false, Debug = true , GuardVals = List(45)))
 
   //  %6 = select i1 %3, i32 0, i32 %0, !UID !6
   val select_3 = Module(new SelectNode(NumOuts = 1, ID = 3)(fast = false))
