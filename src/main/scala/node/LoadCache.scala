@@ -134,6 +134,7 @@ class UnTypLoadCache(NumPredOps: Int,
   data_value_ready := arb.io.in(1).ready
 
   val bore_queue_ready = WireInit(false.B)
+  dontTouch(bore_queue_ready)
 
   data_queue.io.enq <> arb.io.out
   data_queue.io.deq.ready := bore_queue_ready

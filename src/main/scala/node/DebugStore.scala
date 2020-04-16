@@ -208,7 +208,7 @@ class UnTypDebugStore(
  * @param name
  * @param file
  */
-class DebugVMEBufferNode(BufferLen: Int = 20, ID: Int, Bore_ID: Int)
+class DebugVMEBufferNode(BufferLen: Int = 2, ID: Int, Bore_ID: Int)
                         (implicit val p: Parameters,
                          name: sourcecode.Name,
                          file: sourcecode.File)
@@ -234,7 +234,8 @@ class DebugVMEBufferNode(BufferLen: Int = 20, ID: Int, Bore_ID: Int)
   //------------------------------
   val dbg_counter = Counter(1024)
 
-  val N = RegInit(32.U)
+//  val N = RegInit(32.U)
+  val addr_debug_reg = RegInit(0.U(xlen.W))
   val sIdel :: sReq :: sBusy :: Nil = Enum(3)
   val wState = RegInit(sIdel)
 
@@ -251,17 +252,17 @@ class DebugVMEBufferNode(BufferLen: Int = 20, ID: Int, Bore_ID: Int)
   BoringUtils.addSink(writeFinished, s"RunFinished${ID}")
 
   LogData.io.enq.bits := buf.port.bits
-  LogData.io.enq.valid := buf.port.valid & io.Enable
-  buf.port.ready := LogData.io.enq.ready
+  LogData.io.enq.valid := buf.port.valid && io.Enable && (wState === sIdel)
+  buf.port.ready := LogData.io.enq.ready && (wState === sIdel)
 
-  io.vmeOut.cmd.bits.addr := io.addrDebug
+  io.vmeOut.cmd.bits.addr := io.addrDebug + addr_debug_reg
   io.vmeOut.cmd.bits.len := queue_count - 1.U
   io.vmeOut.cmd.valid := (wState === sReq)
 
 
   switch(wState) {
     is(sIdel) {
-      when((writeFinished && LogData.io.deq.valid) || (LogData.io.count.asUInt() === N.asUInt() / 2.U)) {
+      when((writeFinished && LogData.io.deq.valid) || (LogData.io.count.asUInt() === BufferLen.U / 2.U)) {
         wState := sReq
       }
     }
@@ -274,6 +275,7 @@ class DebugVMEBufferNode(BufferLen: Int = 20, ID: Int, Bore_ID: Int)
       when(io.vmeOut.ack) {
         wState := sIdel
         queue_count := 0.U
+        addr_debug_reg := addr_debug_reg + (queue_count * (xlen >> 3).asUInt())
       }
     }
   }

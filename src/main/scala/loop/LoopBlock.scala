@@ -968,7 +968,7 @@ class LoopBlockNode(ID: Int, NumIns: Seq[Int], NumCarry: Seq[Int], NumOuts: Seq[
 
           if (log) {
             printf(p"[LOG] [${module_name}] [TID: ${io.activate_loop_start.bits.taskID}]" +
-              p" [LOOP] [${node_name}] [RESTARTED] [Cycle: ${cycleCount}\n")
+              p" [LOOP] [${node_name}] [RESTARTED] [Cycle: ${cycleCount}]\n")
           }
 
         }.elsewhen(loop_finish_R.map(_.control).reduce(_ | _)) { //last iteration

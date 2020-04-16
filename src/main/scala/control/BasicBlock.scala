@@ -127,7 +127,7 @@ class BasicBlockNode(NumInputs: Int,
         when(predicate) {
           if (log) {
             printf(p"[LOG] [${module_name}] [TID: ${predicate_task}] [BB] " +
-              p"${node_name}] [Mask: 0x${Hexadecimal(predicate_control_R.asUInt())}\n")
+              p"${node_name}] [Mask: 0x${Hexadecimal(predicate_control_R.asUInt())}]\n")
           }
         }.otherwise {
           if (log) {
