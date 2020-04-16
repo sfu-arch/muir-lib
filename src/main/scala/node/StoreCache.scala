@@ -148,7 +148,7 @@ class UnTypStoreCache(NumPredOps: Int,
 
   switch(state) {
     is(s_idle) {
-      when(enable_valid_R) {
+      when(enable_valid_R && address_value_ready) {
         when(data_valid_R && addr_valid_R) {
           when(enable_R.control && mem_req_fire) {
             io.MemReq.valid := true.B
