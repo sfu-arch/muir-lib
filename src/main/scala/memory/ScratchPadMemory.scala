@@ -24,7 +24,7 @@ class ScratchPadMemoryIO(implicit p: Parameters) extends AccelBundle()(p) with H
 class ScratchPadMemory(Size: Int)(implicit val p: Parameters) extends Module with HasAccelParams {
   val io = IO(new ScratchPadMemoryIO())
 
-  val mem = SyncReadMem(Size, UInt(xlen.W))
+  val mem = Mem(Size, UInt(xlen.W))
   val mem_req = RegEnable(init = MemReq.default, next = io.req.bits, enable = io.req.fire)
   val mem_resp_data = RegInit(0.U(xlen.W))
 
@@ -41,11 +41,14 @@ class ScratchPadMemory(Size: Int)(implicit val p: Parameters) extends Module wit
   io.resp.bits.tag:= mem_req.tag
   io.resp.bits.iswrite := mem_req.iswrite
 
+  val req_addr = (io.req.bits.addr >> 3.U).asUInt()
+
+
   when(io.req.fire){
     when(io.req.bits.iswrite){
-      mem.write(io.req.bits.addr, io.req.bits.data)
+      mem.write(req_addr, io.req.bits.data)
     }.otherwise{
-      mem_resp_data := mem.read(io.req.bits.addr, true.B)
+      mem_resp_data := mem.read(req_addr)
     }
   }
 
