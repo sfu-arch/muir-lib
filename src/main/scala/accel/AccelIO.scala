@@ -48,7 +48,8 @@ abstract class DandelionAccelModule(val ArgsIn: Seq[Int],
   */
 class DandelionAccelDCRIO[T <: Data](val PtrsIn: Seq[Int],
                                      val ValsIn: Seq[Int],
-                                     val RetsOut: Seq[Int])(implicit p: Parameters)
+                                     val RetsOut: Seq[Int])
+                                    (implicit p: Parameters)
   extends AccelBundle()(p) with HasAccelShellParams {
   val in = Flipped(Decoupled(new CallDCR(PtrsIn, ValsIn)))
   val MemResp = Flipped(Valid(new MemResp))
@@ -62,8 +63,9 @@ class DandelionAccelDCRIO[T <: Data](val PtrsIn: Seq[Int],
 
 abstract class DandelionAccelDCRModule(val PtrsIn: Seq[Int],
                                        val ValsIn: Seq[Int],
-                                       val RetsOut: Seq[Int])(implicit val p: Parameters) extends Module with HasAccelParams {
-  override lazy val io = IO(new DandelionAccelDCRIO(PtrsIn, ValsIn, RetsOut))
+                                       val RetsOut: Seq[Int])
+                                      (implicit val p: Parameters) extends MultiIOModule with HasAccelParams {
+  lazy val io = IO(new DandelionAccelDCRIO(PtrsIn, ValsIn, RetsOut))
 }
 
 /**

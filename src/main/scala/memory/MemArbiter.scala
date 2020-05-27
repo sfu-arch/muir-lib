@@ -12,7 +12,12 @@ import dandelion.config._
 import utility._
 import dandelion.interfaces._
 
-
+/**
+  * This is a simple memory arbiter that serializes the memory accesses.
+  * @TODO There needs to be a new implementation to parallelize memory accesses and book keep the previous access
+  * @param NumPorts
+  * @param p
+  */
 class MemArbiterIO(NumPorts:Int)(implicit val p: Parameters)
   extends Module with HasAccelParams  with UniformPrintfs {
   val io = IO(new Bundle {
