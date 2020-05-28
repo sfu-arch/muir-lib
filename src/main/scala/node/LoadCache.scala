@@ -214,7 +214,8 @@ class UnTypLoadCache(NumPredOps: Int,
         data_R.predicate := true.B
 
         ValidSucc()
-        ValidOut()
+//        ValidOut()
+        out_valid_R.foreach(_ := true.B)
         // Completion state.
         state := s_Done
 

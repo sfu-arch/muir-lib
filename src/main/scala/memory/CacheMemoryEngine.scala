@@ -9,11 +9,12 @@ import dandelion.util._
 
 
 /**
- * CMEMaster
- * Memory interface between Load/Store, Master nodes, with memory modules such as cache
- * in the accelerator
- * @param p
- */
+  * CMEMaster
+  * Memory interface between Load/Store, Master nodes, with memory modules such as cache
+  * in the accelerator
+  *
+  * @param p
+  */
 class CMEMaster(implicit val p: Parameters) extends Bundle with HasAccelShellParams {
   val MemReq = Decoupled(new MemReq)
   val MemResp = Flipped(Valid(new MemResp))
@@ -23,10 +24,11 @@ class CMEMaster(implicit val p: Parameters) extends Bundle with HasAccelShellPar
 }
 
 /**
- * CMEClient
- * Memory interface between Memory modules to Load/Store nodes of accelerator
- * @param p
- */
+  * CMEClient
+  * Memory interface between Memory modules to Load/Store nodes of accelerator
+  *
+  * @param p
+  */
 class CMEClient(implicit val p: Parameters) extends Bundle with HasAccelShellParams {
   val MemReq = Flipped(Decoupled(new MemReq))
   val MemResp = Valid(new MemResp)
@@ -36,33 +38,35 @@ class CMEClient(implicit val p: Parameters) extends Bundle with HasAccelShellPar
 }
 
 /**
- * CMEClientVector
- * Vector interface
- * @param NumOps
- * @param p
- */
+  * CMEClientVector
+  * Vector interface
+  *
+  * @param NumOps
+  * @param p
+  */
 class CMEClientVector(NumOps: Int)(implicit val p: Parameters) extends Bundle with HasAccelShellParams {
   val mem = Vec(NumOps, new CMEClient)
+
   override def cloneType =
     new CMEClientVector(NumOps).asInstanceOf[this.type]
 }
 
 
 /**
- * @TODO: Currently we have mixed memory command with with memory data
- *       the better way to implement and pipeline the design is to separate
- *       memory commands from memory data and make them independent
- *       so we can also design a simple MSHR and have multiple
- *       memory request on the fly. At this moment for the sake of simplification
- *       we have serialize all the memory accesses.
- *       By just breaking down the memory accesses into two nodes
- *       or make a centeralized memory unit with separate channel for read and write
- *       we can have better parallelization.
- * @param ID
- * @param NumRead
- * @param NumWrite
- * @param p
- */
+  * @TODO: Currently we have mixed memory command with with memory data
+  *        the better way to implement and pipeline the design is to separate
+  *        memory commands from memory data and make them independent
+  *        so we can also design a simple MSHR and have multiple
+  *        memory request on the fly. At this moment for the sake of simplification
+  *        we have serialize all the memory accesses.
+  *        By just breaking down the memory accesses into two nodes
+  *        or make a centeralized memory unit with separate channel for read and write
+  *        we can have better parallelization.
+  * @param ID
+  * @param NumRead
+  * @param NumWrite
+  * @param p
+  */
 class CacheMemoryEngine(ID: Int, NumRead: Int, NumWrite: Int)(implicit val p: Parameters) extends Module with HasAccelParams with HasAccelShellParams {
 
   val io = IO(new Bundle {
@@ -105,12 +109,18 @@ class CacheMemoryEngine(ID: Int, NumRead: Int, NumWrite: Int)(implicit val p: Pa
   }
 
   for (i <- 0 until NumRead) {
-    io.rd.mem(i).MemResp.valid := (in_arb_chosen === i.U) && (in_arb_chosen === io.cache.MemResp.bits.tag) && io.cache.MemResp.valid
+    io.rd.mem(i).MemResp.valid := (in_arb_chosen === i.U) &&
+      (in_arb_chosen === io.cache.MemResp.bits.tag) &&
+      io.cache.MemResp.valid &&
+      (mstate === sMemData)
     io.rd.mem(i).MemResp.bits <> io.cache.MemResp.bits
   }
 
   for (i <- NumRead until NumRead + NumWrite) {
-    io.wr.mem(i - NumRead).MemResp.valid := (in_arb_chosen === i.U) && (in_arb_chosen === io.cache.MemResp.bits.tag) && io.cache.MemResp.valid
+    io.wr.mem(i - NumRead).MemResp.valid := (in_arb_chosen === i.U) &&
+      (in_arb_chosen === io.cache.MemResp.bits.tag) &&
+      io.cache.MemResp.valid &&
+      (mstate === sMemData)
     io.wr.mem(i - NumRead).MemResp.bits <> io.cache.MemResp.bits
   }
 

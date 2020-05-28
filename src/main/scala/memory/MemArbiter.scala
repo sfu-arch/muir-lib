@@ -33,6 +33,7 @@ class MemArbiterIO(NumPorts:Int)(implicit val p: Parameters)
   })
 }
 
+
 class MemArbiter(NumPorts:Int)(implicit p: Parameters) extends MemArbiterIO(NumPorts)(p) {
 
   val reqArb  = Module(new RRArbiter(new MemReq, NumPorts))
