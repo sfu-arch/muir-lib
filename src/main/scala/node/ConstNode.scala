@@ -89,7 +89,7 @@ class ConstNode(value: BigInt, NumOuts: Int = 1, ID: Int)
 }
 
 
-class ConstFastNode(value: Int, ID: Int)
+class ConstFastNode(value: BigInt, ID: Int)
                     (implicit val p: Parameters,
                      name: sourcecode.Name,
                      file: sourcecode.File)
