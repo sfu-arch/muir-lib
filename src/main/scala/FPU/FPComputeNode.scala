@@ -98,13 +98,16 @@ class FPComputeNode(NumOuts: Int, ID: Int, opCode: String)
         io.Out.foreach(_.bits := DataBundle(FU.io.out, enable_R.taskID, predicate))
         io.Out.foreach(_.valid := true.B)
         ValidOut()
-        state := s_COMPUTE
         left_valid_R := false.B
         right_valid_R := false.B
+        state := s_COMPUTE
         if (log) {
-          printf(p"[LOG] [${module_name}] [TID: ${task_ID_R}] " +
-            p"[${node_name}] " +
+          printf(p"[LOG] [${module_name}] [TID: ${task_ID_R}] [FPCompute] [${node_name}] " +
+            p"[Pred: ${enable_R.control}] " +
+            p"[In(0): 0x${Hexadecimal(left_R.data)}] " +
+            p"[In(1) 0x${Hexadecimal(right_R.data)}] " +
             p"[Out: 0x${Hexadecimal(FU.io.out)}] " +
+            p"[OpCode: ${opCode}] " +
             p"[Cycle: ${cycleCount}]\n")
         }
       }

@@ -115,7 +115,6 @@ object ReadResp {
   def default(implicit p: Parameters): ReadResp = {
     val wire = Wire(new ReadResp)
     wire.data := 0.U
-    wire.RouteID := 0.U
     wire
   }
 }
@@ -158,12 +157,11 @@ class WriteResp(implicit p: Parameters) extends RouteID {
 }
 
 //  data : data returned from scratchpad
-class FUResp(implicit p: Parameters) extends RouteID {
+class FUResp(implicit p: Parameters) extends AccelBundle {
   val data = UInt(xlen.W)
 
   override def toPrintable: Printable = {
     p"FUResp {\n" +
-      p"  RouteID: ${RouteID}\n" +
       p"  data   : 0x${Hexadecimal(data)} }"
   }
 }
@@ -172,7 +170,6 @@ object FUResp {
   def default(implicit p: Parameters): FUResp = {
     val wire = Wire(new FUResp)
     wire.data := 0.U
-    wire.RouteID := 0.U
     wire
   }
 }
@@ -607,8 +604,10 @@ class CallDCRDecoupledVec(val ptrsArgTypes: Seq[Int],
 }
 
 // Function unit request type
-class FUReq(val argTypes: Seq[Int])(implicit p: Parameters) extends RouteID {
-  val data = new VariableData(argTypes)
+class FUReq(implicit p: Parameters) extends RouteID {
+  val data_a = UInt(xlen.W)
+  val data_b = UInt(xlen.W)
+  val sqrt = Bool()
 
-  override def cloneType = new FUReq(argTypes).asInstanceOf[this.type]
+  override def cloneType = new FUReq().asInstanceOf[this.type]
 }

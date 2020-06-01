@@ -8,7 +8,7 @@ import dandelion.interfaces._
 import util._
 import utility.UniformPrintfs
 
-class ConstNode(value: Int, NumOuts: Int = 1, ID: Int)
+class ConstNode(value: BigInt, NumOuts: Int = 1, ID: Int)
                (implicit p: Parameters,
                 name: sourcecode.Name,
                 file: sourcecode.File)

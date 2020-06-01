@@ -25,9 +25,9 @@ class FPDivSqrtIO(NumOuts: Int,
   // Dividend
   val b      = Flipped(Decoupled(new DataBundle))
   // FU request
-  val FUReq  = Decoupled(new FUReq(argTypes))
+  val FUReq  = Decoupled(new FUReq)
   // FU response.
-  val FUResp = Flipped(Valid(new FUResp()))
+  val FUResp = Flipped(Valid(new FUResp))
 
   override def cloneType = new FPDivSqrtIO(NumOuts, argTypes).asInstanceOf[this.type]
 }
@@ -116,12 +116,8 @@ class FPDivSqrtNode(NumOuts: Int,
 
 
   io.FUReq.valid := false.B
-  io.FUReq.bits.data("field0").data := a_R.data
-  io.FUReq.bits.data("field1").data := b_R.data
-  io.FUReq.bits.data("field0").predicate := true.B
-  io.FUReq.bits.data("field1").predicate := true.B
-  io.FUReq.bits.data("field0").taskID := a_R.taskID | b_R.taskID | enable_R.taskID
-  io.FUReq.bits.data("field1").taskID := a_R.taskID | b_R.taskID | enable_R.taskID
+  io.FUReq.bits.data_a := a_R.data
+  io.FUReq.bits.data_b := b_R.data
 
 
   require((opCode == "DIV" || opCode == "fdiv" || opCode == "SQRT"), "DIV or SQRT required")
@@ -130,9 +126,7 @@ class FPDivSqrtNode(NumOuts: Int,
     case "fdiv" => false.B
     case "SQRT" => true.B
   }
-  io.FUReq.bits.data("field2").data := DivOrSqrt
-  io.FUReq.bits.data("field2").predicate := true.B
-  io.FUReq.bits.data("field2").taskID := 1.U
+  io.FUReq.bits.sqrt := DivOrSqrt
 
   io.FUReq.bits.RouteID := RouteID.U
 

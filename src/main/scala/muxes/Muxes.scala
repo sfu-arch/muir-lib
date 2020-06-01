@@ -13,27 +13,18 @@ import dandelion.config._
 class Demux[T <: Data](gen: T, Nops: Int) extends Module {
   val io = IO(new Bundle {
     val en      = Input(Bool( ))
-    val input   = Flipped(Valid(gen))
+    val input   = Input(gen)
     val sel     = Input(UInt(max(1, log2Ceil(Nops)).W))
     val outputs = Vec(Nops, Valid(gen))
   })
 
-  val x = io.sel
+  io.outputs.foreach(_.bits := io.input)
+  io.outputs.foreach(_.valid := false.B)
 
-  for (i <- 0 until Nops) {
-    io.outputs(i) := io.input
+  when(io.en){
+    io.outputs(io.sel).valid := io.en
   }
-  when(io.en) {
-    for (i <- 0 until Nops) {
-      io.outputs(i).valid := false.B
-    }
-    io.outputs(x).valid := true.B
-  }.otherwise {
-    for (i <- 0 until Nops) {
-      io.outputs(i).valid := false.B
-    }
-  }
-  // io.outputvalid := io.valids.asUInt.andR
+
 }
 
 
