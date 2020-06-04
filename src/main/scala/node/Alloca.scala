@@ -1,17 +1,17 @@
 package dandelion.node
 
 import chisel3._
-import chisel3.iotesters.{ChiselFlatSpec, Driver, PeekPokeTester, OrderedDecoupledHWIOTester}
+import chisel3.iotesters.{ChiselFlatSpec, Driver, OrderedDecoupledHWIOTester, PeekPokeTester}
 import chisel3.Module
 import chisel3.testers._
 import chisel3.util._
-import org.scalatest.{Matchers, FlatSpec}
-
+import org.scalatest.{FlatSpec, Matchers}
 import chipsalliance.rocketchip.config._
 import dandelion.config._
 import dandelion.interfaces._
 import muxes._
 import util._
+import utility.UniformPrintfs
 
 class AllocaNodeIO(NumOuts: Int, Debug: Boolean)(implicit p: Parameters)
   extends HandShakingIONPS(NumOuts, Debug)(new DataBundle) {
@@ -151,3 +151,77 @@ class AllocaNode(NumOuts: Int, ID: Int, RouteID: Int, FrameSize: Int = 16, Debug
     io.Out(i).bits.taskID := 0.U
   }
 }
+
+
+
+class AllocaConstNode(value: BigInt = 0, NumOuts: Int = 1, ID: Int)
+               (implicit p: Parameters,
+                name: sourcecode.Name,
+                file: sourcecode.File)
+  extends HandShakingNPS(NumOuts, ID )(new DataBundle())(p) {
+
+  override lazy val io = IO(new HandShakingIONPS(NumOuts)(new DataBundle()))
+  val node_name = name.value
+  val module_name = file.value.split("/").tail.last.split("\\.").head.capitalize
+
+  override val printfSigil = "[" + module_name + "] " + node_name + ": " + ID + " "
+  val (cycleCount, _) = Counter(true.B, 32 * 1024)
+
+  /*===========================================*
+   *            Registers                      *
+   *===========================================*/
+  //val task_ID_R = RegNext(next = enable_R.taskID)
+  val task_ID_W = io.enable.bits.taskID
+
+  //Output register
+  val out_data_R = RegInit(DataBundle.default)
+
+  val s_IDLE :: s_COMPUTE :: Nil = Enum(2)
+  val state = RegInit(s_IDLE)
+
+
+  //val predicate = left_R.predicate & right_R.predicate// & IsEnable()
+
+  /*===============================================*
+   *            Latch inputs. Wire up output       *
+   *===============================================*/
+
+  // Wire up Outputs
+  for (i <- 0 until NumOuts) {
+    io.Out(i).bits := out_data_R
+  }
+
+  /*============================================*
+   *            State Machine                   *
+   *============================================*/
+  switch(state) {
+    is(s_IDLE) {
+      when(io.enable.fire()) {
+        ValidOut()
+        io.Out.foreach(_.valid := true.B)
+        io.Out.foreach(_.bits := DataBundle(value.asSInt(xlen.W).asUInt()))
+        when(io.enable.bits.control) {
+          out_data_R := DataBundle(value.asSInt(xlen.W).asUInt())
+        }
+
+        state := s_COMPUTE
+      }
+    }
+    is(s_COMPUTE) {
+      when(IsOutReady()) {
+        //Reset state
+
+        state := s_IDLE
+        out_data_R.predicate := false.B
+        Reset()
+        if (log) {
+          printf("[LOG] " + "[" + module_name + "] " + "[TID->%d] " +
+            node_name + ": Output fired @ %d, Value: %d\n",
+            task_ID_W, cycleCount, value.asSInt(xlen.W))
+        }
+      }
+    }
+  }
+}
+
+
