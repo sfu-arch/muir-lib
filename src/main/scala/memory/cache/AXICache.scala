@@ -24,7 +24,7 @@ trait CacheAccelParams extends HasAccelParams with HasAccelShellParams {
   val nWords = bBits / xlen
   val wBytes = xlen / 8
   val byteOffsetBits = log2Ceil(wBytes)
-  val dataBeats = bBits / memParams.dataBits
+  val dataBeats = (bBits + memParams.dataBits - 1) / memParams.dataBits
 }
 
 
