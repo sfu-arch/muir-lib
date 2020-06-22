@@ -840,6 +840,10 @@ class DMECache(val ID: Int = 0, val debug: Boolean = false)(implicit val p: Para
   io.mem.wr.data.bits := Mux(flush_mode,
     VecInit.tabulate(dataBeats)(i => dirty_cache_block((i + 1) * Axi_param.dataBits - 1, i * Axi_param.dataBits))(write_count),
     VecInit.tabulate(dataBeats)(i => read((i + 1) * Axi_param.dataBits - 1, i * Axi_param.dataBits))(write_count))
+
+//  io.mem.wr.data.bits := VecInit.tabulate(dataBeats)(i => read((i + 1) * Axi_param.dataBits - 1, i * Axi_param.dataBits))(write_count)
+
+
   io.mem.wr.data.valid := false.B
 
   // write resp

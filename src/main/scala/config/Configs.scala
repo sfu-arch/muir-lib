@@ -86,7 +86,7 @@ case class DandelionAccelParams(
   val nways = cacheNWays // TODO: set-associative
   val nsets = cacheNSets
 
-  def cacheBlockBytes: Int = 4 * (xlen >> 3) // 4 x 64 bits = 32B
+  def cacheBlockBytes: Int = 8 * (xlen >> 3) // 4 x 64 bits = 32B
 
   // Debugging dumps
   val log: Boolean = printLog
