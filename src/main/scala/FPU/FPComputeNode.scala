@@ -42,6 +42,8 @@ class FPComputeNode(NumOuts: Int, ID: Int, opCode: String)
   //  override val printfSigil = "Node (COMP - " + opCode + ") ID: " + ID + " "
   val (cycleCount, _) = Counter(true.B, 32 * 1024)
 
+  val iter_counter = Counter(32 * 1024)
+
   /*===========================================*
    *            Registers                      *
    *===========================================*/
@@ -101,12 +103,14 @@ class FPComputeNode(NumOuts: Int, ID: Int, opCode: String)
         left_valid_R := false.B
         right_valid_R := false.B
         state := s_COMPUTE
+        iter_counter.inc()
         if (log) {
           printf(p"[LOG] [${module_name}] [TID: ${task_ID_R}] [FPCompute] [${node_name}] " +
             p"[Pred: ${enable_R.control}] " +
-            p"[In(0): 0x${Hexadecimal(left_R.data)}] " +
-            p"[In(1) 0x${Hexadecimal(right_R.data)}] " +
-            p"[Out: 0x${Hexadecimal(FU.io.out)}] " +
+            p"[Iter: ${iter_counter}] " +
+            p"[In(0): ${Decimal(left_R.data)}] " +
+            p"[In(1) ${Decimal(right_R.data)}] " +
+            p"[Out: ${Decimal(FU.io.out)}] " +
             p"[OpCode: ${opCode}] " +
             p"[Cycle: ${cycleCount}]\n")
         }
