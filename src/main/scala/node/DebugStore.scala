@@ -2,11 +2,11 @@ package dandelion.node
 
 import chisel3._
 import chisel3.util._
-import chipsalliance.rocketchip.config._
 import chisel3.util.experimental.BoringUtils
 import dandelion.config._
 import dandelion.interfaces._
 import dandelion.shell.DMEWriteMaster
+import tensorKernels.URAM_Queue
 import utility.Constants._
 import utility.UniformPrintfs
 
@@ -240,7 +240,7 @@ class DebugVMEBufferNode(BufferLen: Int = 2, ID: Int, Bore_ID: Int)
   val wState = RegInit(sIdel)
 
   //Is the Data The Wires of the Boring Connection Will put data in.
-  val LogData = Module(new Queue(UInt((xlen).W), BufferLen))
+  val LogData = Module(new URAM_Queue(UInt((xlen).W), BufferLen))
 
   val queue_count = RegInit(0.U(log2Ceil(BufferLen).W))
   when(LogData.io.enq.fire) {
