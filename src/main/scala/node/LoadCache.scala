@@ -46,6 +46,8 @@ class UnTypLoadCache(NumPredOps: Int,
   val node_name = name.value
   val module_name = file.value.split("/").tail.last.split("\\.").head.capitalize
   val (cycleCount, _) = Counter(true.B, 32 * 1024)
+
+  val iter_counter = Counter(32 * 1024)
   override val printfSigil = "[" + module_name + "] " + node_name + ": " + ID + " "
 
 
@@ -247,11 +249,13 @@ class UnTypLoadCache(NumPredOps: Int,
         Reset()
         // Reset state.
         state := s_idle
+        iter_counter.inc()
         if (log) {
           printf(p"[LOG] [${module_name}] [TID: ${enable_R.taskID}] [LOAD] " +
             p"[${node_name}] [Pred: ${enable_R.control}] " +
-            p"[Addr: 0x${Hexadecimal(addr_R.data)}] " +
-            p"[Data: 0x${Hexadecimal(data_R.data)}] " +
+            p"[Iter: ${iter_counter}] " +
+            p"[Addr: ${Decimal(addr_R.data)}] " +
+            p"[Data: ${Decimal(data_R.data)}] " +
             p"[Cycle: ${cycleCount}]\n")
         }
       }

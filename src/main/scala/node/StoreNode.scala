@@ -48,6 +48,7 @@ class StoreNode(Typ: UInt = MT_W, ID: Int, RouteID: Int)(implicit val p: Paramet
 
   override val printfSigil = "Node (STORE) ID: " + ID + " "
 
+
   /*=============================================
   =            Register declarations            =
   =============================================*/
