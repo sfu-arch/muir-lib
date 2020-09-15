@@ -43,7 +43,7 @@ class ComputeNode(NumOuts: Int, ID: Int, opCode: String)
 
 
   val dbg_counter = Counter(1024)
-
+  val induction_counter = Counter(1024)
   //val a = dbg_counter.value << 2.U
 
   /*===========================================*
@@ -147,6 +147,7 @@ class ComputeNode(NumOuts: Int, ID: Int, opCode: String)
          * and if the value is not equal to expected value the correct value
          * will become available
          */
+        // send induction too
         if (Debug) {
           when(FU.io.out =/= guard_values.get(guard_index)) {
             isBuggy := true.B
@@ -186,7 +187,7 @@ class ComputeNode(NumOuts: Int, ID: Int, opCode: String)
         // Reset data
         isBuggy := false.B
         out_data_R := 0.U
-
+        //induction_counter := induction_counter+1.U
         //Reset state
         state := s_IDLE
         Reset()
