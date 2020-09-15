@@ -107,7 +107,7 @@ class FPComputeNode(NumOuts: Int, ID: Int, opCode: String)
         if (log) {
           printf(p"[LOG] [${module_name}] [TID: ${task_ID_R}] [FPCompute] [${node_name}] " +
             p"[Pred: ${enable_R.control}] " +
-            p"[Iter: ${iter_counter}] " +
+            p"[Iter: ${iter_counter.value}] " +
             p"[In(0): ${Decimal(left_R.data)}] " +
             p"[In(1) ${Decimal(right_R.data)}] " +
             p"[Out: ${Decimal(FU.io.out)}] " +

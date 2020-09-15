@@ -9,7 +9,7 @@ import dandelion.interfaces._
 import dandelion.shell.DMEWriteMaster
 import utility.Constants._
 import utility.UniformPrintfs
-
+import tensorKernels.URAM_Queue
 /**
  * @brief Store Node. Implements store operations
  * @details [long description]
@@ -240,7 +240,7 @@ class DebugVMEBufferNode(BufferLen: Int = 2, ID: Int, Bore_ID: Int)
   val wState = RegInit(sIdel)
 
   //Is the Data The Wires of the Boring Connection Will put data in.
-  val LogData = Module(new Queue(UInt((xlen).W), BufferLen))
+  val LogData = Module(new URAM_Queue(UInt((xlen).W), BufferLen))
 
   val queue_count = RegInit(0.U(log2Ceil(BufferLen).W))
   when(LogData.io.enq.fire) {
