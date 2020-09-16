@@ -8,6 +8,7 @@ import dandelion.interfaces._
 import dandelion.shell.DMEWriteMaster
 import utility.Constants._
 import utility.UniformPrintfs
+import chipsalliance.rocketchip.config._
 //import tensorKernels.URAM_Queue
 
 /**
