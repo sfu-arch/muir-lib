@@ -12,7 +12,7 @@ import chipsalliance.rocketchip.config._
 import dandelion.config._
 
 
-class ComputeNodeIO(NumOuts: Int, Debug: Boolean, GuardVals: Seq[Int] = List())
+class ComputeNodeIO(NumOuts: Int, Debug: Boolean, GuardVals: Seq[Int] = List(), Ella: Boolean= false)
                    (implicit p: Parameters)
   extends HandShakingIONPS(NumOuts, Debug)(new DataBundle) {
   val LeftIO = Flipped(Decoupled(new DataBundle()))
@@ -23,7 +23,7 @@ class ComputeNodeIO(NumOuts: Int, Debug: Boolean, GuardVals: Seq[Int] = List())
 }
 
 class ComputeNode(NumOuts: Int, ID: Int, opCode: String)
-                 (sign: Boolean, Debug: Boolean = false, GuardVals: Seq[Int] = List())
+                 (sign: Boolean, Debug: Boolean = false, GuardVals: Seq[Int] = List(), Ella:Boolean= false)
                  (implicit p: Parameters,
                   name: sourcecode.Name,
                   file: sourcecode.File)
@@ -135,7 +135,10 @@ class ComputeNode(NumOuts: Int, ID: Int, opCode: String)
 
 
   io.Out.foreach(_.bits := DataBundle(out_data_R, taskID, predicate))
+  if (Ella){
 
+    printf(p"[LOG] [DEBUG Ella] [${module_name}] [TID: taskID] [COMPUTE] " + p"[${node_name}]  [Out:${FU.io.out} ] [Correct:${guard_values.get(guard_index)} ] [Cycle: ${cycleCount}]\n")
+  }
   /*============================================*
    *            State Machine                   *
    *============================================*/
@@ -154,7 +157,7 @@ class ComputeNode(NumOuts: Int, ID: Int, opCode: String)
             log_flag := 1.U
             io.Out.foreach(_.bits := DataBundle(guard_values.get(guard_index), taskID, predicate))
 
-            if (log) {
+            if (log && !Ella) {
               printf(p"[LOG] [DEBUG] [${module_name}] [TID: taskID] [COMPUTE] " +
                 p"[${node_name}]  [Out:${FU.io.out} ] [Correct:${guard_values.get(guard_index)} ] [Cycle: ${cycleCount}]\n")
             }
