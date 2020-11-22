@@ -220,7 +220,7 @@ class RetNode2(retTypes: Seq[Int], ID: Int , Debug: Boolean = false, NumBores : 
         if (log) {
           printf(p"[LOG] [${module_name}] " +
             p"[TID: ${output_R.enable.taskID}] " +
-            p"[${node_name}] " +
+            p"[Name: ${node_name}] [ID: ${ID}] " +
             p"[Cycle: ${cycleCount}]\n")
         }
       }

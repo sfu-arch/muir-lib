@@ -965,8 +965,8 @@ class GepNode(NumIns: Int, NumOuts: Int, ID: Int)
         // Reset output
         Reset()
         if (log) {
-          printf(p"[LOG] [${module_name}] [TID: ${enable_R.taskID}] [GEP] [${node_name}] " +
-            p"[Pred: ${enable_R.control}][Out: 0x${Hexadecimal(data_out)}] [Cycle: ${cycleCount}]\n")
+          printf(p"[LOG] [${module_name}] [TID: ${enable_R.taskID}] [GEP] [Name: ${node_name}] [ID: ${ID}] " +
+            p"[Pred: ${enable_R.control}] [Out: 0x${Hexadecimal(data_out)}] [Cycle: ${cycleCount}]\n")
         }
       }
     }

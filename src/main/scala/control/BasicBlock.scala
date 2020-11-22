@@ -127,7 +127,7 @@ class BasicBlockNode(NumInputs: Int,
         when(predicate) {
           if (log) {
             printf(p"[LOG] [${module_name}] [TID: ${predicate_task}] [BB] " +
-              p"${node_name}] [Mask: 0x${Hexadecimal(predicate_control_R.asUInt())}]\n")
+              p"[Name: ${node_name}] [BID: ${BID}] [Mask: 0x${Hexadecimal(predicate_control_R.asUInt())}]\n")
           }
         }.otherwise {
           if (log) {
@@ -308,7 +308,7 @@ class BasicBlockNoMaskFastNode(BID: Int, val NumInputs: Int = 1, val NumOuts: In
         state := s_fire
 
         if (log) {
-          printf(p"[LOG] [${module_name}] [TID: ${output_R.taskID}] [BB] [${node_name}] [Out: ${predicate_val}] [Cycle: ${cycleCount}]\n")
+          printf(p"[LOG] [${module_name}] [TID: ${output_R.taskID}] [BB] [Name: ${node_name}] [BID: ${BID}][Out: ${predicate_val}] [Cycle: ${cycleCount}]\n")
         }
       }
     }

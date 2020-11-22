@@ -249,7 +249,7 @@ class UnTypLoadCache(NumPredOps: Int,
         state := s_idle
         if (log) {
           printf(p"[LOG] [${module_name}] [TID: ${enable_R.taskID}] [LOAD] " +
-            p"[${node_name}] [Pred: ${enable_R.control}] " +
+            p"[Name: ${node_name}] [ID: ${ID}] [Pred: ${enable_R.control}] " +
             p"[Addr: 0x${Hexadecimal(addr_R.data)}] " +
             p"[Data: 0x${Hexadecimal(data_R.data)}] " +
             p"[Cycle: ${cycleCount}]\n")

@@ -348,14 +348,14 @@ class PhiFastNode(NumInputs: Int = 2, NumOutputs: Int = 1, ID: Int, Res: Boolean
           //*****************************************************************
           if (log) {
             printf(p"[LOG] [${module_name}] [TID: ${io.InData(sel).bits.taskID}] [PHI] " +
-              p"[${node_name}] [Pred: ${enable_R.control}] [Out: ${in_data_R(sel).data}] [Cycle: ${cycleCount}]\n")
+              p"[Name: ${node_name}] [ID: ${ID}] [Pred: ${enable_R.control}] [Out: ${in_data_R(sel).data}] [Cycle: ${cycleCount}]\n")
           }
         }.otherwise {
           state := s_not_predicated
           //Print output
           if (log) {
             printf(p"[LOG] [${module_name}] [TID: ${io.InData(sel).bits.taskID}] [PHI] " +
-              p"[${node_name}] [Pred: ${enable_R.control}] [Out: ${in_data_R(sel).data}] [Cycle: ${cycleCount}]\n")
+              p"[Name: ${node_name}] [ID: ${ID}] [Pred: ${enable_R.control}] [Out: ${in_data_R(sel).data}] [Cycle: ${cycleCount}]\n")
           }
         }
       }

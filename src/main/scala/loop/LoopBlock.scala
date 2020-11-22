@@ -968,7 +968,7 @@ class LoopBlockNode(ID: Int, NumIns: Seq[Int], NumCarry: Seq[Int], NumOuts: Seq[
 
           if (log) {
             printf(p"[LOG] [${module_name}] [TID: ${io.activate_loop_start.bits.taskID}]" +
-              p" [LOOP] [${node_name}] [RESTARTED] [Cycle: ${cycleCount}]\n")
+              p" [LOOP] [${node_name}] [ID: ${ID}] [RESTARTED] [Cycle: ${cycleCount}]\n")
           }
 
         }.elsewhen(loop_finish_R.map(_.control).reduce(_ | _)) { //last iteration
@@ -986,7 +986,7 @@ class LoopBlockNode(ID: Int, NumIns: Seq[Int], NumCarry: Seq[Int], NumOuts: Seq[
           //Change state
           if (log) {
             printf(p"[LOG] [${module_name}] [TID: ${io.activate_loop_start.bits.taskID}] [LOOP]" +
-              p" [${node_name}] [FIRED] [Cycle: ${cycleCount}]\n")
+              p" [${node_name}] [ID: ${ID}] [FIRED] [Cycle: ${cycleCount}]\n")
             for (i <- 0 until NumOuts.size) {
               printf(p"\tOut[${i.U}] [Val: 0x${Hexadecimal(in_live_out_R(i).data)}]\n")
             }
@@ -1001,7 +1001,7 @@ class LoopBlockNode(ID: Int, NumIns: Seq[Int], NumCarry: Seq[Int], NumOuts: Seq[
 
           if (log) {
             printf(p"[LOG] [${module_name}] [TID: ${io.activate_loop_start.bits.taskID}] [LOOP]" +
-              p" [${node_name}] [FINAL] [Cycle: ${cycleCount}]\n")
+              p" [${node_name}] [ID: ${ID}] [FINAL] [Cycle: ${cycleCount}]\n")
           }
         }
 

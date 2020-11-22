@@ -615,7 +615,7 @@ class UBranchNode(NumPredOps: Int = 0,
         if (log) {
           printf(p"[LOG] [${module_name}] [TID: ${enable_R.taskID}] " +
             p"[UBR] " +
-            p"[${node_name}] " +
+            p"[Name: ${node_name}] [ID: ${ID}]" +
             p"[Out: ${enable_R.control}] " +
             p"[Cycle: ${cycleCount}]\n")
         }
@@ -1291,18 +1291,18 @@ class CBranchNodeVariable(val NumTrue: Int = 1, val NumFalse: Int = 1, val NumPr
           when(cmp_R.control) {
             if (log) {
               printf(p"[LOG] [${module_name}] [TID: ${task_id}] [CBR] " +
-                p"[${node_name}] [Out: T:1 - F:0] [Cycle: ${cycleCount}]\n")
+                p"[Name: ${node_name}] [ID: ${ID}] [Out: T:1 - F:0] [Cycle: ${cycleCount}]\n")
             }
           }.otherwise {
             if (log) {
               printf(p"[LOG] [${module_name}] [TID: ${task_id}] [CBR] " +
-                p"[${node_name}] [Out: T:0 - F:1] [Cycle: ${cycleCount}]\n")
+                p"[Name: ${node_name}] [ID: ${ID}] [Out: T:0 - F:1] [Cycle: ${cycleCount}]\n")
             }
           }
         }.otherwise {
           if (log) {
             printf(p"[LOG] [${module_name}] [TID: ${task_id}] [CBR] " +
-              p"[${node_name}] [Out: T:0 - F:0] [Cycle: ${cycleCount}]\n")
+              p"[Name: ${node_name}] [ID: ${ID}] [Out: T:0 - F:0] [Cycle: ${cycleCount}]\n")
           }
         }
       }

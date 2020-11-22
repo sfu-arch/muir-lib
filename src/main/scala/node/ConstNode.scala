@@ -147,7 +147,7 @@ class ConstFastNode(value: BigInt, ID: Int)
         }
         if (log) {
           printf(p"[LOG] [${module_name}] [TID: ${taskID}] [CONST] " +
-            p"[${module_name}] " +
+            p"[Name: ${node_name}] [ID: ${ID}] " +
             p"[Pred: ${enable_R.control}] " +
             p"[Val: 0x${Hexadecimal(output_value)}] " +
             p"[Cycle: ${cycleCount}]\n")

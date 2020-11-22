@@ -113,8 +113,8 @@ class ZextNode(val SrcW: Int = 0, val DesW: Int = 0, val NumOuts: Int = 1, val I
         if (log) {
           printf(p"[LOG] [${module_name}] " +
             p"[TID: ${task_input}] " +
-            p"[ZEXT]" +
-            p"[${node_name}] " +
+            p"[ZEXT] " +
+            p"[Name: ${node_name}] [ID: ${ID}] " +
             p"[Pred: ${enable_R.control}] " +
             p"[Out: ${output_data.data}] " +
             p"[Cycle: ${cycleCount}]\n")

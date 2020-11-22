@@ -154,7 +154,7 @@ class ComputeNode(NumOuts: Int, ID: Int, opCode: String)
             io.Out.foreach(_.bits := DataBundle(guard_values.get(guard_index), taskID, predicate))
 
             if (log) {
-              printf(p"[LOG] [DEBUG] [${module_name}] [TID: taskID] [COMPUTE] " +
+              printf(p"[LOG] [DEBUG] [${module_name}] [TID: ${taskID}] [COMPUTE] " +
                 p"[${node_name}]  [Out:${FU.io.out} ] [Correct:${guard_values.get(guard_index)} ] [Cycle: ${cycleCount}]\n")
             }
 
@@ -171,8 +171,8 @@ class ComputeNode(NumOuts: Int, ID: Int, opCode: String)
         right_valid_R := false.B
         state := s_COMPUTE
         if (log) {
-          printf(p"[LOG] [${module_name}] [TID: ${taskID}] [COMPUTE] [${node_name}] " +
-            p"[Pred: ${enable_R.control}] " +
+          printf(p"[LOG] [${module_name}] [TID: ${taskID}] [COMPUTE] [Name: ${node_name}] " +
+            p"[ID: ${ID}] [Pred: ${enable_R.control}] " +
             p"[In(0): 0x${Hexadecimal(left_R.data)}] " +
             p"[In(1) 0x${Hexadecimal(right_R.data)}] " +
             p"[Out: 0x${Hexadecimal(FU.io.out)}] " +

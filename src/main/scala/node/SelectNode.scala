@@ -109,7 +109,7 @@ class SelectNode(NumOuts: Int, ID: Int, Debug : Boolean = false)
           ValidOut()
           state := s_COMPUTE
           if(log){
-            printf(p"[LOG] [${module_name}] [TID: %d] [SELECT] " +
+            printf(p"[LOG] [${module_name}] [ID: ${ID}] [SELECT] " +
               p"[${node_name}] [Task: ${taskID}] [Out: ${output_data}] [Cycle: ${cycleCount}]\n")
           }
         }
