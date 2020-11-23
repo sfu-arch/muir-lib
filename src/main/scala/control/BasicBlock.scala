@@ -308,7 +308,7 @@ class BasicBlockNoMaskFastNode(BID: Int, val NumInputs: Int = 1, val NumOuts: In
         state := s_fire
 
         if (log) {
-          printf(p"[LOG] [${module_name}] [TID: ${output_R.taskID}] [BB] [Name: ${node_name}] [BID: ${BID}][Out: ${predicate_val}] [Cycle: ${cycleCount}]\n")
+          printf(p"[LOG] [${module_name}] [TID: ${output_R.taskID}] [BB] [Name: ${node_name}] [BID: ${BID}] [Out: ${predicate_val}] [Cycle: ${cycleCount}]\n")
         }
       }
     }

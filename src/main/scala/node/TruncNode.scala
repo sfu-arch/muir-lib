@@ -117,7 +117,7 @@ class TruncNode(val SrcW: Int = 0, val DesW: Int = 0, val NumOuts: Int = 1, val 
         state := s_fire
 
         if (log) {
-          printf(p"[LOG] [${module_name}] [TID: ${task_input}] [${node_name}] " +
+          printf(p"[LOG] [${module_name}] [TID: ${task_input}] [Name: ${node_name}] [ID: ${ID}] " +
             p"[Pred: ${enable_R.control}] [Out: ${out_data.data}] [Cycle: ${cycleCount}]\n")
         }
       }
