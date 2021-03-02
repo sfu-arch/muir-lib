@@ -35,6 +35,11 @@ case class AXIParams(
   val protConst = if (coherent) 4 else 0
   val qosConst = 0
   val regionConst = 0
+  val tensorWidth = 2
+  val tensorLength = 1
+  val tensorElemBits = 32
+  val numMemBlock = (tensorWidth * tensorElemBits) / dataBits
+  require(tensorWidth * tensorElemBits >= dataBits, "tensorWidth * tensorElemBits should be greater than AXI bus width")
 }
 
 abstract class AXIBase(params: AXIParams) extends DandelionGenericParameterizedBundle(params)
