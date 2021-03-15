@@ -10,7 +10,7 @@ import dandelion.shell.DMEReadMaster
 
 
 class inStreamDMAIO()(implicit val p: Parameters)
-  extends Module with HasAccelShellParams{
+  extends Module with HasAccelShellParams with HasAccelParams {
   val mp = memParams
   val io = IO(new Bundle {
     val start = Input(Bool())
@@ -18,7 +18,7 @@ class inStreamDMAIO()(implicit val p: Parameters)
     val baddr = Input(UInt(mp.addrBits.W))
     val len = Input(UInt(mp.addrBits.W))
     val ume_rd = new DMEReadMaster
-    val out = Decoupled(UInt(mp.tensorElemBits.W))
+    val out = Decoupled(UInt(xlen.W))
   })
 }
 

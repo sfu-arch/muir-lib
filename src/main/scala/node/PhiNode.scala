@@ -215,6 +215,11 @@ class PhiFastNode(NumInputs: Int = 2, NumOutputs: Int = 1, ID: Int, Res: Boolean
   val s_idle :: s_fire :: s_not_predicated :: Nil = Enum(3)
   val state = RegInit(s_idle)
 
+
+  //Debug buffer
+  val s_init :: s_filling :: s_full :: Nil = Enum(3)
+  val buffer_state = RegInit(s_init)
+
   // Latching output data
   val out_valid_R = Seq.fill(NumOutputs)(RegInit(false.B))
 
@@ -299,7 +304,21 @@ class PhiFastNode(NumInputs: Int = 2, NumOutputs: Int = 1, ID: Int, Res: Boolean
   val test_value_valid = WireInit(false.B)
   val test_value_ready = WireInit(true.B)
 
+  //Input log data
+  val in_log_value = WireInit(0.U(xlen.W))
+  val in_log_value_valid = WireInit(true.B)
+  val in_log_value_ready = WireInit(false.B)
+  val in_log_value_start = WireInit(false.B)
+
+
   if (Debug) {
+    //Input log data
+    BoringUtils.addSink(in_log_value, s"in_log_data${ID}")
+    BoringUtils.addSink(in_log_value_valid, s"in_log_Buffer_valid${ID}")
+
+    BoringUtils.addSource(in_log_value_ready, s"in_log_Buffer_ready${ID}")
+    BoringUtils.addSource(in_log_value_start, s"in_log_Buffer_start${ID}")
+
     BoringUtils.addSource(log_value, s"data${ID}")
     BoringUtils.addSource(test_value_valid, s"valid${ID}")
     BoringUtils.addSink(test_value_ready, s"Buffer_ready${ID}")
@@ -322,9 +341,19 @@ class PhiFastNode(NumInputs: Int = 2, NumOutputs: Int = 1, ID: Int, Res: Boolean
     io.Out(i).valid := out_valid_R(i)
   }
 
+
+  when(in_log_value_valid === false.B && enable_valid_R){
+    in_log_value_start := true.B
+  }
+
+  when((state === s_idle) && (enable_valid_R && IsInputValid())){
+    in_log_value_ready := true.B
+    printf(p"Data log: ${in_log_value}\n")
+  }
+
   switch(state) {
     is(s_idle) {
-      when(enable_valid_R && IsInputValid() && test_value_ready) {
+      when(enable_valid_R && IsInputValid()) {
         //Make outputs valid
         out_valid_R.foreach(_ := true.B)
         when(enable_R.control) {

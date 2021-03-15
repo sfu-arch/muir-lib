@@ -12,7 +12,7 @@ import chipsalliance.rocketchip.config._
 import dandelion.config._
 
 
-class ComputeNodeIO(NumOuts: Int, Debug: Boolean, GuardVals: Seq[Int] = List(), Ella: Boolean= false)
+class ComputeNodeIO(NumOuts: Int, Debug: Boolean, GuardVals: Seq[Int] = List(), Ella: Boolean = false)
                    (implicit p: Parameters)
   extends HandShakingIONPS(NumOuts, Debug)(new DataBundle) {
   val LeftIO = Flipped(Decoupled(new DataBundle()))
@@ -23,7 +23,7 @@ class ComputeNodeIO(NumOuts: Int, Debug: Boolean, GuardVals: Seq[Int] = List(), 
 }
 
 class ComputeNode(NumOuts: Int, ID: Int, opCode: String)
-                 (sign: Boolean, Debug: Boolean = false, GuardVals: Seq[Int] = List(), Ella:Boolean= false)
+                 (sign: Boolean, Debug: Boolean = false, GuardVals: Seq[Int] = List(), Ella: Boolean = false)
                  (implicit p: Parameters,
                   name: sourcecode.Name,
                   file: sourcecode.File)
@@ -64,8 +64,8 @@ class ComputeNode(NumOuts: Int, ID: Int, opCode: String)
   val state = RegInit(s_IDLE)
 
   /**
-   * Debug variables
-   */
+    * Debug variables
+    */
 
   def IsInputValid(): Bool = {
     right_valid_R && left_valid_R
@@ -120,13 +120,26 @@ class ComputeNode(NumOuts: Int, ID: Int, opCode: String)
   val test_value_valid = WireInit(false.B)
   val test_value_ready = WireInit(true.B)
 
+
+  //Input log data
+  val in_log_value = WireInit(0.U(xlen.W))
+  val in_log_value_valid = WireInit(true.B)
+  val in_log_value_ready = WireInit(false.B)
+  val in_log_value_done = WireInit(false.B)
+
   if (Debug) {
+    //Input log data
+    BoringUtils.addSink(in_log_value, s"in_log_data${ID}")
+    BoringUtils.addSink(in_log_value_valid, s"in_log_Buffer_valid${ID}")
+    BoringUtils.addSink(in_log_value_done, s"in_log_Buffer_done${ID}")
+    BoringUtils.addSource(in_log_value_ready, s"in_log_Buffer_ready${ID}")
+
+    //Output log data
     BoringUtils.addSource(log_value, s"data${ID}")
     BoringUtils.addSource(test_value_valid, s"valid${ID}")
     BoringUtils.addSink(test_value_ready, s"Buffer_ready${ID}")
 
     test_value_valid := enable_valid_R && !(state === s_COMPUTE)
-
   }
 
   val (guard_index, _) = Counter(isInFire(), GuardVals.length)
@@ -135,24 +148,27 @@ class ComputeNode(NumOuts: Int, ID: Int, opCode: String)
 
 
   io.Out.foreach(_.bits := DataBundle(out_data_R, taskID, predicate))
-  if (Ella){
+  if (Ella) {
 
     printf(p"[LOG] [DEBUG Ella] [${module_name}] [TID: taskID] [COMPUTE] " + p"[${node_name}]  [Out:${FU.io.out} ] [Correct:${guard_values.get(guard_index)} ] [Cycle: ${cycleCount}]\n")
   }
   /*============================================*
    *            State Machine                   *
    *============================================*/
+  in_log_value_ready := state === s_IDLE
+
   switch(state) {
     is(s_IDLE) {
-      when(enable_valid_R && left_valid_R && right_valid_R && test_value_ready) {
+      when(enable_valid_R && left_valid_R && right_valid_R && test_value_ready && in_log_value_valid) {
         /**
-         * Debug logic: The output of FU is compared against Guard value
-         * and if the value is not equal to expected value the correct value
-         * will become available
-         */
+          * Debug logic: The output of FU is compared against Guard value
+          * and if the value is not equal to expected value the correct value
+          * will become available
+          */
         // send induction too
         if (Debug) {
-          when(FU.io.out =/= guard_values.get(guard_index)) {
+//          when(FU.io.out =/= guard_values.get(guard_index)) {
+          when(FU.io.out =/= in_log_value) {
             isBuggy := true.B
             log_flag := 1.U
             io.Out.foreach(_.bits := DataBundle(guard_values.get(guard_index), taskID, predicate))

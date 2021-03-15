@@ -5,7 +5,7 @@ import chipsalliance.rocketchip.config.Parameters
 import chisel3.util.{Decoupled, Valid}
 import dandelion.config.{AccelBundle, HasAccelParams, HasAccelShellParams}
 import dandelion.interfaces.{Call, CallDCR, MemReq, MemResp}
-import dandelion.shell.DMEWriteMaster
+import dandelion.shell.{DMEReadMaster, DMEWriteMaster}
 
 
 /**
@@ -88,6 +88,31 @@ abstract class DandelionAccelDebugModule(val numDebugNode: Int, val boreIDList: 
   with HasAccelParams
   with HasAccelShellParams {
   override lazy val io = IO(new DandelionAccelDebugIO(numDebugNode))
+
+  require(numDebugNode == boreIDList.length,
+    s"You the size boreIDs should be equalt to number debug nodes\n")
+}
+
+
+/**
+  * Global definition for dandelion accelerators
+  *
+  * @param p implicit accel params
+  */
+class DandelionAccelReadDebugIO(val numDebugNode: Int)(implicit p: Parameters)
+  extends AccelBundle()(p) with HasAccelShellParams {
+  val addrDebug = Vec(numDebugNode, Input(UInt(memParams.addrBits.W)))
+  val vmeIn = Vec(numDebugNode, new DMEReadMaster)
+
+  override def cloneType = new DandelionAccelReadDebugIO(numDebugNode).asInstanceOf[this.type]
+
+}
+
+
+abstract class DandelionAccelReadDebugModule(val numDebugNode: Int, val boreIDList: Seq[Int])(implicit val p: Parameters) extends Module
+  with HasAccelParams
+  with HasAccelShellParams {
+  override lazy val io = IO(new DandelionAccelReadDebugIO(numDebugNode))
 
   require(numDebugNode == boreIDList.length,
     s"You the size boreIDs should be equalt to number debug nodes\n")
