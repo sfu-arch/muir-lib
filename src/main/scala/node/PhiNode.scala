@@ -308,7 +308,7 @@ class PhiFastNode(NumInputs: Int = 2, NumOutputs: Int = 1, ID: Int, Res: Boolean
   val in_log_value = WireInit(0.U(xlen.W))
   val in_log_value_valid = WireInit(true.B)
   val in_log_value_ready = WireInit(false.B)
-  val in_log_value_start = WireInit(false.B)
+//  val in_log_value_start = WireInit(false.B)
 
 
   if (Debug) {
@@ -317,7 +317,7 @@ class PhiFastNode(NumInputs: Int = 2, NumOutputs: Int = 1, ID: Int, Res: Boolean
     BoringUtils.addSink(in_log_value_valid, s"in_log_Buffer_valid${ID}")
 
     BoringUtils.addSource(in_log_value_ready, s"in_log_Buffer_ready${ID}")
-    BoringUtils.addSource(in_log_value_start, s"in_log_Buffer_start${ID}")
+//    BoringUtils.addSource(in_log_value_start, s"in_log_Buffer_start${ID}")
 
     BoringUtils.addSource(log_value, s"data${ID}")
     BoringUtils.addSource(test_value_valid, s"valid${ID}")
@@ -336,40 +336,34 @@ class PhiFastNode(NumInputs: Int = 2, NumOutputs: Int = 1, ID: Int, Res: Boolean
 
 
   for (i <- 0 until NumOutputs) {
-//    io.Out(i).bits := Mux(isBuggy, correctVal, in_data_R(sel))
-    io.Out(i).bits := in_data_R(sel)
+    //TODO: enable for comapring
+    io.Out(i).bits := Mux(isBuggy, in_log_value, in_data_R(sel))
+//    io.Out(i).bits := in_data_R(sel)
     io.Out(i).valid := out_valid_R(i)
   }
 
-
-  when(in_log_value_valid === false.B && enable_valid_R){
-    in_log_value_start := true.B
-  }
-
-  when((state === s_idle) && (enable_valid_R && IsInputValid())){
-    in_log_value_ready := true.B
-    printf(p"Data log: ${in_log_value}\n")
-  }
 
   switch(state) {
     is(s_idle) {
       when(enable_valid_R && IsInputValid()) {
         //Make outputs valid
         out_valid_R.foreach(_ := true.B)
-        when(enable_R.control) {
+        in_log_value_ready := true.B
+        when(enable_R.control && in_log_value_valid) {
           //*********************************
           state := s_fire
           //********************************
           //Print output
           if (Debug) {
-            when(in_data_R(sel).data =/= guard_values.get(guard_index)) {
+            //TODO: Make the check conditional
+            when(in_data_R(sel).data =/= in_log_value) {
               isBuggy := true.B
               log_flag := 1.U
 
               if (log) {
                 printf("[DEBUG] [" + module_name + "] [TID->%d] [PHI] " + node_name +
                   " Produced value: %d, correct value: %d\n",
-                  in_data_R(sel).taskID, in_data_R(sel).data, guard_values.get(guard_index))
+                  in_data_R(sel).taskID, in_data_R(sel).data, in_log_value)
               }
             }
           }
