@@ -24,7 +24,7 @@ import chisel3.internal.naming.chiselName
  * @param name
  * @param file
  */
-class DebugVMELoadBufferNode(BufferLen: Int = 2, ID: Int)
+class DebugVMELoadBufferNode(BufferLen: Int = 5, ID: Int)
                         (implicit val p: Parameters,
                          name: sourcecode.Name,
                          file: sourcecode.File)
@@ -33,7 +33,6 @@ class DebugVMELoadBufferNode(BufferLen: Int = 2, ID: Int)
 
   val io = IO(new Bundle {
     val addrDebug = Input(UInt(memParams.addrBits.W))
-    val start = Input(Bool())
     val vmeOut = new DMEReadMaster
     val done = Output(Bool())
     val out = Decoupled(UInt(xlen.W))
@@ -51,12 +50,15 @@ class DebugVMELoadBufferNode(BufferLen: Int = 2, ID: Int)
   val rState = RegInit(sIdel)
 
   //Is the Data The Wires of the Boring Connection Will put data in.
-  val LogData = Module(new Queue(UInt((xlen).W), BufferLen + 5))
+  val LogData = Module(new Queue(UInt((xlen).W), BufferLen))
 
-  val queue_count = RegInit(0.U(BufferLen.W))
+  val queue_count = RegInit(0.U(log2Up(BufferLen).W))
 
-  when(LogData.io.enq.fire) {
+  when(io.vmeOut.data.fire) {
     queue_count := queue_count + 1.U
+  }
+  when(LogData.io.deq.fire){
+    queue_count := queue_count - 1.U
   }
 
   LogData.io.enq <> io.vmeOut.data
@@ -65,10 +67,9 @@ class DebugVMELoadBufferNode(BufferLen: Int = 2, ID: Int)
   io.vmeOut.cmd.bits.len := BufferLen.U
   io.vmeOut.cmd.valid := (rState === sReq)
 
-
   switch(rState) {
     is(sIdel) {
-      when(LogData.io.count === 0.U && io.start){
+      when(LogData.io.count === 0.U && io.out.ready){
         rState := sReq
       }
     }
@@ -78,7 +79,7 @@ class DebugVMELoadBufferNode(BufferLen: Int = 2, ID: Int)
       }
     }
     is(sBusy) {
-      when(queue_count === BufferLen.U) {
+      when(queue_count === (BufferLen - 1).U) {
         rState := sIdel
         addr_debug_reg := addr_debug_reg + (queue_count * (xlen >> 3).asUInt())
       }
@@ -88,7 +89,7 @@ class DebugVMELoadBufferNode(BufferLen: Int = 2, ID: Int)
   io.done := false.B
 
   io.out.bits := LogData.io.deq.bits
-  io.out.valid := LogData.io.deq.valid
+  io.out.valid := LogData.io.deq.valid && (rState === sIdel)
   LogData.io.deq.ready := io.out.ready
 
 }
