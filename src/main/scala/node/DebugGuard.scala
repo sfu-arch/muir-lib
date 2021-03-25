@@ -54,18 +54,21 @@ class DebugVMELoadBufferNode(BufferLen: Int = 2, ID: Int)
   val LogData = Module(new Queue(UInt((xlen).W), BufferLen + 5))
 
   val queue_count = RegInit(0.U(BufferLen.W))
+  
 
+  val in_log_value = WireInit(0.U)
+  val in_log_value_valid = WireInit(0.U)
+  val in_log_value_ready = WireInit (0.U)
+  val replace_data = WireInit(0.U)
   BoringUtils.addSink(in_log_value, s"in_log_data${ID}")
   BoringUtils.addSink(in_log_value_valid, s"in_log_Buffer_valid${ID}")
-  BoringUtils.addSink(in_log_value_done, s"in_log_Buffer_done${ID}")
+  
   BoringUtils.addSource(in_log_value_ready, s"in_log_Buffer_ready${ID}")
-
+  BoringUtils.addSource(replace_data,s"replace_data${ID}")
      //Output log data
-  BoringUtils.addSource(log_value, s"data${ID}")
-  BoringUtils.addSource(test_value_valid, s"valid${ID}")
-  BoringUtils.addSink(test_value_ready, s"Buffer_ready${ID}")
+  
 
-
+  
   when(LogData.io.enq.fire) {
     queue_count := queue_count + 1.U
   }
@@ -98,10 +101,13 @@ class DebugVMELoadBufferNode(BufferLen: Int = 2, ID: Int)
 
   io.done := false.B
 
-  io.out.bits := LogData.io.deq.bits
-  io.out.valid := LogData.io.deq.valid
-  LogData.io.deq.ready := io.out.ready
-
+  //io.out.bits := LogData.io.deq.bits
+  //io.out.valid := LogData.io.deq.valid
+  //LogData.io.deq.ready := io.out.ready
+  when (in_log_value =/= LogData.io.deq.bits){
+    replace_data = LogData.io.deq.bits
+    in_log_value_ready = true.B
+  }
 }
 
 
