@@ -191,3 +191,130 @@ class DCR(implicit val p: Parameters) extends Module with HasAccelShellParams {
     }
   }
 }
+
+
+
+/** DTA Control Registers (DCR).
+  *
+  * This unit provides control registers (32 and 64 bits) to be used by a control'
+  * unit, typically a host processor. These registers are read-only by the core
+  * at the moment but this will likely change once we add support to general purpose
+  * registers that could be used as event counters by the Core unit.
+  */
+class TaigaDCR(implicit val p: Parameters) extends Module with HasAccelShellParams {
+  val io = IO(new Bundle {
+    val host = new TaigaAXILiteClient(hostParams)
+    val dcr = new DCRMaster
+  })
+
+  val vp = dcrParams
+  val mp = memParams
+  val hp = hostParams
+
+  // Write control (AW, W, B)
+  val waddr = RegInit("h_ffff".U(hp.addrBits.W)) // init with invalid address
+  val wdata = io.host.WDATA
+  val sWriteAddress :: sWriteData :: sWriteResponse :: Nil = Enum(3)
+  val wstate = RegInit(sWriteAddress)
+
+  // read control (AR, R)
+  val sReadAddress :: sReadData :: Nil = Enum(2)
+  val rstate = RegInit(sReadAddress)
+  val rdata = RegInit(0.U(vp.regBits.W))
+
+  // registers
+  val nPtrs = if (mp.addrBits == 32) vp.nPtrs else 2 * vp.nPtrs
+  val nTotal = vp.nCtrl + vp.nECnt + vp.nVals + nPtrs
+
+  val reg = Seq.fill(nTotal)(RegInit(0.U(vp.regBits.W)))
+  val addr = Seq.tabulate(nTotal)(_ * 4)
+  val reg_map = (addr zip reg) map { case (a, r) => a.U -> r }
+  val eo = vp.nCtrl
+  val vo = eo + vp.nECnt
+  val po = vo + vp.nVals
+
+  switch(wstate) {
+    is(sWriteAddress) {
+      when(io.host.AWVALID) {
+        wstate := sWriteData
+      }
+    }
+    is(sWriteData) {
+      when(io.host.WVALID) {
+        wstate := sWriteResponse
+      }
+    }
+    is(sWriteResponse) {
+      when(io.host.BREADY) {
+        wstate := sWriteAddress
+      }
+    }
+  }
+
+  when(io.host.AWREADY && io.host.AWVALID) {
+    waddr := io.host.AWADDR
+  }
+
+  io.host.AWREADY := wstate === sWriteAddress
+  io.host.WREADY := wstate === sWriteData
+  io.host.BVALID := wstate === sWriteResponse
+//  io.host.b.bits.resp := 0.U
+
+  switch(rstate) {
+    is(sReadAddress) {
+      when(io.host.ARVALID) {
+        rstate := sReadData
+      }
+    }
+    is(sReadData) {
+      when(io.host.RREADY) {
+        rstate := sReadAddress
+      }
+    }
+  }
+
+  io.host.ARREADY := rstate === sReadAddress
+  io.host.RVALID := rstate === sReadData
+  io.host.RDATA := rdata
+//  io.host.r.bits.resp := 0.U
+
+  when(io.dcr.finish) {
+    reg(0) := "b_10".U
+  }.elsewhen(io.host.WREADY && io.host.WVALID && addr(0).U === waddr) {
+    reg(0) := wdata
+  }
+
+  for (i <- 0 until vp.nECnt) {
+    when(io.dcr.ecnt(i).valid) {
+      reg(eo + i) := io.dcr.ecnt(i).bits
+    }.elsewhen(io.host.WREADY && io.host.WVALID && addr(eo + i).U === waddr) {
+      reg(eo + i) := wdata
+    }
+  }
+
+  for (i <- 0 until (vp.nVals + nPtrs)) {
+    when(io.host.WREADY && io.host.WVALID && addr(vo + i).U === waddr) {
+      reg(vo + i) := wdata
+    }
+  }
+
+  when(io.host.ARREADY && io.host.ARVALID) {
+    rdata := MuxLookup(io.host.ARADDR, 0.U, reg_map)
+  }
+
+  io.dcr.launch := reg(0)(0)
+
+  for (i <- 0 until vp.nVals) {
+    io.dcr.vals(i) := reg(vo + i)
+  }
+
+  if (mp.addrBits == 32) { // 32-bit pointers
+    for (i <- 0 until nPtrs) {
+      io.dcr.ptrs(i) := reg(po + i)
+    }
+  } else { // 64-bits pointers
+    for (i <- 0 until (nPtrs / 2)) {
+      io.dcr.ptrs(i) := Cat(reg(po + 2 * i + 1), reg(po + 2 * i))
+    }
+  }
+}

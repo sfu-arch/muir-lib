@@ -342,6 +342,12 @@ class PhiFastNode(NumInputs: Int = 2, NumOutputs: Int = 1, ID: Int, Res: Boolean
     io.Out(i).valid := out_valid_R(i)
   }
 
+  //Send
+  val write_signal = (state === s_idle) && (enable_valid_R && IsInputValid()) && (enable_R.control && in_log_value_valid)
+//  val in_log_value
+
+  //Recev
+  in_log_value_valid
 
   switch(state) {
     is(s_idle) {
