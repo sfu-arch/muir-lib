@@ -117,7 +117,7 @@ case class DandelionDCRParams(numCtrl: Int = 1,
  * DME parameters.
  * These parameters are used on DME interfaces and modules.
  */
-case class DandelionDMEParams(numRead: Int = 1,
+case class DandelionDMEParams(numRead: Int = 3,
                               numWrite: Int = 1) extends DMEParams {
   val nReadClients: Int = numRead
   val nWriteClients: Int = numWrite

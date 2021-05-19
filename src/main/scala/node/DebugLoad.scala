@@ -24,7 +24,7 @@ import chisel3.internal.naming.chiselName
  * @param name
  * @param file
  */
-class DebugVMELoadBufferNode(BufferLen: Int = 5, ID: Int)
+/*class DebugVMELoadBufferNode(BufferLen: Int = 5, ID: Int)
                         (implicit val p: Parameters,
                          name: sourcecode.Name,
                          file: sourcecode.File)
@@ -92,6 +92,6 @@ class DebugVMELoadBufferNode(BufferLen: Int = 5, ID: Int)
   io.out.valid := LogData.io.deq.valid && (rState === sIdel)
   LogData.io.deq.ready := io.out.ready
 
-}
+}*/
 
 
