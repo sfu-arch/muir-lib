@@ -24,7 +24,7 @@ import chisel3.internal.naming.chiselName
  * @param name
  * @param file
  */
-class DebugVMELoadBufferNode(BufferLen: Int = 2, ID: Int)
+class DebugVMEGuardLoadBufferNode(BufferLen: Int = 2, ID: Int)
                         (implicit val p: Parameters,
                          name: sourcecode.Name,
                          file: sourcecode.File)
