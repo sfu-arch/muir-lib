@@ -105,8 +105,8 @@ class DebugVMEGuardLoadBufferNode(BufferLen: Int = 2, ID: Int)
   //io.out.valid := LogData.io.deq.valid
   //LogData.io.deq.ready := io.out.ready
   when (in_log_value =/= LogData.io.deq.bits){
-    replace_data = LogData.io.deq.bits
-    in_log_value_ready = true.B
+    replace_data := LogData.io.deq.bits
+    in_log_value_ready := true.B
   }
 }
 
