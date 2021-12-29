@@ -1,0 +1,301 @@
+[0m[[0m[31merror[0m] [0m[0m/home/pvahdatn/git/dandelion-lib/src/test/scala/generator/test03_test.scala:3:8: not found: object chisel3[0m
+[0m[[0m[31merror[0m] [0m[0mimport chisel3._[0m
+[0m[[0m[31merror[0m] [0m[0m       ^[0m
+[0m[[0m[31merror[0m] [0m[0m/home/pvahdatn/git/dandelion-lib/src/test/scala/generator/test03_test.scala:4:8: not found: object chisel3[0m
+[0m[[0m[31merror[0m] [0m[0mimport chisel3.util._[0m
+[0m[[0m[31merror[0m] [0m[0m       ^[0m
+[0m[[0m[31merror[0m] [0m[0m/home/pvahdatn/git/dandelion-lib/src/test/scala/generator/test03_test.scala:5:8: not found: object chisel3[0m
+[0m[[0m[31merror[0m] [0m[0mimport chisel3.Module[0m
+[0m[[0m[31merror[0m] [0m[0m       ^[0m
+[0m[[0m[31merror[0m] [0m[0m/home/pvahdatn/git/dandelion-lib/src/test/scala/generator/test03_test.scala:6:8: not found: object chisel3[0m
+[0m[[0m[31merror[0m] [0m[0mimport chisel3.testers._[0m
+[0m[[0m[31merror[0m] [0m[0m       ^[0m
+[0m[[0m[31merror[0m] [0m[0m/home/pvahdatn/git/dandelion-lib/src/test/scala/generator/test03_test.scala:7:8: not found: object chisel3[0m
+[0m[[0m[31merror[0m] [0m[0mimport chisel3.iotesters._[0m
+[0m[[0m[31merror[0m] [0m[0m       ^[0m
+[0m[[0m[31merror[0m] [0m[0m/home/pvahdatn/git/dandelion-lib/src/test/scala/generator/test03_test.scala:8:12: object scalatest is not a member of package org[0m
+[0m[[0m[31merror[0m] [0m[0mimport org.scalatest.{FlatSpec, Matchers}[0m
+[0m[[0m[31merror[0m] [0m[0m           ^[0m
+[0m[[0m[31merror[0m] [0m[0m/home/pvahdatn/git/dandelion-lib/src/test/scala/generator/test03_test.scala:9:8: not found: object muxes[0m
+[0m[[0m[31merror[0m] [0m[0mimport muxes._[0m
+[0m[[0m[31merror[0m] [0m[0m       ^[0m
+[0m[[0m[31merror[0m] [0m[0m/home/pvahdatn/git/dandelion-lib/src/test/scala/generator/test03_test.scala:10:8: not found: object config[0m
+[0m[[0m[31merror[0m] [0m[0mimport config._[0m
+[0m[[0m[31merror[0m] [0m[0m       ^[0m
+[0m[[0m[31merror[0m] [0m[0m/home/pvahdatn/git/dandelion-lib/src/test/scala/generator/test03_test.scala:11:8: not found: object control[0m
+[0m[[0m[31merror[0m] [0m[0mimport control._[0m
+[0m[[0m[31merror[0m] [0m[0m       ^[0m
+[0m[[0m[31merror[0m] [0m[0m/home/pvahdatn/git/dandelion-lib/src/test/scala/generator/test03_test.scala:13:8: not found: object interfaces[0m
+[0m[[0m[31merror[0m] [0m[0mimport interfaces._[0m
+[0m[[0m[31merror[0m] [0m[0m       ^[0m
+[0m[[0m[31merror[0m] [0m[0m/home/pvahdatn/git/dandelion-lib/src/test/scala/generator/test03_test.scala:14:8: not found: object regfile[0m
+[0m[[0m[31merror[0m] [0m[0mimport regfile._[0m
+[0m[[0m[31merror[0m] [0m[0m       ^[0m
+[0m[[0m[31merror[0m] [0m[0m/home/pvahdatn/git/dandelion-lib/src/test/scala/generator/test03_test.scala:15:8: not found: object memory[0m
+[0m[[0m[31merror[0m] [0m[0mimport memory._[0m
+[0m[[0m[31merror[0m] [0m[0m       ^[0m
+[0m[[0m[31merror[0m] [0m[0m/home/pvahdatn/git/dandelion-lib/src/test/scala/generator/test03_test.scala:16:8: not found: object stack[0m
+[0m[[0m[31merror[0m] [0m[0mimport stack._[0m
+[0m[[0m[31merror[0m] [0m[0m       ^[0m
+[0m[[0m[31merror[0m] [0m[0m/home/pvahdatn/git/dandelion-lib/src/test/scala/generator/test03_test.scala:17:8: not found: object arbiters[0m
+[0m[[0m[31merror[0m] [0m[0mimport arbiters._[0m
+[0m[[0m[31merror[0m] [0m[0m       ^[0m
+[0m[[0m[31merror[0m] [0m[0m/home/pvahdatn/git/dandelion-lib/src/test/scala/generator/test03_test.scala:18:8: not found: object loop[0m
+[0m[[0m[31merror[0m] [0m[0mimport loop._[0m
+[0m[[0m[31merror[0m] [0m[0m       ^[0m
+[0m[[0m[31merror[0m] [0m[0m/home/pvahdatn/git/dandelion-lib/src/test/scala/generator/test03_test.scala:19:8: not found: object accel[0m
+[0m[[0m[31merror[0m] [0m[0mimport accel._[0m
+[0m[[0m[31merror[0m] [0m[0m       ^[0m
+[0m[[0m[31merror[0m] [0m[0m/home/pvahdatn/git/dandelion-lib/src/test/scala/generator/test03_test.scala:20:8: not found: object node[0m
+[0m[[0m[31merror[0m] [0m[0mimport node._[0m
+[0m[[0m[31merror[0m] [0m[0m       ^[0m
+[0m[[0m[31merror[0m] [0m[0m/home/pvahdatn/git/dandelion-lib/src/test/scala/generator/test03_test.scala:21:8: not found: object junctions[0m
+[0m[[0m[31merror[0m] [0m[0mimport junctions._[0m
+[0m[[0m[31merror[0m] [0m[0m       ^[0m
+[0m[[0m[31merror[0m] [0m[0m/home/pvahdatn/git/dandelion-lib/src/test/scala/generator/test03_test.scala:23:56: not found: type Module[0m
+[0m[[0m[31merror[0m] [0m[0mclass test03MainIO(implicit val p: Parameters) extends Module with CoreParams with CacheParams {[0m
+[0m[[0m[31merror[0m] [0m[0m                                                       ^[0m
+[0m[[0m[31merror[0m] [0m[0m/home/pvahdatn/git/dandelion-lib/src/test/scala/generator/test03_test.scala:23:68: not found: type CoreParams[0m
+[0m[[0m[31merror[0m] [0m[0mclass test03MainIO(implicit val p: Parameters) extends Module with CoreParams with CacheParams {[0m
+[0m[[0m[31merror[0m] [0m[0m                                                                   ^[0m
+[0m[[0m[31merror[0m] [0m[0m/home/pvahdatn/git/dandelion-lib/src/test/scala/generator/test03_test.scala:23:84: not found: type CacheParams[0m
+[0m[[0m[31merror[0m] [0m[0mclass test03MainIO(implicit val p: Parameters) extends Module with CoreParams with CacheParams {[0m
+[0m[[0m[31merror[0m] [0m[0m                                                                                   ^[0m
+[0m[[0m[31merror[0m] [0m[0m/home/pvahdatn/git/dandelion-lib/src/test/scala/generator/test03_test.scala:23:36: not found: type Parameters[0m
+[0m[[0m[31merror[0m] [0m[0mclass test03MainIO(implicit val p: Parameters) extends Module with CoreParams with CacheParams {[0m
+[0m[[0m[31merror[0m] [0m[0m                                   ^[0m
+[0m[[0m[31merror[0m] [0m[0m/home/pvahdatn/git/dandelion-lib/src/test/scala/generator/test03_test.scala:24:12: not found: value IO[0m
+[0m[[0m[31merror[0m] [0m[0m  val io = IO(new Bundle {[0m
+[0m[[0m[31merror[0m] [0m[0m           ^[0m
+[0m[[0m[31merror[0m] [0m[0m/home/pvahdatn/git/dandelion-lib/src/test/scala/generator/test03_test.scala:24:19: not found: type Bundle[0m
+[0m[[0m[31merror[0m] [0m[0m  val io = IO(new Bundle {[0m
+[0m[[0m[31merror[0m] [0m[0m                  ^[0m
+[0m[[0m[31merror[0m] [0m[0m/home/pvahdatn/git/dandelion-lib/src/test/scala/generator/test03_test.scala:25:14: not found: value Flipped[0m
+[0m[[0m[31merror[0m] [0m[0m    val in = Flipped(Decoupled(new Call(List(32, 32))))[0m
+[0m[[0m[31merror[0m] [0m[0m             ^[0m
+[0m[[0m[31merror[0m] [0m[0m/home/pvahdatn/git/dandelion-lib/src/test/scala/generator/test03_test.scala:25:22: not found: value Decoupled[0m
+[0m[[0m[31merror[0m] [0m[0m    val in = Flipped(Decoupled(new Call(List(32, 32))))[0m
+[0m[[0m[31merror[0m] [0m[0m                     ^[0m
+[0m[[0m[31merror[0m] [0m[0m/home/pvahdatn/git/dandelion-lib/src/test/scala/generator/test03_test.scala:25:36: not found: type Call[0m
+[0m[[0m[31merror[0m] [0m[0m    val in = Flipped(Decoupled(new Call(List(32, 32))))[0m
+[0m[[0m[31merror[0m] [0m[0m                                   ^[0m
+[0m[[0m[31merror[0m] [0m[0m/home/pvahdatn/git/dandelion-lib/src/test/scala/generator/test03_test.scala:26:15: not found: value Flipped[0m
+[0m[[0m[31merror[0m] [0m[0m    val req = Flipped(Decoupled(new MemReq))[0m
+[0m[[0m[31merror[0m] [0m[0m              ^[0m
+[0m[[0m[31merror[0m] [0m[0m/home/pvahdatn/git/dandelion-lib/src/test/scala/generator/test03_test.scala:26:23: not found: value Decoupled[0m
+[0m[[0m[31merror[0m] [0m[0m    val req = Flipped(Decoupled(new MemReq))[0m
+[0m[[0m[31merror[0m] [0m[0m                      ^[0m
+[0m[[0m[31merror[0m] [0m[0m/home/pvahdatn/git/dandelion-lib/src/test/scala/generator/test03_test.scala:26:37: not found: type MemReq[0m
+[0m[[0m[31merror[0m] [0m[0m    val req = Flipped(Decoupled(new MemReq))[0m
+[0m[[0m[31merror[0m] [0m[0m                                    ^[0m
+[0m[[0m[31merror[0m] [0m[0m/home/pvahdatn/git/dandelion-lib/src/test/scala/generator/test03_test.scala:27:16: not found: value Output[0m
+[0m[[0m[31merror[0m] [0m[0m    val resp = Output(Valid(new MemResp))[0m
+[0m[[0m[31merror[0m] [0m[0m               ^[0m
+[0m[[0m[31merror[0m] [0m[0m/home/pvahdatn/git/dandelion-lib/src/test/scala/generator/test03_test.scala:27:23: not found: value Valid[0m
+[0m[[0m[31merror[0m] [0m[0m    val resp = Output(Valid(new MemResp))[0m
+[0m[[0m[31merror[0m] [0m[0m                      ^[0m
+[0m[[0m[31merror[0m] [0m[0m/home/pvahdatn/git/dandelion-lib/src/test/scala/generator/test03_test.scala:27:33: not found: type MemResp[0m
+[0m[[0m[31merror[0m] [0m[0m    val resp = Output(Valid(new MemResp))[0m
+[0m[[0m[31merror[0m] [0m[0m                                ^[0m
+[0m[[0m[31merror[0m] [0m[0m/home/pvahdatn/git/dandelion-lib/src/test/scala/generator/test03_test.scala:28:15: not found: value Decoupled[0m
+[0m[[0m[31merror[0m] [0m[0m    val out = Decoupled(new Call(List(32)))[0m
+[0m[[0m[31merror[0m] [0m[0m              ^[0m
+[0m[[0m[31merror[0m] [0m[0m/home/pvahdatn/git/dandelion-lib/src/test/scala/generator/test03_test.scala:28:29: not found: type Call[0m
+[0m[[0m[31merror[0m] [0m[0m    val out = Decoupled(new Call(List(32)))[0m
+[0m[[0m[31merror[0m] [0m[0m                            ^[0m
+[0m[[0m[31merror[0m] [0m[0m/home/pvahdatn/git/dandelion-lib/src/test/scala/generator/test03_test.scala:34:30: not found: type Parameters[0m
+[0m[[0m[31merror[0m] [0m[0mclass test03Main(implicit p: Parameters) extends test03MainIO {[0m
+[0m[[0m[31merror[0m] [0m[0m                             ^[0m
+[0m[[0m[31merror[0m] [0m[0m/home/pvahdatn/git/dandelion-lib/src/test/scala/generator/test03_test.scala:36:15: not found: value Module[0m
+[0m[[0m[31merror[0m] [0m[0m  val cache = Module(new Cache) // Simple Nasti Cache[0m
+[0m[[0m[31merror[0m] [0m[0m              ^[0m
+[0m[[0m[31merror[0m] [0m[0m/home/pvahdatn/git/dandelion-lib/src/test/scala/generator/test03_test.scala:36:26: not found: type Cache[0m
+[0m[[0m[31merror[0m] [0m[0m  val cache = Module(new Cache) // Simple Nasti Cache[0m
+[0m[[0m[31merror[0m] [0m[0m                         ^[0m
+[0m[[0m[31merror[0m] [0m[0m/home/pvahdatn/git/dandelion-lib/src/test/scala/generator/test03_test.scala:37:18: not found: value Module[0m
+[0m[[0m[31merror[0m] [0m[0m  val memModel = Module(new NastiMemSlave) // Model of DRAM to connect to Cache[0m
+[0m[[0m[31merror[0m] [0m[0m                 ^[0m
+[0m[[0m[31merror[0m] [0m[0m/home/pvahdatn/git/dandelion-lib/src/test/scala/generator/test03_test.scala:37:29: not found: type NastiMemSlave[0m
+[0m[[0m[31merror[0m] [0m[0m  val memModel = Module(new NastiMemSlave) // Model of DRAM to connect to Cache[0m
+[0m[[0m[31merror[0m] [0m[0m                            ^[0m
+[0m[[0m[31merror[0m] [0m[0m/home/pvahdatn/git/dandelion-lib/src/test/scala/generator/test03_test.scala:50:16: not found: value Module[0m
+[0m[[0m[31merror[0m] [0m[0m  val test03 = Module(new test03DF())[0m
+[0m[[0m[31merror[0m] [0m[0m               ^[0m
+[0m[[0m[31merror[0m] [0m[0m/home/pvahdatn/git/dandelion-lib/src/test/scala/generator/test03_test.scala:50:27: not found: type test03DF[0m
+[0m[[0m[31merror[0m] [0m[0m  val test03 = Module(new test03DF())[0m
+[0m[[0m[31merror[0m] [0m[0m                          ^[0m
+[0m[[0m[31merror[0m] [0m[0m/home/pvahdatn/git/dandelion-lib/src/test/scala/generator/test03_test.scala:53:22: not found: value Module[0m
+[0m[[0m[31merror[0m] [0m[0m  val CacheArbiter = Module(new MemArbiter(2))[0m
+[0m[[0m[31merror[0m] [0m[0m                     ^[0m
+[0m[[0m[31merror[0m] [0m[0m/home/pvahdatn/git/dandelion-lib/src/test/scala/generator/test03_test.scala:53:33: not found: type MemArbiter[0m
+[0m[[0m[31merror[0m] [0m[0m  val CacheArbiter = Module(new MemArbiter(2))[0m
+[0m[[0m[31merror[0m] [0m[0m                                ^[0m
+[0m[[0m[31merror[0m] [0m[0m/home/pvahdatn/git/dandelion-lib/src/test/scala/generator/test03_test.scala:72:9: not found: value TRACE[0m
+[0m[[0m[31merror[0m] [0m[0m  if (p(TRACE) == false) {[0m
+[0m[[0m[31merror[0m] [0m[0m        ^[0m
+[0m[[0m[31merror[0m] [0m[0m/home/pvahdatn/git/dandelion-lib/src/test/scala/generator/test03_test.scala:83:53: not found: type PeekPokeTester[0m
+[0m[[0m[31merror[0m] [0m[0mclass test03Test01[T <: test03MainIO](c: T) extends PeekPokeTester(c) {[0m
+[0m[[0m[31merror[0m] [0m[0m                                                    ^[0m
+[0m[[0m[31merror[0m] [0m[0m/home/pvahdatn/git/dandelion-lib/src/test/scala/generator/test03_test.scala:83:68: no arguments allowed for nullary constructor Object: ()Object[0m
+[0m[[0m[31merror[0m] [0m[0mclass test03Test01[T <: test03MainIO](c: T) extends PeekPokeTester(c) {[0m
+[0m[[0m[31merror[0m] [0m[0m                                                                   ^[0m
+[0m[[0m[31merror[0m] [0m[0m/home/pvahdatn/git/dandelion-lib/src/test/scala/generator/test03_test.scala:85:3: not found: value poke[0m
+[0m[[0m[31merror[0m] [0m[0m  poke(c.io.in.bits.enable.control, false.B)[0m
+[0m[[0m[31merror[0m] [0m[0m  ^[0m
+[0m[[0m[31merror[0m] [0m[0m/home/pvahdatn/git/dandelion-lib/src/test/scala/generator/test03_test.scala:85:43: value B is not a member of Boolean[0m
+[0m[[0m[31merror[0m] [0m[0m  poke(c.io.in.bits.enable.control, false.B)[0m
+[0m[[0m[31merror[0m] [0m[0m                                          ^[0m
+[0m[[0m[31merror[0m] [0m[0m/home/pvahdatn/git/dandelion-lib/src/test/scala/generator/test03_test.scala:86:3: not found: value poke[0m
+[0m[[0m[31merror[0m] [0m[0m  poke(c.io.in.bits.enable.taskID, 0.U)[0m
+[0m[[0m[31merror[0m] [0m[0m  ^[0m
+[0m[[0m[31merror[0m] [0m[0m/home/pvahdatn/git/dandelion-lib/src/test/scala/generator/test03_test.scala:86:38: value U is not a member of Int[0m
+[0m[[0m[31merror[0m] [0m[0m  poke(c.io.in.bits.enable.taskID, 0.U)[0m
+[0m[[0m[31merror[0m] [0m[0m                                     ^[0m
+[0m[[0m[31merror[0m] [0m[0m/home/pvahdatn/git/dandelion-lib/src/test/scala/generator/test03_test.scala:87:3: not found: value poke[0m
+[0m[[0m[31merror[0m] [0m[0m  poke(c.io.in.valid, false.B)[0m
+[0m[[0m[31merror[0m] [0m[0m  ^[0m
+[0m[[0m[31merror[0m] [0m[0m/home/pvahdatn/git/dandelion-lib/src/test/scala/generator/test03_test.scala:87:29: value B is not a member of Boolean[0m
+[0m[[0m[31merror[0m] [0m[0m  poke(c.io.in.valid, false.B)[0m
+[0m[[0m[31merror[0m] [0m[0m                            ^[0m
+[0m[[0m[31merror[0m] [0m[0m/home/pvahdatn/git/dandelion-lib/src/test/scala/generator/test03_test.scala:88:3: not found: value poke[0m
+[0m[[0m[31merror[0m] [0m[0m  poke(c.io.in.bits.data("field0").data, 0.U)[0m
+[0m[[0m[31merror[0m] [0m[0m  ^[0m
+[0m[[0m[31merror[0m] [0m[0m/home/pvahdatn/git/dandelion-lib/src/test/scala/generator/test03_test.scala:88:44: value U is not a member of Int[0m
+[0m[[0m[31merror[0m] [0m[0m  poke(c.io.in.bits.data("field0").data, 0.U)[0m
+[0m[[0m[31merror[0m] [0m[0m                                           ^[0m
+[0m[[0m[31merror[0m] [0m[0m/home/pvahdatn/git/dandelion-lib/src/test/scala/generator/test03_test.scala:89:3: not found: value poke[0m
+[0m[[0m[31merror[0m] [0m[0m  poke(c.io.in.bits.data("field0").predicate, false.B)[0m
+[0m[[0m[31merror[0m] [0m[0m  ^[0m
+[0m[[0m[31merror[0m] [0m[0m/home/pvahdatn/git/dandelion-lib/src/test/scala/generator/test03_test.scala:89:53: value B is not a member of Boolean[0m
+[0m[[0m[31merror[0m] [0m[0m  poke(c.io.in.bits.data("field0").predicate, false.B)[0m
+[0m[[0m[31merror[0m] [0m[0m                                                    ^[0m
+[0m[[0m[31merror[0m] [0m[0m/home/pvahdatn/git/dandelion-lib/src/test/scala/generator/test03_test.scala:90:3: not found: value poke[0m
+[0m[[0m[31merror[0m] [0m[0m  poke(c.io.in.bits.data("field0").taskID, 0.U)[0m
+[0m[[0m[31merror[0m] [0m[0m  ^[0m
+[0m[[0m[31merror[0m] [0m[0m/home/pvahdatn/git/dandelion-lib/src/test/scala/generator/test03_test.scala:90:46: value U is not a member of Int[0m
+[0m[[0m[31merror[0m] [0m[0m  poke(c.io.in.bits.data("field0").taskID, 0.U)[0m
+[0m[[0m[31merror[0m] [0m[0m                                             ^[0m
+[0m[[0m[31merror[0m] [0m[0m/home/pvahdatn/git/dandelion-lib/src/test/scala/generator/test03_test.scala:91:3: not found: value poke[0m
+[0m[[0m[31merror[0m] [0m[0m  poke(c.io.in.bits.data("field1").data, 0.U)[0m
+[0m[[0m[31merror[0m] [0m[0m  ^[0m
+[0m[[0m[31merror[0m] [0m[0m/home/pvahdatn/git/dandelion-lib/src/test/scala/generator/test03_test.scala:91:44: value U is not a member of Int[0m
+[0m[[0m[31merror[0m] [0m[0m  poke(c.io.in.bits.data("field1").data, 0.U)[0m
+[0m[[0m[31merror[0m] [0m[0m                                           ^[0m
+[0m[[0m[31merror[0m] [0m[0m/home/pvahdatn/git/dandelion-lib/src/test/scala/generator/test03_test.scala:92:3: not found: value poke[0m
+[0m[[0m[31merror[0m] [0m[0m  poke(c.io.in.bits.data("field1").predicate, false.B)[0m
+[0m[[0m[31merror[0m] [0m[0m  ^[0m
+[0m[[0m[31merror[0m] [0m[0m/home/pvahdatn/git/dandelion-lib/src/test/scala/generator/test03_test.scala:92:53: value B is not a member of Boolean[0m
+[0m[[0m[31merror[0m] [0m[0m  poke(c.io.in.bits.data("field1").predicate, false.B)[0m
+[0m[[0m[31merror[0m] [0m[0m                                                    ^[0m
+[0m[[0m[31merror[0m] [0m[0m/home/pvahdatn/git/dandelion-lib/src/test/scala/generator/test03_test.scala:93:3: not found: value poke[0m
+[0m[[0m[31merror[0m] [0m[0m  poke(c.io.in.bits.data("field1").taskID, 0.U)[0m
+[0m[[0m[31merror[0m] [0m[0m  ^[0m
+[0m[[0m[31merror[0m] [0m[0m/home/pvahdatn/git/dandelion-lib/src/test/scala/generator/test03_test.scala:93:46: value U is not a member of Int[0m
+[0m[[0m[31merror[0m] [0m[0m  poke(c.io.in.bits.data("field1").taskID, 0.U)[0m
+[0m[[0m[31merror[0m] [0m[0m                                             ^[0m
+[0m[[0m[31merror[0m] [0m[0m/home/pvahdatn/git/dandelion-lib/src/test/scala/generator/test03_test.scala:94:3: not found: value poke[0m
+[0m[[0m[31merror[0m] [0m[0m  poke(c.io.out.ready, false.B)[0m
+[0m[[0m[31merror[0m] [0m[0m  ^[0m
+[0m[[0m[31merror[0m] [0m[0m/home/pvahdatn/git/dandelion-lib/src/test/scala/generator/test03_test.scala:94:30: value B is not a member of Boolean[0m
+[0m[[0m[31merror[0m] [0m[0m  poke(c.io.out.ready, false.B)[0m
+[0m[[0m[31merror[0m] [0m[0m                             ^[0m
+[0m[[0m[31merror[0m] [0m[0m/home/pvahdatn/git/dandelion-lib/src/test/scala/generator/test03_test.scala:95:3: not found: value step[0m
+[0m[[0m[31merror[0m] [0m[0m  step(1)[0m
+[0m[[0m[31merror[0m] [0m[0m  ^[0m
+[0m[[0m[31merror[0m] [0m[0m/home/pvahdatn/git/dandelion-lib/src/test/scala/generator/test03_test.scala:96:3: not found: value poke[0m
+[0m[[0m[31merror[0m] [0m[0m  poke(c.io.in.bits.enable.control, true.B)[0m
+[0m[[0m[31merror[0m] [0m[0m  ^[0m
+[0m[[0m[31merror[0m] [0m[0m/home/pvahdatn/git/dandelion-lib/src/test/scala/generator/test03_test.scala:96:42: value B is not a member of Boolean[0m
+[0m[[0m[31merror[0m] [0m[0m  poke(c.io.in.bits.enable.control, true.B)[0m
+[0m[[0m[31merror[0m] [0m[0m                                         ^[0m
+[0m[[0m[31merror[0m] [0m[0m/home/pvahdatn/git/dandelion-lib/src/test/scala/generator/test03_test.scala:97:3: not found: value poke[0m
+[0m[[0m[31merror[0m] [0m[0m  poke(c.io.in.bits.enable.taskID, 3.U)[0m
+[0m[[0m[31merror[0m] [0m[0m  ^[0m
+[0m[[0m[31merror[0m] [0m[0m/home/pvahdatn/git/dandelion-lib/src/test/scala/generator/test03_test.scala:97:38: value U is not a member of Int[0m
+[0m[[0m[31merror[0m] [0m[0m  poke(c.io.in.bits.enable.taskID, 3.U)[0m
+[0m[[0m[31merror[0m] [0m[0m                                     ^[0m
+[0m[[0m[31merror[0m] [0m[0m/home/pvahdatn/git/dandelion-lib/src/test/scala/generator/test03_test.scala:98:3: not found: value poke[0m
+[0m[[0m[31merror[0m] [0m[0m  poke(c.io.in.valid, true.B)[0m
+[0m[[0m[31merror[0m] [0m[0m  ^[0m
+[0m[[0m[31merror[0m] [0m[0m/home/pvahdatn/git/dandelion-lib/src/test/scala/generator/test03_test.scala:98:28: value B is not a member of Boolean[0m
+[0m[[0m[31merror[0m] [0m[0m  poke(c.io.in.valid, true.B)[0m
+[0m[[0m[31merror[0m] [0m[0m                           ^[0m
+[0m[[0m[31merror[0m] [0m[0m/home/pvahdatn/git/dandelion-lib/src/test/scala/generator/test03_test.scala:99:3: not found: value poke[0m
+[0m[[0m[31merror[0m] [0m[0m  poke(c.io.in.bits.data("field0").data, 50.U)[0m
+[0m[[0m[31merror[0m] [0m[0m  ^[0m
+[0m[[0m[31merror[0m] [0m[0m/home/pvahdatn/git/dandelion-lib/src/test/scala/generator/test03_test.scala:99:45: value U is not a member of Int[0m
+[0m[[0m[31merror[0m] [0m[0m  poke(c.io.in.bits.data("field0").data, 50.U)[0m
+[0m[[0m[31merror[0m] [0m[0m                                            ^[0m
+[0m[[0m[31merror[0m] [0m[0m/home/pvahdatn/git/dandelion-lib/src/test/scala/generator/test03_test.scala:100:3: not found: value poke[0m
+[0m[[0m[31merror[0m] [0m[0m  poke(c.io.in.bits.data("field0").predicate, true.B)[0m
+[0m[[0m[31merror[0m] [0m[0m  ^[0m
+[0m[[0m[31merror[0m] [0m[0m/home/pvahdatn/git/dandelion-lib/src/test/scala/generator/test03_test.scala:100:52: value B is not a member of Boolean[0m
+[0m[[0m[31merror[0m] [0m[0m  poke(c.io.in.bits.data("field0").predicate, true.B)[0m
+[0m[[0m[31merror[0m] [0m[0m                                                   ^[0m
+[0m[[0m[31merror[0m] [0m[0m/home/pvahdatn/git/dandelion-lib/src/test/scala/generator/test03_test.scala:101:3: not found: value poke[0m
+[0m[[0m[31merror[0m] [0m[0m  poke(c.io.in.bits.data("field0").taskID, 3.U)[0m
+[0m[[0m[31merror[0m] [0m[0m  ^[0m
+[0m[[0m[31merror[0m] [0m[0m/home/pvahdatn/git/dandelion-lib/src/test/scala/generator/test03_test.scala:101:46: value U is not a member of Int[0m
+[0m[[0m[31merror[0m] [0m[0m  poke(c.io.in.bits.data("field0").taskID, 3.U)[0m
+[0m[[0m[31merror[0m] [0m[0m                                             ^[0m
+[0m[[0m[31merror[0m] [0m[0m/home/pvahdatn/git/dandelion-lib/src/test/scala/generator/test03_test.scala:102:3: not found: value poke[0m
+[0m[[0m[31merror[0m] [0m[0m  poke(c.io.in.bits.data("field1").data, 5.U)[0m
+[0m[[0m[31merror[0m] [0m[0m  ^[0m
+[0m[[0m[31merror[0m] [0m[0m/home/pvahdatn/git/dandelion-lib/src/test/scala/generator/test03_test.scala:102:44: value U is not a member of Int[0m
+[0m[[0m[31merror[0m] [0m[0m  poke(c.io.in.bits.data("field1").data, 5.U)[0m
+[0m[[0m[31merror[0m] [0m[0m                                           ^[0m
+[0m[[0m[31merror[0m] [0m[0m/home/pvahdatn/git/dandelion-lib/src/test/scala/generator/test03_test.scala:103:3: not found: value poke[0m
+[0m[[0m[31merror[0m] [0m[0m  poke(c.io.in.bits.data("field1").predicate, true.B)[0m
+[0m[[0m[31merror[0m] [0m[0m  ^[0m
+[0m[[0m[31merror[0m] [0m[0m/home/pvahdatn/git/dandelion-lib/src/test/scala/generator/test03_test.scala:103:52: value B is not a member of Boolean[0m
+[0m[[0m[31merror[0m] [0m[0m  poke(c.io.in.bits.data("field1").predicate, true.B)[0m
+[0m[[0m[31merror[0m] [0m[0m                                                   ^[0m
+[0m[[0m[31merror[0m] [0m[0m/home/pvahdatn/git/dandelion-lib/src/test/scala/generator/test03_test.scala:104:3: not found: value poke[0m
+[0m[[0m[31merror[0m] [0m[0m  poke(c.io.in.bits.data("field1").taskID, 3.U)[0m
+[0m[[0m[31merror[0m] [0m[0m  ^[0m
+[0m[[0m[31merror[0m] [0m[0m/home/pvahdatn/git/dandelion-lib/src/test/scala/generator/test03_test.scala:104:46: value U is not a member of Int[0m
+[0m[[0m[31merror[0m] [0m[0m  poke(c.io.in.bits.data("field1").taskID, 3.U)[0m
+[0m[[0m[31merror[0m] [0m[0m                                             ^[0m
+[0m[[0m[31merror[0m] [0m[0m/home/pvahdatn/git/dandelion-lib/src/test/scala/generator/test03_test.scala:105:3: not found: value poke[0m
+[0m[[0m[31merror[0m] [0m[0m  poke(c.io.out.ready, true.B)[0m
+[0m[[0m[31merror[0m] [0m[0m  ^[0m
+[0m[[0m[31merror[0m] [0m[0m/home/pvahdatn/git/dandelion-lib/src/test/scala/generator/test03_test.scala:105:29: value B is not a member of Boolean[0m
+[0m[[0m[31merror[0m] [0m[0m  poke(c.io.out.ready, true.B)[0m
+[0m[[0m[31merror[0m] [0m[0m                            ^[0m
+[0m[[0m[31merror[0m] [0m[0m/home/pvahdatn/git/dandelion-lib/src/test/scala/generator/test03_test.scala:106:3: not found: value step[0m
+[0m[[0m[31merror[0m] [0m[0m  step(1)[0m
+[0m[[0m[31merror[0m] [0m[0m  ^[0m
+[0m[[0m[31merror[0m] [0m[0m/home/pvahdatn/git/dandelion-lib/src/test/scala/generator/test03_test.scala:107:3: not found: value poke[0m
+[0m[[0m[31merror[0m] [0m[0m  poke(c.io.in.bits.enable.control, false.B)[0m
+[0m[[0m[31merror[0m] [0m[0m  ^[0m
+[0m[[0m[31merror[0m] [0m[0m/home/pvahdatn/git/dandelion-lib/src/test/scala/generator/test03_test.scala:107:43: value B is not a member of Boolean[0m
+[0m[[0m[31merror[0m] [0m[0m  poke(c.io.in.bits.enable.control, false.B)[0m
+[0m[[0m[31merror[0m] [0m[0m                                          ^[0m
+[0m[[0m[31merror[0m] [0m[0m/home/pvahdatn/git/dandelion-lib/src/test/scala/generator/test03_test.scala:108:3: not found: value poke[0m
+[0m[[0m[31merror[0m] [0m[0m  poke(c.io.in.valid, false.B)[0m
+[0m[[0m[31merror[0m] [0m[0m  ^[0m
+[0m[[0m[31merror[0m] [0m[0m/home/pvahdatn/git/dandelion-lib/src/test/scala/generator/test03_test.scala:108:29: value B is not a member of Boolean[0m
+[0m[[0m[31merror[0m] [0m[0m  poke(c.io.in.valid, false.B)[0m
+[0m[[0m[31merror[0m] [0m[0m                            ^[0m
+[0m[[0m[31merror[0m] [0m[0m/home/pvahdatn/git/dandelion-lib/src/test/scala/generator/test03_test.scala:109:3: not found: value poke[0m
+[0m[[0m[31merror[0m] [0m[0m  poke(c.io.in.bits.data("field0").data, 0.U)[0m
+[0m[[0m[31merror[0m] [0m[0m  ^[0m
+[0m[[0m[31merror[0m] [0m[0m/home/pvahdatn/git/dandelion-lib/src/test/scala/generator/test03_test.scala:109:44: value U is not a member of Int[0m
+[0m[[0m[31merror[0m] [0m[0m  poke(c.io.in.bits.data("field0").data, 0.U)[0m
+[0m[[0m[31merror[0m] [0m[0m                                           ^[0m
+[0m[[0m[31merror[0m] [0m[0m/home/pvahdatn/git/dandelion-lib/src/test/scala/generator/test03_test.scala:110:3: not found: value poke[0m
+[0m[[0m[31merror[0m] [0m[0m  poke(c.io.in.bits.data("field0").predicate, false.B)[0m
+[0m[[0m[31merror[0m] [0m[0m  ^[0m
+[0m[[0m[31merror[0m] [0m[0m/home/pvahdatn/git/dandelion-lib/src/test/scala/generator/test03_test.scala:110:53: value B is not a member of Boolean[0m
+[0m[[0m[31merror[0m] [0m[0m  poke(c.io.in.bits.data("field0").predicate, false.B)[0m
+[0m[[0m[31merror[0m] [0m[0m                                                    ^[0m
+[0m[[0m[31merror[0m] [0m[0m/home/pvahdatn/git/dandelion-lib/src/test/scala/generator/test03_test.scala:111:3: not found: value poke[0m
+[0m[[0m[31merror[0m] [0m[0m  poke(c.io.in.bits.data("field1").data, 0.U)[0m
+[0m[[0m[31merror[0m] [0m[0m  ^[0m
+[0m[[0m[31merror[0m] [0m[0m/home/pvahdatn/git/dandelion-lib/src/test/scala/generator/test03_test.scala:111:44: value U is not a member of Int[0m
+[0m[[0m[31merror[0m] [0m[0m  poke(c.io.in.bits.data("field1").data, 0.U)[0m
+[0m[[0m[31merror[0m] [0m[0m                                           ^[0m
+[0m[[0m[31merror[0m] [0m[0m/home/pvahdatn/git/dandelion-lib/src/test/scala/generator/test03_test.scala:112:3: not found: value poke[0m
+[0m[[0m[31merror[0m] [0m[0m  poke(c.io.in.bits.data("field1").predicate, false.B)[0m
+[0m[[0m[31merror[0m] [0m[0m  ^[0m
+[0m[[0m[31merror[0m] [0m[0m1181 errors found[0m

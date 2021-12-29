@@ -67,7 +67,7 @@ class ReadTypTableEntry(id: Int)(implicit p: Parameters)
   =            Default values for external communication            =
   ==================================================================*/
   io.output.valid := 0.U
-  io.output.bits.valid := true.B
+  io.output.valid := true.B
   io.MemReq.valid := 0.U
 
   /*=======================================================
@@ -94,7 +94,6 @@ class ReadTypTableEntry(id: Int)(implicit p: Parameters)
   io.MemReq.bits.iswrite := false.B
   io.MemReq.bits.mask := ~0.U
   io.MemReq.bits.taskID := request_R.taskID
-  io.MemReq.bits.tile := 0.U
 
   // Memreq valid
   io.MemReq.valid := false.B
@@ -110,7 +109,7 @@ class ReadTypTableEntry(id: Int)(implicit p: Parameters)
 
   when(io.MemResp.valid === true.B) {
     // Sending data; pick word from linebuffer
-    linebuffer(recvptr) := io.MemResp.data
+    linebuffer(recvptr) := io.MemResp.bits.data
     // Increment to next word
     recvptr := recvptr + 1.U
   }

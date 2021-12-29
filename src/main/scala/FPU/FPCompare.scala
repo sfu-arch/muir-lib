@@ -31,7 +31,7 @@ class FPCompareNode(NumOuts: Int, ID: Int, opCode: String)
                   name: sourcecode.Name,
                   file: sourcecode.File)
   extends HandShakingNPS(NumOuts, ID)(new DataBundle())(p) {
-  override lazy val io = IO(new ComputeNodeIO(NumOuts))
+  override lazy val io = IO(new ComputeNodeIO(NumOuts, Debug =  false))
 
   // Printf debugging
   val node_name = name.value

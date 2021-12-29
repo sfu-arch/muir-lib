@@ -75,10 +75,10 @@ class TruncNode(val SrcW: Int = 0, val DesW: Int = 0, val NumOuts: Int = 1, val 
     enable_valid_R := true.B
   }
 
+  val out_data = Mux(io.Input.fire, io.Input.bits, input_R)
   // Defalut values for output
-
   for (i <- 0 until NumOuts) {
-    io.Out(i).bits <> input_R
+    io.Out(i).bits <> out_data
     io.Out(i).valid <> output_valid_R(i)
   }
 
@@ -92,11 +92,11 @@ class TruncNode(val SrcW: Int = 0, val DesW: Int = 0, val NumOuts: Int = 1, val 
   val fire_mask = (fire_R zip io.Out.map(_.fire)).map { case (a, b) => a | b }
 
   def IsEnableValid(): Bool = {
-    return enable_valid_R || io.enable.fire
+    enable_valid_R || io.enable.fire
   }
 
   def IsInputValid(): Bool = {
-    return input_valid_R || io.Input.fire
+    input_valid_R || io.Input.fire
   }
 
 
@@ -111,14 +111,14 @@ class TruncNode(val SrcW: Int = 0, val DesW: Int = 0, val NumOuts: Int = 1, val 
 
       when(IsEnableValid() && IsInputValid()) {
 
+        io.Out.foreach(_.valid := true.B)
         output_valid_R.foreach(_ := true.B)
 
         state := s_fire
 
         if (log) {
-          printf(f"[LOG] " + "[" + module_name + "] " + "[TID->%d] "
-            + node_name + ": Output fired @ %d, Value: %d\n",
-            task_input, cycleCount, input_R.data)
+          printf(p"[LOG] [${module_name}] [TID: ${task_input}] [${node_name}] " +
+            p"[Pred: ${enable_R.control}] [Out: ${out_data.data}] [Cycle: ${cycleCount}]\n")
         }
       }
     }

@@ -8,33 +8,33 @@ import dsptools.DspContext
 
 
 /**
-  * List of compute operations which we can support
-  */
+ * List of compute operations which we can support
+ */
 object AluOpCode {
-  val Add                  = 1
-  val Sub                  = 2
-  val And                  = 3
-  val Or                   = 4
-  val Xor                  = 5
-  val Xnor                 = 6
-  val ShiftLeft            = 7
-  val ShiftRight           = 8
-  val ShiftRightLogical    = 9
+  val Add = 1
+  val Sub = 2
+  val And = 3
+  val Or = 4
+  val Xor = 5
+  val Xnor = 6
+  val ShiftLeft = 7
+  val ShiftRight = 8
+  val ShiftRightLogical = 9
   val ShiftRightArithmetic = 10
-  val EQ                   = 11
-  val NE                   = 12
-  val LT                   = 13
-  val GT                   = 14
-  val LTE                  = 15
-  val GTE                  = 16
-  val PassA                = 17
-  val PassB                = 18
-  val Mul                  = 19
-  val Div                  = 20
-  val Mod                  = 21
-  val Max                  = 22
-  val Min                  = 23
-  val Mac                  = 24
+  val EQ = 11
+  val NE = 12
+  val LT = 13
+  val GT = 14
+  val LTE = 15
+  val GTE = 16
+  val PassA = 17
+  val PassB = 18
+  val Mul = 19
+  val Div = 20
+  val Mod = 21
+  val Max = 22
+  val Min = 23
+  val Mac = 24
 
   val opMap = Map(
     "Add" -> Add,
@@ -127,12 +127,11 @@ object AluOpCode {
 }
 
 
-/** @param key     a key to search for
-  * @param default a default value if nothing is found
-  * @param mapping a sequence to search of keys and values
-  * @return the value found or the default if not
-  */
 object AluGenerator {
+  /** @param key    a key to search for
+   * @param mapping a sequence to search of keys and values
+   * @return the value found or the default if not
+   */
   def apply[S <: Int, T <: Data](key: S, mapping: Seq[(S, T)]): T = {
 
     //Assign default to first element
@@ -148,13 +147,13 @@ object AluGenerator {
 
 
 /**
-  * ALU class supports all the computation operations exist in LLVM
-  * to use the class you only need to specify the length of inputs
-  * and opCode of your alu.
-  *
-  * @param opCode opcode which indicates ALU operation
-  * @param xlen   bit width of the inputs
-  */
+ * ALU class supports all the computation operations exist in LLVM
+ * to use the class you only need to specify the length of inputs
+ * and opCode of your alu.
+ *
+ * @param opCode opcode which indicates ALU operation
+ * @param xlen   bit width of the inputs
+ */
 
 class UALUIO(xlen: Int, val opCode: String) extends Bundle {
   val in1 = Input(UInt(xlen.W))
@@ -208,7 +207,7 @@ class UALU(val xlen: Int, val opCode: String, val issign: Boolean = false) exten
       AluOpCode.Xnor -> (~(in1S ^ in2S)),
       AluOpCode.ShiftLeft -> (in1S << in2S(math.min(in2S.getWidth, 19) - 1, 0)),
       AluOpCode.ShiftRight -> (in1S >> in2S(math.min(in2S.getWidth, 19) - 1, 0)),
-      AluOpCode.ShiftRightLogical -> (in1S.asUInt >> in2S(math.min(in2S.getWidth, 19),0)).asUInt, // Chisel only performs arithmetic right-shift on SInt
+      AluOpCode.ShiftRightLogical -> (in1S.asUInt >> in2S(math.min(in2S.getWidth, 19), 0)).asUInt, // Chisel only performs arithmetic right-shift on SInt
       AluOpCode.ShiftRightArithmetic -> (in1S.asSInt >> in2S(math.min(in2S.getWidth, 19), 0)).asUInt, // Chisel only performs arithmetic right-shift on SInt
       AluOpCode.LT -> (io.in1.asSInt < io.in2.asSInt),
       AluOpCode.GT -> (io.in1.asSInt > io.in2.asSInt),

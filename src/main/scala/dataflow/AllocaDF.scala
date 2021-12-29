@@ -69,7 +69,6 @@ class StackDF(implicit p: Parameters) extends StackDFIO() {
   m0.io.allocaInputIO <> io.Data0
 //  m0.io.allocaInputIO.bits.size := 3.U
 //  m0.io.allocaInputIO.bits.numByte := 4.U
-// // //  m0.io.allocaInputIO.bits.valid := true.B
 //  m0.io.allocaInputIO.bits.predicate := true.B
 //  m0.io.allocaInputIO.valid := true.B
 

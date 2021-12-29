@@ -1113,7 +1113,6 @@ class extract_function_harris_f3DF(implicit p: Parameters) extends extract_funct
   alloca__4130.io.allocaInputIO.bits.size      := 1.U
   alloca__4130.io.allocaInputIO.bits.numByte   := 2.U
   alloca__4130.io.allocaInputIO.bits.predicate := true.B
-  alloca__4130.io.allocaInputIO.bits.valid     := true.B
   alloca__4130.io.allocaInputIO.valid          := true.B
 
 
@@ -1121,7 +1120,6 @@ class extract_function_harris_f3DF(implicit p: Parameters) extends extract_funct
   alloca__4151.io.allocaInputIO.bits.size      := 1.U
   alloca__4151.io.allocaInputIO.bits.numByte   := 2.U
   alloca__4151.io.allocaInputIO.bits.predicate := true.B
-  alloca__4151.io.allocaInputIO.bits.valid     := true.B
   alloca__4151.io.allocaInputIO.valid          := true.B
 
 
@@ -1129,7 +1127,6 @@ class extract_function_harris_f3DF(implicit p: Parameters) extends extract_funct
   alloca__4162.io.allocaInputIO.bits.size      := 1.U
   alloca__4162.io.allocaInputIO.bits.numByte   := 2.U
   alloca__4162.io.allocaInputIO.bits.predicate := true.B
-  alloca__4162.io.allocaInputIO.bits.valid     := true.B
   alloca__4162.io.allocaInputIO.valid          := true.B
 
 
@@ -1137,7 +1134,6 @@ class extract_function_harris_f3DF(implicit p: Parameters) extends extract_funct
   alloca__4173.io.allocaInputIO.bits.size      := 1.U
   alloca__4173.io.allocaInputIO.bits.numByte   := 2.U
   alloca__4173.io.allocaInputIO.bits.predicate := true.B
-  alloca__4173.io.allocaInputIO.bits.valid     := true.B
   alloca__4173.io.allocaInputIO.valid          := true.B
 
 

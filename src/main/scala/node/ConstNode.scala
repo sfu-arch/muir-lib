@@ -8,11 +8,11 @@ import dandelion.interfaces._
 import util._
 import utility.UniformPrintfs
 
-class ConstNode(value: Int, NumOuts: Int = 1, ID: Int)
+class ConstNode(value: BigInt, NumOuts: Int = 1, ID: Int)
                (implicit p: Parameters,
                 name: sourcecode.Name,
                 file: sourcecode.File)
-  extends HandShakingNPS(NumOuts, ID)(new DataBundle())(p) {
+  extends HandShakingNPS(NumOuts, ID )(new DataBundle())(p) {
 
   override lazy val io = IO(new HandShakingIONPS(NumOuts)(new DataBundle()))
   val node_name = name.value
@@ -67,12 +67,14 @@ class ConstNode(value: Int, NumOuts: Int = 1, ID: Int)
           out_data_R.predicate := io.enable.bits.control
           out_data_R.taskID := task_ID_W
         }
+
         state := s_COMPUTE
       }
     }
     is(s_COMPUTE) {
       when(IsOutReady()) {
         //Reset state
+
         state := s_IDLE
         out_data_R.predicate := false.B
         Reset()
@@ -87,7 +89,7 @@ class ConstNode(value: Int, NumOuts: Int = 1, ID: Int)
 }
 
 
-class ConstFastNode(value: Int, ID: Int)
+class ConstFastNode(value: BigInt, ID: Int)
                     (implicit val p: Parameters,
                      name: sourcecode.Name,
                      file: sourcecode.File)
@@ -144,9 +146,11 @@ class ConstFastNode(value: Int, ID: Int)
           enable_R <> io.enable.bits
         }
         if (log) {
-          printf("[LOG] " + "[" + module_name + "] " + "[TID->%d] [CONST] "
-            + node_name + ": Output fired @ %d, Value: %d\n",
-            taskID, cycleCount, output_value.asSInt())
+          printf(p"[LOG] [${module_name}] [TID: ${taskID}] [CONST] " +
+            p"[${module_name}] " +
+            p"[Pred: ${enable_R.control}] " +
+            p"[Val: 0x${Hexadecimal(output_value)}] " +
+            p"[Cycle: ${cycleCount}]\n")
         }
       }
     }

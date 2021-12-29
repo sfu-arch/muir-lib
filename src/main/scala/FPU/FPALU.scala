@@ -61,8 +61,8 @@ case class FType(exp: Int, sig: Int) {
 
 object FType {
   val S = new FType(8, 24)
-  val D = new FType(11, 53)
   val H = new FType(5, 11)
+  val D = new FType(11, 53)
 }
 
 /**

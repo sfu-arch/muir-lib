@@ -30,7 +30,7 @@ class TypStoreIO(NumPredOps: Int,
   // Memory request
   val memReq = Decoupled(new WriteReq())
   // Memory response.
-  val memResp = Input(Flipped(new WriteResp()))
+  val memResp = Flipped(Valid(new WriteResp()))
 
   override def cloneType = new TypStoreIO(NumPredOps, NumSuccOps, NumOuts).asInstanceOf[this.type]
 }

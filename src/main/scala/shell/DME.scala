@@ -170,6 +170,7 @@ class DME(implicit val p: Parameters) extends Module with HasAccelShellParams {
   val lenBits = memParams.lenBits
   val wr_cnt = RegInit(0.U(lenBits.W))
 
+
   when(wstate === sWriteIdle) {
     wr_cnt := 0.U
   }.elsewhen(io.mem.w.fire()) {
@@ -189,7 +190,7 @@ class DME(implicit val p: Parameters) extends Module with HasAccelShellParams {
     }
     is(sWriteData) {
       when(
-        io.dme.wr(wr_arb_chosen).data.valid && io.mem.w.ready && wr_cnt === wr_arb.io.out.bits.len) {
+        io.dme.wr(wr_arb_chosen).data.valid && io.mem.w.ready && wr_cnt === io.dme.wr(wr_arb_chosen).cmd.bits.len) {
         wstate := sWriteResp
       }
     }

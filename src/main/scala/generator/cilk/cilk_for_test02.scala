@@ -320,7 +320,6 @@ class cilk_for_test02DF(implicit p: Parameters) extends cilk_for_test02DFIO()(p)
   alloca_foo0.io.allocaInputIO.bits.size      := 1.U
   alloca_foo0.io.allocaInputIO.bits.numByte   := 4.U
   alloca_foo0.io.allocaInputIO.bits.predicate := true.B
-  alloca_foo0.io.allocaInputIO.bits.valid     := true.B
   alloca_foo0.io.allocaInputIO.valid          := true.B
 
 

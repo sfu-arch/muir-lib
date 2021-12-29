@@ -1363,7 +1363,6 @@ class extract_function_harris_f2DF(implicit p: Parameters) extends extract_funct
   alloca__3440.io.allocaInputIO.bits.size      := 1.U
   alloca__3440.io.allocaInputIO.bits.numByte   := 2.U
   alloca__3440.io.allocaInputIO.bits.predicate := true.B
-  alloca__3440.io.allocaInputIO.bits.valid     := true.B
   alloca__3440.io.allocaInputIO.valid          := true.B
 
 
@@ -1371,7 +1370,6 @@ class extract_function_harris_f2DF(implicit p: Parameters) extends extract_funct
   alloca__3451.io.allocaInputIO.bits.size      := 1.U
   alloca__3451.io.allocaInputIO.bits.numByte   := 2.U
   alloca__3451.io.allocaInputIO.bits.predicate := true.B
-  alloca__3451.io.allocaInputIO.bits.valid     := true.B
   alloca__3451.io.allocaInputIO.valid          := true.B
 
 
@@ -1379,7 +1377,6 @@ class extract_function_harris_f2DF(implicit p: Parameters) extends extract_funct
   alloca__3462.io.allocaInputIO.bits.size      := 1.U
   alloca__3462.io.allocaInputIO.bits.numByte   := 2.U
   alloca__3462.io.allocaInputIO.bits.predicate := true.B
-  alloca__3462.io.allocaInputIO.bits.valid     := true.B
   alloca__3462.io.allocaInputIO.valid          := true.B
 
 
@@ -1387,7 +1384,6 @@ class extract_function_harris_f2DF(implicit p: Parameters) extends extract_funct
   alloca__3473.io.allocaInputIO.bits.size      := 1.U
   alloca__3473.io.allocaInputIO.bits.numByte   := 2.U
   alloca__3473.io.allocaInputIO.bits.predicate := true.B
-  alloca__3473.io.allocaInputIO.bits.valid     := true.B
   alloca__3473.io.allocaInputIO.valid          := true.B
 
 
@@ -1395,7 +1391,6 @@ class extract_function_harris_f2DF(implicit p: Parameters) extends extract_funct
   alloca__3624.io.allocaInputIO.bits.size      := 1.U
   alloca__3624.io.allocaInputIO.bits.numByte   := 2.U
   alloca__3624.io.allocaInputIO.bits.predicate := true.B
-  alloca__3624.io.allocaInputIO.bits.valid     := true.B
   alloca__3624.io.allocaInputIO.valid          := true.B
 
 
@@ -1403,7 +1398,6 @@ class extract_function_harris_f2DF(implicit p: Parameters) extends extract_funct
   alloca__3635.io.allocaInputIO.bits.size      := 1.U
   alloca__3635.io.allocaInputIO.bits.numByte   := 2.U
   alloca__3635.io.allocaInputIO.bits.predicate := true.B
-  alloca__3635.io.allocaInputIO.bits.valid     := true.B
   alloca__3635.io.allocaInputIO.valid          := true.B
 
 

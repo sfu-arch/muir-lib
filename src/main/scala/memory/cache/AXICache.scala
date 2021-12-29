@@ -23,7 +23,7 @@ trait HasCacheAccelParams extends HasAccelParams with HasAccelShellParams {
   val nWords = bBits / xlen
   val wBytes = xlen / 8
   val byteOffsetBits = log2Ceil(wBytes)
-  val dataBeats = bBits / memParams.dataBits
+  val dataBeats = (bBits + memParams.dataBits - 1) / memParams.dataBits
 }
 
 
@@ -144,11 +144,8 @@ class SimpleCache(val ID: Int = 0, val debug: Boolean = false)(implicit val p: P
   // Read Mux
   io.cpu.resp.bits.data := VecInit.tabulate(nWords)(i => read((i + 1) * xlen - 1, i * xlen))(off_reg)
   io.cpu.resp.bits.tag := cpu_tag
-  io.cpu.resp.bits.valid := (is_write && hit) || (is_read && hit) || (is_alloc_reg && !cpu_iswrite)
+  io.cpu.resp.valid := (is_write && hit) || (is_read && hit) || (is_alloc_reg && !cpu_iswrite)
   io.cpu.resp.bits.iswrite := cpu_iswrite
-
-  //Extra input needs to be removed
-  io.cpu.resp.bits.tile := 0.U
 
   // Can be: 1)Write hit, 2)Read hit, 3)Read miss
   io.cpu.resp.valid := (is_write && hit) || (is_read && hit) || (is_alloc_reg && !cpu_iswrite)
@@ -437,7 +434,6 @@ class ReferenceCache(val ID: Int = 0, val debug: Boolean = false)(implicit val p
   val addr_reg = Reg(io.cpu.req.bits.addr.cloneType)
   val cpu_tag_reg = Reg(io.cpu.req.bits.tag.cloneType)
   val cpu_iswrite_reg = Reg(io.cpu.req.bits.iswrite.cloneType)
-  val cpu_tile_reg = Reg(io.cpu.req.bits.tile.cloneType)
   val cpu_data = Reg(io.cpu.req.bits.data.cloneType)
   val cpu_mask = Reg(io.cpu.req.bits.mask.cloneType)
 
@@ -484,15 +480,13 @@ class ReferenceCache(val ID: Int = 0, val debug: Boolean = false)(implicit val p
   io.cpu.resp.bits.data := VecInit.tabulate(nWords)(i => read((i + 1) * xlen - 1, i * xlen))(off_reg)
   io.cpu.resp.valid := is_idle || is_read && hit || is_alloc_reg && !cpu_mask.orR
 
-  io.cpu.resp.bits.tile := 0.U
-  io.cpu.resp.bits.valid := true.B
+  //io.cpu.resp.valid := true.B
   io.cpu.resp.bits.tag := cpu_tag_reg
   io.cpu.resp.bits.iswrite := cpu_iswrite_reg
 
   when(io.cpu.req.fire) {
     cpu_tag_reg := io.cpu.req.bits.tag
     cpu_iswrite_reg := io.cpu.req.bits.iswrite
-    cpu_tile_reg := io.cpu.req.bits.tile
   }
 
   when(io.cpu.resp.valid) {
@@ -729,7 +723,6 @@ class DMECache(val ID: Int = 0, val debug: Boolean = false)(implicit val p: Para
   val addr_reg = Reg(io.cpu.req.bits.addr.cloneType)
   val cpu_tag_reg = Reg(io.cpu.req.bits.tag.cloneType)
   val cpu_iswrite_reg = Reg(io.cpu.req.bits.iswrite.cloneType)
-  val cpu_tile_reg = Reg(io.cpu.req.bits.tile.cloneType)
   val cpu_data = Reg(io.cpu.req.bits.data.cloneType)
   val cpu_mask = Reg(io.cpu.req.bits.mask.cloneType)
 
@@ -775,15 +768,12 @@ class DMECache(val ID: Int = 0, val debug: Boolean = false)(implicit val p: Para
   io.cpu.resp.bits.data := VecInit.tabulate(nWords)(i => read((i + 1) * xlen - 1, i * xlen))(off_reg)
   io.cpu.resp.valid := is_idle || is_read && hit || is_alloc_reg && !cpu_mask.orR
 
-  io.cpu.resp.bits.tile := 0.U
-  io.cpu.resp.bits.valid := true.B
   io.cpu.resp.bits.tag := cpu_tag_reg
   io.cpu.resp.bits.iswrite := cpu_iswrite_reg
 
   when(io.cpu.req.fire) {
     cpu_tag_reg := io.cpu.req.bits.tag
     cpu_iswrite_reg := io.cpu.req.bits.iswrite
-    cpu_tile_reg := io.cpu.req.bits.tile
   }
 
   when(io.cpu.resp.valid) {
@@ -850,6 +840,10 @@ class DMECache(val ID: Int = 0, val debug: Boolean = false)(implicit val p: Para
   io.mem.wr.data.bits := Mux(flush_mode,
     VecInit.tabulate(dataBeats)(i => dirty_cache_block((i + 1) * Axi_param.dataBits - 1, i * Axi_param.dataBits))(write_count),
     VecInit.tabulate(dataBeats)(i => read((i + 1) * Axi_param.dataBits - 1, i * Axi_param.dataBits))(write_count))
+
+//  io.mem.wr.data.bits := VecInit.tabulate(dataBeats)(i => read((i + 1) * Axi_param.dataBits - 1, i * Axi_param.dataBits))(write_count)
+
+
   io.mem.wr.data.valid := false.B
 
   // write resp

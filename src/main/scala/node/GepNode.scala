@@ -13,9 +13,9 @@ import dandelion.interfaces._
 import muxes._
 import utility._
 
-class GepNodeOneIO(NumOuts: Int)
+class GepNodeOneIO(NumOuts: Int, Debug : Boolean = false)
                   (implicit p: Parameters)
-  extends HandShakingIONPS(NumOuts)(new DataBundle) {
+  extends HandShakingIONPS(NumOuts, Debug)(new DataBundle) {
 
   // Inputs should be fed only when Ready is HIGH
   // Inputs are always latched.
@@ -24,13 +24,13 @@ class GepNodeOneIO(NumOuts: Int)
   val idx1 = Flipped(Decoupled(new DataBundle()))
 
   //  3.1
-  override def cloneType = new GepNodeOneIO(NumOuts).asInstanceOf[this.type]
+  override def cloneType = new GepNodeOneIO(NumOuts, Debug).asInstanceOf[this.type]
 
 }
 
-class GepNodeTwoIO(NumOuts: Int)
+class GepNodeTwoIO(NumOuts: Int, Debug : Boolean = false)
                   (implicit p: Parameters)
-  extends HandShakingIONPS(NumOuts)(new DataBundle) {
+  extends HandShakingIONPS(NumOuts, Debug )(new DataBundle) {
 
   // Inputs should be fed only when Ready is HIGH
   // Inputs are always latched.
@@ -39,7 +39,7 @@ class GepNodeTwoIO(NumOuts: Int)
   val idx1 = Flipped(Decoupled(new DataBundle()))
   val idx2 = Flipped(Decoupled(new DataBundle()))
 
-  override def cloneType = new GepNodeTwoIO(NumOuts).asInstanceOf[this.type]
+  override def cloneType = new GepNodeTwoIO(NumOuts, Debug).asInstanceOf[this.type]
 
 }
 
@@ -70,13 +70,13 @@ class GepNodeIO(NumIns: Int, NumOuts: Int)
 }
 
 
-class GepOneNode(NumOuts: Int, ID: Int)
+class GepOneNode(NumOuts: Int, ID: Int, Debug : Boolean = false)
                 (numByte1: Int)
                 (implicit p: Parameters,
                  name: sourcecode.Name,
                  file: sourcecode.File)
-  extends HandShakingNPS(NumOuts, ID)(new DataBundle)(p) {
-  override lazy val io = IO(new GepNodeOneIO(NumOuts))
+  extends HandShakingNPS(NumOuts, ID, Debug)(new DataBundle)(p) {
+  override lazy val io = IO(new GepNodeOneIO(NumOuts, Debug))
   // Printf debugging
   val node_name = name.value
   val module_name = file.value.split("/").tail.last.split("\\.").head.capitalize
@@ -165,8 +165,11 @@ class GepOneNode(NumOuts: Int, ID: Int)
         }
       }
     }
-  }
 
+  }
+  def isDebug(): Boolean = {
+    Debug
+  }
 
 }
 
@@ -962,8 +965,8 @@ class GepNode(NumIns: Int, NumOuts: Int, ID: Int)
         // Reset output
         Reset()
         if (log) {
-          printf("[LOG] " + "[" + module_name + "] [TID->%d] [GEP] " +
-            node_name + ": Output fired @ %d, Value: %d\n", enable_R.taskID, cycleCount, data_out)
+          printf(p"[LOG] [${module_name}] [TID: ${enable_R.taskID}] [GEP] [${node_name}] " +
+            p"[Pred: ${enable_R.control}][Out: 0x${Hexadecimal(data_out)}] [Cycle: ${cycleCount}]\n")
         }
       }
     }

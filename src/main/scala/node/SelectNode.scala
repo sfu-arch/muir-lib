@@ -14,9 +14,9 @@ import util._
 import utility.UniformPrintfs
 
 
-class SelectNodeIO(NumOuts: Int)
+class SelectNodeIO(NumOuts: Int, Debug:Boolean=false)
                   (implicit p: Parameters)
-  extends HandShakingIONPS(NumOuts)(new DataBundle) {
+  extends HandShakingIONPS(NumOuts, Debug )(new DataBundle) {
 
   // Input data 1
   val InData1 = Flipped(Decoupled(new DataBundle()))
@@ -27,16 +27,16 @@ class SelectNodeIO(NumOuts: Int)
   // Select input data
   val Select = Flipped(Decoupled(new DataBundle()))
 
-  override def cloneType = new SelectNodeIO(NumOuts).asInstanceOf[this.type]
+  override def cloneType = new SelectNodeIO(NumOuts, Debug).asInstanceOf[this.type]
 }
 
-class SelectNode(NumOuts: Int, ID: Int)
+class SelectNode(NumOuts: Int, ID: Int, Debug : Boolean = false)
                 (fast: Boolean)
                 (implicit p: Parameters,
                  name: sourcecode.Name,
                  file: sourcecode.File)
-  extends HandShakingNPS(NumOuts, ID)(new DataBundle())(p) {
-  override lazy val io = IO(new SelectNodeIO(NumOuts))
+  extends HandShakingNPS(NumOuts, ID, Debug)(new DataBundle())(p) {
+  override lazy val io = IO(new SelectNodeIO(NumOuts, Debug))
 
   // Printf debugging
   val node_name = name.value
@@ -109,8 +109,8 @@ class SelectNode(NumOuts: Int, ID: Int)
           ValidOut()
           state := s_COMPUTE
           if(log){
-            printf("[LOG] " + "[" + module_name + "] " + "[TID->%d] [SELECT] " +
-              node_name + ": Output fired @ %d, Value: %d\n", taskID, cycleCount, output_data)
+            printf(p"[LOG] [${module_name}] [TID: %d] [SELECT] " +
+              p"[${node_name}] [Task: ${taskID}] [Out: ${output_data}] [Cycle: ${cycleCount}]\n")
           }
         }
     }
@@ -130,5 +130,7 @@ class SelectNode(NumOuts: Int, ID: Int)
       }
     }
   }
-
+  def isDebug(): Boolean = {
+    Debug
+  }
 }

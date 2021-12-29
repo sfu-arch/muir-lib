@@ -15,27 +15,29 @@ import utility.UniformPrintfs
 
 
 /**
-  * @note
-  * For Conditional Branch output is always equal to two!
-  * Since your branch output wire to two different basic block only
-  */
+ * @note
+ * For Conditional Branch output is always equal to two!
+ * Since your branch output wire to two different basic block only
+ */
 
-class CBranchNodeIO(NumOuts: Int = 2)
+class CBranchNodeIO(NumOuts: Int = 2, Debug: Boolean = false)
                    (implicit p: Parameters)
-  extends HandShakingIONPS(NumOuts)(new ControlBundle) {
+  extends HandShakingIONPS(NumOuts, Debug)(new ControlBundle) {
 
   // RightIO: Right input data for computation
   val CmpIO = Flipped(Decoupled(new DataBundle))
 
-  override def cloneType = new CBranchNodeIO(NumOuts).asInstanceOf[this.type]
+  override def cloneType = new CBranchNodeIO(NumOuts, Debug).asInstanceOf[this.type]
 }
 
-class CBranchNode(ID: Int)
+class CBranchNode(ID: Int, Debug: Boolean = false)
                  (implicit p: Parameters,
                   name: sourcecode.Name,
                   file: sourcecode.File)
-  extends HandShakingCtrlNPS(2, ID)(p) {
-  override lazy val io = IO(new CBranchNodeIO())
+  extends HandShakingCtrlNPS(2, ID, Debug)(p) {
+
+  //////I added Numouts here
+  override lazy val io = IO(new CBranchNodeIO(NumOuts, Debug))
   // Printf debugging
   val node_name = name.value
   val module_name = file.value.split("/").tail.last.split("\\.").head.capitalize
@@ -89,11 +91,11 @@ class CBranchNode(ID: Int)
    *============================================*/
 
   /**
-    * Combination of bits and valid signal from CmpIn whill result the output value:
-    * valid == 0  ->  output = 0
-    * valid == 1  ->  cmp = true  then 1
-    * valid == 1  ->  cmp = false then 2
-    */
+   * Combination of bits and valid signal from CmpIn whill result the output value:
+   * valid == 0  ->  output = 0
+   * valid == 1  ->  cmp = true  then 1
+   * valid == 1  ->  cmp = false then 2
+   */
 
   switch(state) {
     is(s_IDLE) {
@@ -128,6 +130,9 @@ class CBranchNode(ID: Int)
     }
   }
 
+  def isDebug(): Boolean = {
+    Debug
+  }
 }
 
 class CBranchFastIO()(implicit p: Parameters) extends AccelBundle {
@@ -171,15 +176,13 @@ class CBranchFastNode(ID: Int)
 
 
 /**
-  * This class is the fast version of CBranch which the IO supports
-  * a vector of output for each side True/False
-  *
-  * @param NumPredOps Number of parents
-  * @param NumOuts    Number of outputs
-  * @param ID         Node id
-  */
+ * This class is the fast version of CBranch which the IO supports
+ * a vector of output for each side True/False
+ *
+ * @param ID Node id
+ */
 
-@deprecated("Use CBranchFastNodeVariable2 instead. The behaviour is not deterministic","dandelion-1.0")
+@deprecated("Use CBranchFastNodeVariable2 instead. The behaviour is not deterministic", "dandelion-1.0")
 class CBranchFastNodeVariable(val NumTrue: Int = 1, val NumFalse: Int = 1, val ID: Int)
                              (implicit val p: Parameters,
                               name: sourcecode.Name,
@@ -366,13 +369,11 @@ class CBranchFastNodeVariable(val NumTrue: Int = 1, val NumFalse: Int = 1, val I
 
 
 /**
-  * This class is the fast version of CBranch which the IO supports
-  * a vector of output for each side True/False
-  *
-  * @param NumPredOps Number of parents
-  * @param NumOuts    Number of outputs
-  * @param ID         Node id
-  */
+ * This class is the fast version of CBranch which the IO supports
+ * a vector of output for each side True/False
+ *
+ * @param ID Node id
+ */
 
 
 class CBranchNodeVariableLoop(val NumTrue: Int = 1, val NumFalse: Int = 1, val NumPredecessor: Int = 0, val ID: Int)
@@ -595,13 +596,13 @@ class UBranchNode(NumPredOps: Int = 0,
    *===============================================*/
 
   /**
-    * Combination of bits and valid signal from CmpIn whill result the output value:
-    * valid == 0  ->  output = 0
-    * valid == 1  ->  cmp = true  then 1
-    * valid == 1  ->  cmp = false then 2
-    *
-    * @note data_R value is equale to predicate bit
-    */
+   * Combination of bits and valid signal from CmpIn whill result the output value:
+   * valid == 0  ->  output = 0
+   * valid == 1  ->  cmp = true  then 1
+   * valid == 1  ->  cmp = false then 2
+   *
+   * @note data_R value is equale to predicate bit
+   */
   // Wire up Outputs
   io.Out.foreach(_.bits := enable_R)
 
@@ -611,22 +612,16 @@ class UBranchNode(NumPredOps: Int = 0,
         state := s_OUTPUT
         ValidOut()
         io.Out.foreach(_.valid := true.B)
-        when(enable_R.control) {
-          if (log) {
-            printf("[LOG] " + "[" + module_name + "] [TID->%d] [UBR] "
-              + node_name + ": Output fired [T] @ %d,\n",
-              enable_R.taskID, cycleCount)
-          }
-        }.otherwise {
-          if (log) {
-            printf("[LOG] " + "[" + module_name + "] [TID->%d] [UBR] "
-              + node_name + ": Output fired [F] @ %d,\n",
-              enable_R.taskID, cycleCount)
-          }
+        if (log) {
+          printf(p"[LOG] [${module_name}] [TID: ${enable_R.taskID}] " +
+            p"[UBR] " +
+            p"[${node_name}] " +
+            p"[Out: ${enable_R.control}] " +
+            p"[Cycle: ${cycleCount}]\n")
         }
-
       }
     }
+
     is(s_OUTPUT) {
       when(IsOutReady()) {
         state := s_idle
@@ -641,10 +636,10 @@ class UBranchNode(NumPredOps: Int = 0,
 
 
 /**
-  * @note
-  * For Conditional Branch output is always equal to two!
-  * Since your branch output wire to two different basic block only
-  */
+ * @note
+ * For Conditional Branch output is always equal to two!
+ * Since your branch output wire to two different basic block only
+ */
 
 class CompareBranchIO()(implicit p: Parameters) extends AccelBundle {
   // Predicate enable
@@ -743,11 +738,11 @@ class CompareBranchNode(ID: Int, opCode: String)
    *============================================*/
 
   /**
-    * Combination of bits and valid signal from CmpIn whill result the output value:
-    * valid == 0  ->  output = 0
-    * valid == 1  ->  cmp = true  then 1
-    * valid == 1  ->  cmp = false then 2
-    */
+   * Combination of bits and valid signal from CmpIn whill result the output value:
+   * valid == 0  ->  output = 0
+   * valid == 1  ->  cmp = true  then 1
+   * valid == 1  ->  cmp = false then 2
+   */
 
   when(state === s_COMPUTE) {
     assert((left_R.taskID === enable_R.taskID) && (right_R.taskID === enable_R.taskID), "Control channel should be in sync with data channel!")
@@ -809,18 +804,16 @@ class CompareBranchNode(ID: Int, opCode: String)
 
 
 /**
-  * This class is the fast version of CBranch which the IO supports
-  * a vector of output for each side True/False
-  *
-  * @param NumPredOps Number of parents
-  * @param NumOuts    Number of outputs
-  * @param ID         Node id
-  */
+ * This class is the fast version of CBranch which the IO supports
+ * a vector of output for each side True/False
+ *
+ * @param ID Node id
+ */
 
 class UBranchNodeVariable(val NumOutputs: Int = 1, val ID: Int)
-                             (implicit val p: Parameters,
-                              name: sourcecode.Name,
-                              file: sourcecode.File)
+                         (implicit val p: Parameters,
+                          name: sourcecode.Name,
+                          file: sourcecode.File)
   extends Module with HasAccelParams with UniformPrintfs {
 
   val io = IO(new Bundle {
@@ -936,13 +929,10 @@ class UBranchNodeVariable(val NumOutputs: Int = 1, val ID: Int)
 }
 
 /**
-  * This class is the fast version of CBranch which the IO supports
-  * a vector of output for each side True/False
-  *
-  * @param NumPredOps Number of parents
-  * @param NumOuts    Number of outputs
-  * @param ID         Node id
-  */
+ * This class is the fast version of CBranch which the IO supports
+ * a vector of output for each side True/False
+ *
+ */
 
 class CBranchIO(val NumTrue: Int, val NumFalse: Int, val NumPredecessor: Int = 0)(implicit p: Parameters)
   extends AccelBundle()(p) {
@@ -1166,14 +1156,11 @@ class CBranchFastNodeVariable2(val NumTrue: Int = 1, val NumFalse: Int = 1, val 
 }
 
 /**
-  * This class is the fast version of CBranch which the IO supports
-  * a vector of output for each side True/False
-  *
-  * @param NumTrue
-  * @param NumFalse
-  * @param NumPredecessor Number of parents
-  * @param ID         Node id
-  */
+ * This class is the fast version of CBranch which the IO supports
+ * a vector of output for each side True/False
+ *
+ * @param ID Node id
+ */
 
 class CBranchNodeVariable(val NumTrue: Int = 1, val NumFalse: Int = 1, val NumPredecessor: Int = 0, val ID: Int)
                          (implicit val p: Parameters,
@@ -1225,7 +1212,7 @@ class CBranchNodeVariable(val NumTrue: Int = 1, val NumFalse: Int = 1, val NumPr
   for (i <- 0 until NumPredecessor) {
     io.PredOp(i).ready := ~predecessor_valid_R(i)
     when(io.PredOp(i).fire) {
-      predecessor_R(i) <> io.PredOp(i).bits
+      predecessor_R(i) := io.PredOp(i).bits
       predecessor_valid_R(i) := true.B
     }
   }
@@ -1248,12 +1235,9 @@ class CBranchNodeVariable(val NumTrue: Int = 1, val NumFalse: Int = 1, val NumPr
   }
 
   // Output for true and false sides
-  val predicate = enable_R.control & enable_valid_R
-  val true_output = predicate & cmp_R.control
-  val false_output = predicate & (~cmp_R.control).asBool
+  val true_output = enable_R.control & cmp_R.control
+  val false_output = enable_R.control && (~cmp_R.control)
 
-  // Defalut values for Trueoutput
-  //
   output_true_R.control := true_output
   output_true_R.taskID := task_id
 
@@ -1270,8 +1254,6 @@ class CBranchNodeVariable(val NumTrue: Int = 1, val NumFalse: Int = 1, val NumPr
   }
 
 
-  // Defalut values for False output
-  //
   output_false_R.control := false_output
   output_false_R.taskID := task_id
 
@@ -1298,7 +1280,6 @@ class CBranchNodeVariable(val NumTrue: Int = 1, val NumFalse: Int = 1, val NumPr
 
   switch(state) {
     is(s_idle) {
-
       when(enable_valid_R && cmp_valid && IsPredecessorValid()) {
 
         output_true_valid_R.foreach(_ := true.B)
@@ -1307,25 +1288,21 @@ class CBranchNodeVariable(val NumTrue: Int = 1, val NumFalse: Int = 1, val NumPr
         state := s_fire
 
         when(enable_R.control) {
-          when(IsPredecessorValid()) {
+          when(cmp_R.control) {
             if (log) {
-              printf("[LOG] " + "[" + module_name + "] [TID->%d] [CBR] "
-                + node_name + ": Output fired [T F] @ %d,\n",
-                enable_R.taskID, cycleCount)
+              printf(p"[LOG] [${module_name}] [TID: ${task_id}] [CBR] " +
+                p"[${node_name}] [Out: T:1 - F:0] [Cycle: ${cycleCount}]\n")
             }
           }.otherwise {
             if (log) {
-              printf("[LOG] " + "[" + module_name + "] [TID->%d] [CBR] "
-                + node_name + ": Output fired [F T] @ %d,\n",
-                enable_R.taskID, cycleCount)
+              printf(p"[LOG] [${module_name}] [TID: ${task_id}] [CBR] " +
+                p"[${node_name}] [Out: T:0 - F:1] [Cycle: ${cycleCount}]\n")
             }
           }
-
         }.otherwise {
           if (log) {
-            printf("[LOG] " + "[" + module_name + "] [TID->%d] [CBR] "
-              + node_name + ": Output fired [F F] @ %d,\n",
-              enable_R.taskID, cycleCount)
+            printf(p"[LOG] [${module_name}] [TID: ${task_id}] [CBR] " +
+              p"[${node_name}] [Out: T:0 - F:0] [Cycle: ${cycleCount}]\n")
           }
         }
       }
@@ -1352,9 +1329,7 @@ class CBranchNodeVariable(val NumTrue: Int = 1, val NumFalse: Int = 1, val NumPr
         fire_false_R.foreach(_ := false.B)
 
         state := s_idle
-
       }
-
     }
   }
 }

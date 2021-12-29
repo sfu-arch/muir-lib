@@ -1,10 +1,6 @@
 
 package dandelion.node
 
-/**
-  * Created by nvedula on 15/5/17.
-  */
-
 import chisel3._
 import chisel3.util._
 import org.scalacheck.Prop.False
@@ -15,23 +11,12 @@ import dandelion.interfaces._
 import utility.Constants._
 import utility.UniformPrintfs
 
-// Design Doc
-//////////
-/// DRIVER ///
-/// 1. Memory response only available atleast 1 cycle after request
-//  2. Need registers for pipeline handshaking e.g., _valid,
-// _ready need to latch ready and valid signals.
-//////////
-
-//class HandShakingIOPS[T <: Data](val NumPredOps: Int,
-//  val NumSuccOps: Int,
-//  val NumOuts: Int)(gen: T)(implicit p: Parameters)
-//  extends AccelBundle()(p) {
-//  // Output IO
-//  val Out = Vec(NumOuts, Decoupled(gen))
-//}
-
-
+/**
+ *
+ * 1. Memory response only available atleast 1 cycle after request
+ * 2. Need registers for pipeline handshaking e.g., _valid,
+ * @param p
+ */
 class StoreNodeIO()(implicit p: Parameters) extends AccelBundle()(p) {
   // Node specific IO
   // GepAddr: The calculated address comming from GEP node
@@ -41,7 +26,7 @@ class StoreNodeIO()(implicit p: Parameters) extends AccelBundle()(p) {
   // Memory request
   val memReq = Decoupled(new WriteReq())
   // Memory response.
-  val memResp = Input(Flipped(new WriteResp()))
+  val memResp = Flipped(Valid(new WriteResp()))
 
 
   // Predicate enable
@@ -62,6 +47,7 @@ class StoreNode(Typ: UInt = MT_W, ID: Int, RouteID: Int)(implicit val p: Paramet
   override lazy val io = IO(new StoreNodeIO())
 
   override val printfSigil = "Node (STORE) ID: " + ID + " "
+
 
   /*=============================================
   =            Register declarations            =
@@ -189,86 +175,5 @@ class StoreNode(Typ: UInt = MT_W, ID: Int, RouteID: Int)(implicit val p: Paramet
     }
 
   }
-
-
-  // ACTION:  Memory request
-  //  Check if address is valid and data has arrive and predecessors have completed.
-  //  val complete = is_succ_ready
-
-  //  when(state === s_Done) {
-  //    io.Finish := true.B
-  //  }.otherwise {
-  //    false.B
-  //  }
-
-  // when((state === s_idle)) {
-  //    when(mem_req_fire & start & predicate) {
-  //      io.memReq.valid := true.B
-  //      state := s_WAITING
-  //    }.otherwise {
-  //      io.memReq.valid := false.B
-  //      state := s_idle
-  //    }
-  //  }.elsewhen(state === s_WAITING) {
-  //
-  //   io.memReq.valid := true.B
-  //
-  //    //  ACTION: Arbitration ready
-  //    when(io.memReq.ready) {
-  //      state := s_RECEIVING
-  //    }.otherwise {
-  //      state := s_WAITING
-  //    }
-  //
-  //  }.elsewhen(state === s_RECEIVING) {
-  //    when(io.memResp.valid) {
-  //      state := s_Done
-  //    }
-  //  }
-
-
-  //  when(start & predicate) {
-
-  // ACTION: Memory Request
-  // -> Send memory request
-
-
-  //.elsewhen(start & (~predicate).asTypeOf(Bool())) {
-
-  //    //The instruction is not predicated
-  //    state := s_Done
-  //  }
-
-
-  /*===========================================
-  =            Output Handshaking and Reset   =
-  ===========================================*/
-
-  //  ACTION: <- Check Out READY and Successors READY
-  //  when(state === s_Done) {
-  //    // When successors are complete and outputs are ready you can reset.
-  //    // data already valid and would be latched in this cycle.
-  //
-  //    //    when(complete) {
-  //    // Clear all the valid states.
-  //    // Reset address
-  //    addr_R := DataBundle.default
-  //    addr_valid_R := false.B
-  //    // Reset data.
-  //    data_R := DataBundle.default
-  //    data_valid_R := false.B
-  //
-  //    //Reset enable.
-  //    enable_R := false.B
-  //    enable_valid_R := false.B
-  //
-  //    // Clear all other state
-  //    // Reset:
-  //
-  //    // Reset state.
-  //    state := s_idle
-  //    printfInfo("Output fired")
-  //
-  //  }
 
 }

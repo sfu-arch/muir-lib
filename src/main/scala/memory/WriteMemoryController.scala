@@ -33,7 +33,7 @@ abstract class WriteEntryIO()(implicit val p: Parameters)
 
     //Memory interface
     val MemReq  = Decoupled(new MemReq)
-    val MemResp = Input(new MemResp)
+    val MemResp = Flipped(Valid(new MemResp))
 
     // val Output 
     val output = Decoupled(new WriteResp)
@@ -46,7 +46,7 @@ abstract class WriteEntryIO()(implicit val p: Parameters)
 /**
   * @brief Read Table Entry
   * @note [long description]
-  * @param ID [Read table IDs]
+  * @param id [Read table IDs]
   * @return [description]
   */
 class WriteTableEntry(id: Int)(implicit p: Parameters) extends WriteEntryIO( )(p) {
@@ -94,7 +94,7 @@ class WriteTableEntry(id: Int)(implicit p: Parameters) extends WriteEntryIO( )(p
   // @todo: (done and valid are redundant. Need to cleanup at some point in the future)
   io.output.valid := 0.U
   io.output.bits.done := true.B
-  io.output.bits.valid := true.B
+  io.output.valid := true.B
   io.output.bits.RouteID := request_R.RouteID
   io.MemReq.valid := 0.U
   io.MemReq.bits.addr := ReqAddress + Cat(ptr, 0.U(log2Ceil(xlen_bytes).W))
@@ -108,7 +108,6 @@ class WriteTableEntry(id: Int)(implicit p: Parameters) extends WriteEntryIO( )(p
   val isWrite = RegNext(true.B, init = false.B)
   io.MemReq.bits.iswrite := isWrite
   io.MemReq.bits.taskID := request_R.taskID
-  io.MemReq.bits.tile := 0.U
 
 
   /*=======================================================
@@ -168,7 +167,7 @@ class WriteTableEntry(id: Int)(implicit p: Parameters) extends WriteEntryIO( )(p
     io.output.valid := 1.U
     ptr := 0.U
     // Valid write 
-    io.output.bits.valid := true.B
+    io.output.valid := true.B
     // Output driver demux tree has forwarded output (may not have reached receiving node yet)
     when(io.output.fire( )) {
       state := s_idle
@@ -249,9 +248,6 @@ class WriteMemoryController(NumOps: Int, BaseSize: Int, NumEntries: Int, Seriali
                5. Cache response demux                                                             =
   =========================================================================*/
 
-  for (i <- 0 until MLPSize) {
-  }
-
   //  Handshaking input arbiter with allocator
   in_arb.io.out.ready := alloc_arb.io.out.valid
   alloc_arb.io.out.ready := in_arb.io.out.valid
@@ -262,13 +258,14 @@ class WriteMemoryController(NumOps: Int, BaseSize: Int, NumEntries: Int, Seriali
 
   // Cache response Demux
   cacheresp_demux.io.en := io.MemResp.valid
-  cacheresp_demux.io.input := io.MemResp.bits
+  cacheresp_demux.io.input := io.MemResp
   cacheresp_demux.io.sel := io.MemResp.bits.tag
 
   // Output arbiter -> Demux
   out_arb.io.out.ready := true.B
   out_demux.io.enable := out_arb.io.out.fire( )
-  out_demux.io.input := out_arb.io.out.bits
+  out_demux.io.input.bits := out_arb.io.out.bits
+  out_demux.io.input.valid := out_arb.io.out.valid
 
   /**
    * Currently our cache doesn't support multiple memory request on the fly

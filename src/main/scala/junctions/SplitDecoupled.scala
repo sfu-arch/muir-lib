@@ -244,14 +244,14 @@ class SplitCallDCR(val ptrsArgTypes: Seq[Int], val valsArgTypes: Seq[Int])(impli
 
   def isPtrsValid(): Bool ={
     if(ptrsArgTypes.length > 0)
-      ptrsValid.reduceLeft(_ || _)
+      ~ptrsValid.reduceLeft(_ && _)
     else
       true.B
   }
 
   def isValsValid(): Bool ={
-    if(valsArgTypes.length > 0)
-      valsValid.reduceLeft(_ || _)
+    if(valsArgTypes.size > 0)
+      ~valsValid.reduceLeft(_ && _)
     else
       true.B
   }
@@ -269,7 +269,7 @@ class SplitCallDCR(val ptrsArgTypes: Seq[Int], val valsArgTypes: Seq[Int])(impli
       }
     }
     is(s_latched) {
-      when (!isPtrsValid && !isValsValid && !enableValidReg) {
+      when (isPtrsValid && isValsValid && ~enableValidReg) {
         state := s_idle
       }
     }
@@ -308,6 +308,7 @@ class SplitCallDCR(val ptrsArgTypes: Seq[Int], val valsArgTypes: Seq[Int])(impli
   when(state === s_latched && io.Out.enable.ready){
     enableValidReg := false.B
   }
+
   io.Out.enable.valid := enableValidReg
   io.Out.enable.bits := inputReg.enable
 

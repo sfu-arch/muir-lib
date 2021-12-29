@@ -30,7 +30,7 @@ abstract class ReadEntryIO()(implicit val p: Parameters)
 
     //Memory interface
     val MemReq = Decoupled(new MemReq)
-    val MemResp = Input(new MemResp)
+    val MemResp = Flipped(Valid(new MemResp))
 
     // val Output
     val output = Decoupled(new ReadResp)
@@ -90,7 +90,7 @@ class ReadTableEntry(id: Int)(implicit p: Parameters) extends ReadEntryIO()(p) w
   ==================================================================*/
   io.output.valid := 0.U
   io.output.bits.RouteID := request_R.RouteID
-  io.output.bits.valid := true.B
+  io.output.valid := true.B
   io.output.bits.data := 0.U
 
   io.MemReq.valid := 0.U
@@ -103,7 +103,6 @@ class ReadTableEntry(id: Int)(implicit p: Parameters) extends ReadEntryIO()(p) w
   io.MemReq.bits.data := 0.U
   io.MemReq.bits.mask := 0.U
   io.MemReq.bits.taskID := request_R.taskID
-  io.MemReq.bits.tile := 0.U
 
 
   /*=======================================================
@@ -150,7 +149,7 @@ class ReadTableEntry(id: Int)(implicit p: Parameters) extends ReadEntryIO()(p) w
     is(s_RECEIVING) {
       when(io.MemResp.valid) {
         // Received data; concatenate into linebuffer
-        linebuffer(ptr) := io.MemResp.data
+        linebuffer(ptr) := io.MemResp.bits.data
         // Increment ptr to next entry in linebuffer (for next read)
         ptr := ptr + 1.U
         // Check if more data needs to be sent
@@ -172,7 +171,7 @@ class ReadTableEntry(id: Int)(implicit p: Parameters) extends ReadEntryIO()(p) w
       if (xlen == 16) {
         io.output.bits.data := Data2Sign16b(output, request_R.Typ, xlen)
       }
-      io.output.bits.valid := true.B
+      io.output.valid := true.B
       ptr := 0.U
       // Output driver demux tree has forwarded output (may not have reached receiving node yet)
       when(io.output.ready) {
@@ -287,13 +286,14 @@ class ReadMemoryController (NumOps: Int, BaseSize: Int, NumEntries: Int, Seriali
 
   // Cache response Demux
   cacheresp_demux.io.en := io.MemResp.valid
-  cacheresp_demux.io.input := io.MemResp.bits
+  cacheresp_demux.io.input := io.MemResp
   cacheresp_demux.io.sel := io.MemResp.bits.tag
 
   // Output arbiter -> Demux
   out_arb.io.out.ready := true.B
   out_demux.io.enable := out_arb.io.out.fire()
-  out_demux.io.input := out_arb.io.out.bits
+  out_demux.io.input.bits := out_arb.io.out.bits
+  out_demux.io.input.valid := out_arb.io.out.valid
 
   /**
    * Currently our cache doesn't support multiple memory request on the fly
