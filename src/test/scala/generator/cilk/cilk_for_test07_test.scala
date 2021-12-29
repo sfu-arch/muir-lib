@@ -4,28 +4,30 @@ package dandelion.generator.cilk
 import chisel3._
 import chisel3.Module
 import org.scalatest.{FlatSpec, Matchers}
-import dandelion.concurrent.{TaskController,TaskControllerIO}
+import dandelion.concurrent.{TaskController, TaskControllerIO}
 import chipsalliance.rocketchip.config._
 import dandelion.config._
 import dandelion.memory._
 import dandelion.accel._
 import dandelion.interfaces.NastiMemSlave
+import dandelion.memory.cache.ReferenceCache
 import helpers._
 
 
 class cilk_for_test07MainDirect(implicit p: Parameters)
   extends AccelIO(List(32, 32), List(32)) {
 
-  val cache = Module(new Cache) // Simple Nasti Cache
+  val cache = Module(new ReferenceCache) // Simple Nasti Cache
   val memModel = Module(new NastiMemSlave) // Model of DRAM to connect to Cache
 
   // Connect the wrapper I/O to the memory model initialization interface so the
   // test bench can write contents at start.
-  memModel.io.nasti <> cache.io.nasti
+  memModel.io.nasti <> cache.io.mem
   memModel.io.init.bits.addr := 0.U
   memModel.io.init.bits.data := 0.U
   memModel.io.init.valid := false.B
-  cache.io.cpu.abort := false.B
+    cache.io.cpu.abort := false.B
+  cache.io.cpu.flush := false.B
 
   // Wire up the cache and modules under test.
   val cilk_for_test07_detach = Module(new cilk_for_test07_detach1DF())
@@ -58,16 +60,17 @@ class cilk_for_test07MainDirect(implicit p: Parameters)
 class cilk_for_test07MainTM(tiles: Int)(implicit p: Parameters)
   extends AccelIO(List(32, 32), List(32)) {
 
-  val cache = Module(new Cache) // Simple Nasti Cache
+  val cache = Module(new ReferenceCache) // Simple Nasti Cache
   val memModel = Module(new NastiMemSlave) // Model of DRAM to connect to Cache
 
   // Connect the wrapper I/O to the memory model initialization interface so the
   // test bench can write contents at start.
-  memModel.io.nasti <> cache.io.nasti
+  memModel.io.nasti <> cache.io.mem
   memModel.io.init.bits.addr := 0.U
   memModel.io.init.bits.data := 0.U
   memModel.io.init.valid := false.B
-  cache.io.cpu.abort := false.B
+    cache.io.cpu.abort := false.B
+  cache.io.cpu.flush := false.B
 
   val cilk_for_testDF = Module(new cilk_for_test07DF())
 
@@ -193,7 +196,7 @@ class cilk_for_test07Tester1 extends FlatSpec with Matchers {
     179, 193, 58, 64, 68, 102, 40, 33, 97,
     41, 61, 58, 56, 32, 9)
 
-  implicit val p = new WithAccelConfig
+  implicit val p = new WithAccelConfig ++ new WithTestConfig
   it should "Check that cilk_for_test07 works correctly." in {
     // iotester flags:
     // -ll  = log level <Error|Warn|Info|Debug|Trace>
@@ -223,7 +226,7 @@ class cilk_for_test07Tester2 extends FlatSpec with Matchers {
     179, 193, 58, 64, 68, 102, 40, 33, 97,
     41, 61, 58, 56, 32, 9)
 
-  implicit val p = new WithAccelConfig
+  implicit val p = new WithAccelConfig ++ new WithTestConfig
   // iotester flags:
   // -ll  = log level <Error|Warn|Info|Debug|Trace>
   // -tbn = backend <firrtl|verilator|vcs>

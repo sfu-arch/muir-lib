@@ -33,9 +33,9 @@ trait AccelParams {
 }
 
 /**
- * VCR parameters.
- * These parameters are used on VCR interfaces and modules.
- */
+  * VCR parameters.
+  * These parameters are used on VCR interfaces and modules.
+  */
 trait DCRParams {
   val nCtrl: Int
   val nECnt: Int
@@ -45,9 +45,9 @@ trait DCRParams {
 }
 
 /**
- * DME parameters.
- * These parameters are used on DME interfaces and modules.
- */
+  * DME parameters.
+  * These parameters are used on DME interfaces and modules.
+  */
 trait DMEParams {
   val nReadClients: Int
   val nWriteClients: Int
@@ -69,6 +69,7 @@ case class DandelionAccelParams(
                                  cacheNWays: Int = 1,
                                  cacheNSets: Int = 256
                                ) extends AccelParams {
+
   var xlen: Int = dataLen
   var ylen: Int = addrLen
   val tlen: Int = taskLen
@@ -114,9 +115,9 @@ case class DandelionDCRParams(numCtrl: Int = 1,
 }
 
 /**
- * DME parameters.
- * These parameters are used on DME interfaces and modules.
- */
+  * DME parameters.
+  * These parameters are used on DME interfaces and modules.
+  */
 case class DandelionDMEParams(numRead: Int = 1,
                               numWrite: Int = 1) extends DMEParams {
   val nReadClients: Int = numRead
@@ -173,8 +174,38 @@ class WithAccelConfig(inParams: DandelionAccelParams = DandelionAccelParams())
     // Core
     case DandelionConfigKey => inParams
   }
-
   )
+
+
+/**
+  * Please note that the dLen from WithSimShellConfig should be the same value as
+  * AXI -- memParams:dataBits
+  *
+  * @param vcrParams
+  * @param dmeParams
+  * @param hostParams
+  * @param memParams
+  */
+class WithTestConfig(vcrParams: DandelionDCRParams = DandelionDCRParams(),
+                      dmeParams: DandelionDMEParams = DandelionDMEParams(),
+                      hostParams: AXIParams = AXIParams(
+                        addrBits = 16, dataBits = 32, idBits = 13, lenBits = 4),
+                      memParams: AXIParams = AXIParams(
+                        addrBits = 32, dataBits = 32, userBits = 5,
+                        lenBits = 4, // limit to 16 beats, instead of 256 beats in AXI4
+                        coherent = true),
+                      nastiParams: NastiParameters = NastiParameters(dataBits = 32, addrBits = 32, idBits = 13))
+  extends Config((site, here, up) => {
+    // Core
+    case DCRKey => vcrParams
+    case DMEKey => dmeParams
+    case HostParamKey => hostParams
+    case MemParamKey => memParams
+    case NastiKey => nastiParams
+  }
+  )
+
+
 
 trait HasAccelParams {
   implicit val p: Parameters

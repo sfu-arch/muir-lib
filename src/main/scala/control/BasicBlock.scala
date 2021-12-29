@@ -269,10 +269,7 @@ class BasicBlockNoMaskFastNode(BID: Int, val NumInputs: Int = 1, val NumOuts: In
   }
 
   val predicate_val = output_data_map.reduce(_ | _)
-
   output_R := ControlBundle.default(predicate_val, in_task_ID)
-
-
   //Connecting output signals
   for (i <- 0 until NumOuts) {
     if (fast) {

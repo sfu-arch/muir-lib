@@ -4,27 +4,30 @@ package dandelion.generator
 import chisel3._
 import chisel3.Module
 import org.scalatest.{FlatSpec, Matchers}
-import dandelion.concurrent.{TaskController,TaskControllerIO}
+import dandelion.concurrent.{TaskController, TaskControllerIO}
 import chipsalliance.rocketchip.config._
 import dandelion.config._
 import dandelion.memory._
 import dandelion.accel._
 import dandelion.interfaces.NastiMemSlave
+import dandelion.memory.cache.ReferenceCache
+
 import scala.util.Random
 import helpers._
 
 class stencilSerialDirect()(implicit p: Parameters) extends AccelIO(List(32, 32), List()) {
 
-  val cache = Module(new Cache) // Simple Nasti Cache
+  val cache = Module(new ReferenceCache()) // Simple Nasti Cache
   val memModel = Module(new NastiMemSlave) // Model of DRAM to connect to Cache
 
   // Connect the wrapper I/O to the memory model initialization interface so the
   // test bench can write contents at start.
-  memModel.io.nasti <> cache.io.nasti
+  memModel.io.nasti <> cache.io.mem
   memModel.io.init.bits.addr := 0.U
   memModel.io.init.bits.data := 0.U
   memModel.io.init.valid := false.B
   cache.io.cpu.abort := false.B
+  cache.io.cpu.flush := false.B
 
   // Wire up the cache, TM, and modules under test.
   val stencil = Module(new stencilSerialDF())
@@ -42,13 +45,6 @@ class stencilSerialDirect()(implicit p: Parameters) extends AccelIO(List(32, 32)
 
   // tester to cilk_for_test02
   stencil.io.in <> io.in
-
-  // cilk_for_test02 to task controller
-  //stencil_detach1.io.in <> stencil.io.call_8_out
-  //stencil.io.call_8_in <> stencil_detach1.io.out
-
-  //stencil_inner.io.in <> stencil_detach1.io.call_4_out
-  //stencil_detach1.io.call_4_in <> stencil_inner.io.out
 
   // cilk_for_test02 to tester
   io.out <> stencil.io.out
@@ -191,7 +187,7 @@ class stencilSerialTester1 extends FlatSpec with Matchers {
   )
 
 
-  implicit val p = new WithAccelConfig(DandelionAccelParams(dataLen = 8))
+  implicit val p = new WithAccelConfig ++ new WithTestConfig
   // iotester flags:
   // -ll  = log level <Error|Warn|Info|Debug|Trace>
   // -tbn = backend <firrtl|verilator|vcs>
@@ -211,48 +207,3 @@ class stencilSerialTester1 extends FlatSpec with Matchers {
   }
 }
 
-
-//class stencilSerialTester2 extends FlatSpec with Matchers {
-
-  //val inDataVec = List(
-    //7, 9, 3, 8,
-    //0, 2, 4, 8,
-    //3, 9, 0, 5,
-    //2, 2, 7, 3)
-  //val inAddrVec = List.range(0, 4 * 16, 4)
-
-  //val outAddrVec = List.range(256, 256 + (4 * 16), 4)
-  //val outDataVec = List(
-    //3, 3, 4, 3,
-    //4, 5, 6, 4,
-    //3, 4, 5, 4,
-    //2, 3, 3, 2
-  //)
-
-  //implicit val p = new WithAccelConfig
-  //val testParams = p.alterPartial({
-    //case TLEN => 8
-    //case TRACE => true
-  //})
-  //// iotester flags:
-  //// -ll  = log level <Error|Warn|Info|Debug|Trace>
-  //// -tbn = backend <firrtl|verilator|vcs>
-  //// -td  = target directory
-  //// -tts = seed for RNG
-  ////  val tile_list = List(1,2,4,8)
-  //val tile_list = List(1)
-  //for (tile <- tile_list) {
-    //it should s"Test: $tile tiles" in {
-      //chisel3.iotesters.Driver.execute(
-        //Array(
-          //"-ll", "Warn",
-          //"-tn", "cilkstencilSerialTM",
-          //"-tbn", "verilator",
-          //"-td", s"test_run_dir/stencilSerial_${tile}",
-          //"-tts", "0001"),
-        //() => new stencilSerialMainTM(tile)(testParams)) {
-        //c => new stencilSerialTest02(c, tile)(inAddrVec, inDataVec.toList, outAddrVec, outDataVec)
-      //} should be(true)
-    //}
-  //}
-//}

@@ -4,28 +4,30 @@ package dandelion.generator
 import chisel3._
 import chisel3.Module
 import org.scalatest.{FlatSpec, Matchers}
-import dandelion.concurrent.{TaskController,TaskControllerIO}
+import dandelion.concurrent.{TaskController, TaskControllerIO}
 import chipsalliance.rocketchip.config._
 import dandelion.config._
 import dandelion.memory._
 import dandelion.accel._
 import dandelion.interfaces.NastiMemSlave
+import dandelion.memory.cache.ReferenceCache
 import helpers._
 
 
 class vectorScaleSerialMainDirect(NumTiles: Int = 1)(implicit p: Parameters)
   extends AccelIO(List(32, 32, 32, 32), List(32))(p) {
 
-  val cache = Module(new Cache) // Simple Nasti Cache
+  val cache = Module(new ReferenceCache()) // Simple Nasti Cache
   val memModel = Module(new NastiMemSlave) // Model of DRAM to connect to Cache
 
   // Connect the wrapper I/O to the memory model initialization interface so the
   // test bench can write contents at start.
-  memModel.io.nasti <> cache.io.nasti
+  memModel.io.nasti <> cache.io.mem
   memModel.io.init.bits.addr := 0.U
   memModel.io.init.bits.data := 0.U
   memModel.io.init.valid := false.B
-  cache.io.cpu.abort := false.B
+    cache.io.cpu.abort := false.B
+  cache.io.cpu.flush := false.B
 
 
   val testDF = Module(new vectorScaleSerialDF())
@@ -147,7 +149,7 @@ class vectorScaleSerialTester1 extends FlatSpec with Matchers {
     255, 65, 255, 255, 255, 255)
 
 
-  implicit val p = new WithAccelConfig(DandelionAccelParams(dataLen = 6))
+  implicit val p = new WithAccelConfig ++ new WithTestConfig
   // iotester flags:
   // -ll  = log level <Error|Warn|Info|Debug|Trace>
   // -tbn = backend <firrtl|verilator|vcs>

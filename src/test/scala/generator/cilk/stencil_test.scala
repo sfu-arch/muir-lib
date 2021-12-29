@@ -4,27 +4,30 @@ package dandelion.generator.cilk
 import chisel3._
 import chisel3.Module
 import org.scalatest.{FlatSpec, Matchers}
-import dandelion.concurrent.{TaskController,TaskControllerIO}
+import dandelion.concurrent.{TaskController, TaskControllerIO}
 import chipsalliance.rocketchip.config._
 import dandelion.config._
 import dandelion.memory._
 import dandelion.accel._
 import dandelion.interfaces.NastiMemSlave
+import dandelion.memory.cache.ReferenceCache
+
 import scala.util.Random
 import helpers._
 
 class stencilDirect()(implicit p: Parameters) extends AccelIO(List(32, 32), List()) {
 
-  val cache = Module(new Cache) // Simple Nasti Cache
+  val cache = Module(new ReferenceCache) // Simple Nasti Cache
   val memModel = Module(new NastiMemSlave) // Model of DRAM to connect to Cache
 
   // Connect the wrapper I/O to the memory model initialization interface so the
   // test bench can write contents at start.
-  memModel.io.nasti <> cache.io.nasti
+  memModel.io.nasti <> cache.io.mem
   memModel.io.init.bits.addr := 0.U
   memModel.io.init.bits.data := 0.U
   memModel.io.init.valid := false.B
-  cache.io.cpu.abort := false.B
+    cache.io.cpu.abort := false.B
+  cache.io.cpu.flush := false.B
 
   // Wire up the cache, TM, and modules under test.
   val stencil = Module(new stencilDF())
@@ -66,16 +69,17 @@ class stencilDirect()(implicit p: Parameters) extends AccelIO(List(32, 32), List
 
 class stencilMainTM(tiles: Int)(implicit p: Parameters) extends AccelIO(List(32, 32), List()) {
 
-  val cache = Module(new Cache) // Simple Nasti Cache
+  val cache = Module(new ReferenceCache()) // Simple Nasti Cache
   val memModel = Module(new NastiMemSlave(latency = 80)) // Model of DRAM to connect to Cache
 
   // Connect the wrapper I/O to the memory model initialization interface so the
   // test bench can write contents at start.
-  memModel.io.nasti <> cache.io.nasti
+  memModel.io.nasti <> cache.io.mem
   memModel.io.init.bits.addr := 0.U
   memModel.io.init.bits.data := 0.U
   memModel.io.init.valid := false.B
-  cache.io.cpu.abort := false.B
+    cache.io.cpu.abort := false.B
+  cache.io.cpu.flush := false.B
 
   // Wire up the cache, TM, and modules under test.
   val children = tiles
@@ -266,7 +270,7 @@ class stencilTester1 extends FlatSpec with Matchers {
   )
 
 
-  implicit val p = new WithAccelConfig
+  implicit val p = new WithAccelConfig ++ new WithTestConfig
   // iotester flags:
   // -ll  = log level <Error|Warn|Info|Debug|Trace>
   // -tbn = backend <firrtl|verilator|vcs>
@@ -304,7 +308,7 @@ class stencilTester2 extends FlatSpec with Matchers {
     2, 3, 3, 2
   )
 
-  implicit val p = new WithAccelConfig
+  implicit val p = new WithAccelConfig ++ new WithTestConfig
   // iotester flags:
   // -ll  = log level <Error|Warn|Info|Debug|Trace>
   // -tbn = backend <firrtl|verilator|vcs>

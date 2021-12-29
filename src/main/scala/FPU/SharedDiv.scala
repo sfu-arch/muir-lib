@@ -27,7 +27,7 @@ class SharedFPU(NumOps: Int, PipeDepth: Int)(t: FType)
                 name: sourcecode.Name,
                 file: sourcecode.File)
   extends Module with HasAccelParams with UniformPrintfs {
-  override lazy val io = IO(new SharedFPUIO(NumOps, argTypes = List(xlen, xlen, 1)))
+  override lazy val io = IO(new SharedFPUIO(NumOps, argTypes = List(xlen, xlen, xlen)))
 
   // Printf debugging
   val node_name = name.value

@@ -5,25 +5,28 @@ import chisel3.Module
 import org.scalatest.{FlatSpec, Matchers}
 import chipsalliance.rocketchip.config._
 import dandelion.config._
-import dandelion.concurrent.{TaskController,TaskControllerIO}
+import dandelion.concurrent.{TaskController, TaskControllerIO}
 import dandelion.memory._
 import dandelion.accel._
 import dandelion.interfaces.NastiMemSlave
+import dandelion.memory.cache.ReferenceCache
 import helpers._
 
 
 class cilk_for_test03Main1(tiles: Int)(implicit p: Parameters) extends AccelIO(List(32, 32, 32), List(32)) {
 
-  val cache = Module(new Cache) // Simple Nasti Cache
+  val cache = Module(new ReferenceCache) // Simple Nasti Cache
   val memModel = Module(new NastiMemSlave) // Model of DRAM to connect to Cache
 
   // Connect the wrapper I/O to the memory model initialization interface so the
   // test bench can write contents at start.
-  memModel.io.nasti <> cache.io.nasti
+  memModel.io.nasti <> cache.io.mem
   memModel.io.init.bits.addr := 0.U
   memModel.io.init.bits.data := 0.U
   memModel.io.init.valid := false.B
   cache.io.cpu.abort := false.B
+  cache.io.cpu.flush := false.B
+
 
   val cilk_for_testDF = Module(new cilk_for_test03DF())
   cilk_for_testDF.io.MemReq <> DontCare
@@ -65,7 +68,6 @@ class cilk_for_test03Main1(tiles: Int)(implicit p: Parameters) extends AccelIO(L
   io.out <> cilk_for_testDF.io.out
 
 }
-
 
 class cilk_for_test03Test01[T <: AccelIO](c: T, tiles: Int)
                                          (inAddrVec: List[Int], inDataVec: List[Int],
@@ -221,7 +223,7 @@ class cilk_for_test03Tester1 extends FlatSpec with Matchers {
   val outAddrVec = List.range(80, 80 + (4 * 10), 4)
   val outDataVec = List.range(1, 11, 1).map(_ * 2)
 
-  implicit val p = new WithAccelConfig
+  implicit val p = new WithAccelConfig ++ new WithTestConfig
   it should "Check that cilk_for_test03 works correctly." in {
     // iotester flags:
     // -ll  = log level <Error|Warn|Info|Debug|Trace>

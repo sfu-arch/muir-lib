@@ -2,6 +2,7 @@ package helpers
 
 import java.io.PrintWriter
 import java.io.File
+
 import chisel3._
 import chisel3.Module
 import chisel3.iotesters._
@@ -10,9 +11,11 @@ import dandelion.config._
 import util._
 import dandelion.interfaces._
 import dandelion.accel._
+import dandelion.memory.cache.HasCacheAccelParams
 
 
-class AccelIO(Args: List[Int], Returns: List[Int])(implicit val p: Parameters) extends Module with HasAccelParams with CacheParams {
+class AccelIO(Args: List[Int], Returns: List[Int])(implicit val p: Parameters) extends Module
+  with HasAccelParams with HasAccelShellParams with HasCacheAccelParams{
   val io = IO(new Bundle {
     val in = Flipped(Decoupled(new Call(Args)))
     val req = Flipped(Decoupled(new MemReq))
@@ -35,14 +38,13 @@ class AccelTesterLocal[T <: AccelIO](c: T)
     while (peek(c.io.req.ready) == 0) {
       step(1)
     }
-    poke(c.io.req.valid, 1)
-    poke(c.io.req.bits.addr, addr)
-    poke(c.io.req.bits.iswrite, 0)
-    poke(c.io.req.bits.tag, 0)
-    poke(c.io.req.bits.mask, (1 << (c.io.req.bits.mask.getWidth)) - 1)
+    poke(c.io.req.valid, true.B)
+    poke(c.io.req.bits.addr, addr.U)
+    poke(c.io.req.bits.iswrite, 0.U)
+    poke(c.io.req.bits.tag, 0.U)
+    poke(c.io.req.bits.mask, 0.U)
     step(1)
-
-    poke(c.io.req.valid, 0)
+    poke(c.io.req.valid, false.B)
     while (peek(c.io.resp.valid) == 0) {
       step(1)
     }
@@ -54,12 +56,12 @@ class AccelTesterLocal[T <: AccelIO](c: T)
     while (peek(c.io.req.ready) == 0) {
       step(1)
     }
-    poke(c.io.req.valid, 1)
-    poke(c.io.req.bits.addr, addr)
-    poke(c.io.req.bits.data, data)
-    poke(c.io.req.bits.iswrite, 1)
-    poke(c.io.req.bits.tag, 0)
-    poke(c.io.req.bits.mask, (1 << (c.io.req.bits.mask.getWidth)) - 1)
+    poke(c.io.req.valid, true.B)
+    poke(c.io.req.bits.addr, addr.U)
+    poke(c.io.req.bits.data, data.U)
+    poke(c.io.req.bits.iswrite, 1.U)
+    poke(c.io.req.bits.tag, 0.U)
+    poke(c.io.req.bits.mask, "hF".U((c.xlen/ 8).W))
     step(1)
     poke(c.io.req.valid, 0)
   }

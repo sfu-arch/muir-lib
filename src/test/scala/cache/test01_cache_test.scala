@@ -2,23 +2,22 @@ package cache
 
 import java.io.PrintWriter
 import java.io.File
+
 import chisel3._
 import chisel3.Module
-import chipsalliance.rocketchip.config._
-import dandelion.config._
 import util._
 import dandelion.interfaces._
 import dandelion.memory._
-import dandelion.accel._
 import dandelion.dataflow.cache.test_cache01DF
-import chipsalliance.rocketchip.config._
 import chipsalliance.rocketchip.config._
 import dandelion.config._
 import chisel3.iotesters._
-import org.scalatest.{Matchers, FlatSpec}
+import dandelion.memory.cache.{HasCacheAccelParams, ReferenceCache}
+import org.scalatest.{FlatSpec, Matchers}
 
 
-class test_cache01MainIO(implicit val p: Parameters) extends Module with HasAccelParams with CacheParams {
+class test_cache01MainIO(implicit val p: Parameters) extends Module with HasAccelParams
+  with HasAccelShellParams with HasCacheAccelParams{
   val io = IO(new Bundle {
     val in = Flipped(Decoupled(new Call(List(32, 32, 32))))
     val req = Flipped(Decoupled(new MemReq))
@@ -31,18 +30,19 @@ class test_cache01MainIO(implicit val p: Parameters) extends Module with HasAcce
 
 class test_cache01Main(implicit p: Parameters) extends test_cache01MainIO {
 
-  val cache = Module(new Cache) // Simple Nasti Cache
+  val cache = Module(new ReferenceCache()) // Simple Nasti Cache
   val memModel = Module(new NastiMemSlave) // Model of DRAM to connect to Cache
   val memCopy = Mem(1014, UInt(32.W)) // Local memory just to keep track of writes to cache for validation
 
 
   // Connect the wrapper I/O to the memory model initialization interface so the
   // test bench can write contents at start.
-  memModel.io.nasti <> cache.io.nasti
+  memModel.io.nasti <> cache.io.mem
   memModel.io.init.bits.addr := 0.U
   memModel.io.init.bits.data := 0.U
   memModel.io.init.valid := false.B
-  cache.io.cpu.abort := false.B
+    cache.io.cpu.abort := false.B
+  cache.io.cpu.flush := false.B
 
   // Wire up the cache and modules under test.
   val test_cache01 = Module(new test_cache01DF())
@@ -80,7 +80,6 @@ class test_cache01Test01[T <: test_cache01MainIO](c: T) extends PeekPokeTester(c
     poke(c.io.req.bits.iswrite, 0.U)
     poke(c.io.req.bits.tag, 0.U)
     poke(c.io.req.bits.mask, 0.U)
-    poke(c.io.req.bits.mask, -1.U)
     step(1)
     while (peek(c.io.resp.valid) == 0) {
       step(1)
@@ -93,13 +92,12 @@ class test_cache01Test01[T <: test_cache01MainIO](c: T) extends PeekPokeTester(c
     while (peek(c.io.req.ready) == 0) {
       step(1)
     }
-    poke(c.io.req.valid, 1)
-    poke(c.io.req.bits.addr, addr)
-    poke(c.io.req.bits.data, data)
-    poke(c.io.req.bits.iswrite, 1)
+    poke(c.io.req.valid, 1.U)
+    poke(c.io.req.bits.addr, addr.U)
+    poke(c.io.req.bits.data, data.U)
+    poke(c.io.req.bits.iswrite, 1.U)
     poke(c.io.req.bits.tag, 0)
-    poke(c.io.req.bits.mask, 0)
-    poke(c.io.req.bits.mask, -1)
+    poke(c.io.req.bits.mask, "hF".U((c.xlen/ 8).W))
     step(1)
     poke(c.io.req.valid, 0)
     1
@@ -218,7 +216,7 @@ class test_cache01Test01[T <: test_cache01MainIO](c: T) extends PeekPokeTester(c
 
 
 class test_cache01Tester1 extends FlatSpec with Matchers {
-  implicit val p = new WithAccelConfig
+  implicit val p = new WithAccelConfig ++ new WithTestConfig
   it should "Check that test_cache01 works correctly." in {
     // iotester flags:
     // -ll  = log level <Error|Warn|Info|Debug|Trace>
