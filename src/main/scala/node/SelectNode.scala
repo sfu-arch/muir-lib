@@ -71,19 +71,19 @@ class SelectNode(NumOuts: Int, ID: Int, Debug : Boolean = false)
    *===============================================*/
 
   io.InData1.ready := ~indata1_valid_R
-  when(io.InData1.fire()) {
+  when(io.InData1.fire) {
     indata1_R <> io.InData1.bits
     indata1_valid_R := true.B
   }
 
   io.InData2.ready := ~indata2_valid_R
-  when(io.InData2.fire()) {
+  when(io.InData2.fire) {
     indata2_R <> io.InData2.bits
     indata2_valid_R := true.B
   }
 
   io.Select.ready := ~select_valid_R
-  when(io.Select.fire()) {
+  when(io.Select.fire) {
     select_R <> io.Select.bits
     select_valid_R := true.B
   }

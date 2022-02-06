@@ -88,7 +88,7 @@ class LoopBlock(ID: Int, NumIns: Seq[Int], NumOuts: Int, NumExits: Int)
 
   val endEnable_R = RegInit(ControlBundle.default)
   val endEnable_valid_R = RegInit(false.B)
-  val endEnableFire_R = RegNext(init = false.B, next = io.endEnable.fire())
+  val endEnableFire_R = RegNext(init = false.B, next = io.endEnable.fire)
 
   def IsInputLatched(): Bool = {
     if (NumIns.length == 0) {
@@ -116,17 +116,17 @@ class LoopBlock(ID: Int, NumIns: Seq[Int], NumOuts: Int, NumExits: Int)
   }
 
   // Note about hidden signals from handshaking:
-  //   enable_valid_R is enable.fire()
+  //   enable_valid_R is enable.fire
   //   enable_R is latched io.enable.bits.control
 
   // Activate signals
-  when(io.activate.fire()) {
+  when(io.activate.fire) {
     activate_R_valid := false.B
   }
 
   // Latch the block inputs when they fire to drive the liveIn I/O.
   for (i <- 0 until NumIns.length) {
-    when(io.In(i).fire()) {
+    when(io.In(i).fire) {
       liveIn_R(i) := io.In(i).bits
       inputReady(i) := false.B
     }
@@ -134,7 +134,7 @@ class LoopBlock(ID: Int, NumIns: Seq[Int], NumOuts: Int, NumExits: Int)
 
   // Latch the liveOut inputs when they fire to drive the Out I/O
   for (i <- 0 until NumOuts) {
-    when(io.liveOut(i).fire()) {
+    when(io.liveOut(i).fire) {
       liveOutFire_R(i) := true.B
       liveOut_R(i) := io.liveOut(i).bits
     }
@@ -143,7 +143,7 @@ class LoopBlock(ID: Int, NumIns: Seq[Int], NumOuts: Int, NumExits: Int)
   // Latch the exit signals
   for (i <- 0 until NumExits) {
     io.loopExit(i).ready := ~exitFire_R(i)
-    when(io.loopExit(i).fire()) {
+    when(io.loopExit(i).fire) {
       exit_R(i) <> io.loopExit(i).bits.control
       exitFire_R(i) := true.B
       endEnable_R.taskID := io.loopExit(i).bits.taskID
@@ -177,10 +177,10 @@ class LoopBlock(ID: Int, NumIns: Seq[Int], NumOuts: Int, NumExits: Int)
       // active.  This indicates a new iteration.
       for (i <- 0 until NumIns.length) {
         for (j <- 0 until NumIns(i)) {
-          when(io.latchEnable.fire() && io.latchEnable.bits.control) {
+          when(io.latchEnable.fire && io.latchEnable.bits.control) {
             // Re-enable the liveIn latches to valid for next iteration
             liveIn_R_valid(i).foreach(_ := true.B)
-          }.elsewhen(io.liveIn.elements(s"field$i")(j).fire()) {
+          }.elsewhen(io.liveIn.elements(s"field$i")(j).fire) {
             // clear liveIn valid when loop has grabbed the data
             liveIn_R_valid(i)(j) := false.B
           }
@@ -191,12 +191,12 @@ class LoopBlock(ID: Int, NumIns: Seq[Int], NumOuts: Int, NumExits: Int)
       //  b) our live outs are ready, and
       //  c) we've seen a valid exit pulse,
       // then we can end.
-      when(exitFire_R.asUInt().orR && IsAllValid() && IsLiveOutReady()) {
+      when(exitFire_R.asUInt.orR && IsAllValid() && IsLiveOutReady()) {
         exitFire_R.foreach(_ := false.B)
         liveOutFire_R.foreach(_ := false.B)
         // Only exit on final (control=true) exit pulse
-        when(exit_R.asUInt().orR) {
-          endEnable_R.control := exit_R.asUInt().orR
+        when(exit_R.asUInt.orR) {
+          endEnable_R.control := exit_R.asUInt.orR
           endEnable_valid_R := true.B
           ValidOut() // Set Out() valid
           state := s_end
@@ -284,7 +284,7 @@ class LoopBlockO1(ID: Int, NumIns: Seq[Int], NumOuts: Int, NumExits: Int)
   val exitFire_R = RegInit(VecInit(Seq.fill(NumExits)(false.B)))
 
   val endEnable_R = RegInit(0.U.asTypeOf(io.endEnable))
-  val endEnableFire_R = RegNext(init = false.B, next = io.endEnable.fire())
+  val endEnableFire_R = RegNext(init = false.B, next = io.endEnable.fire)
 
   def IsInputLatched(): Bool = {
     if (NumIns.length == 0) {
@@ -312,17 +312,17 @@ class LoopBlockO1(ID: Int, NumIns: Seq[Int], NumOuts: Int, NumExits: Int)
   }
 
   // Note about hidden signals from handshaking:
-  //   enable_valid_R is enable.fire()
+  //   enable_valid_R is enable.fire
   //   enable_R is latched io.enable.bits.control
 
   // Activate signals
-  when(io.activate.fire()) {
+  when(io.activate.fire) {
     activate_R_valid := false.B
   }
 
   // Latch the block inputs when they fire to drive the liveIn I/O.
   for (i <- 0 until NumIns.length) {
-    when(io.In(i).fire()) {
+    when(io.In(i).fire) {
       liveIn_R(i) := io.In(i).bits
       inputReady(i) := false.B
     }
@@ -330,7 +330,7 @@ class LoopBlockO1(ID: Int, NumIns: Seq[Int], NumOuts: Int, NumExits: Int)
 
   // Latch the liveOut inputs when they fire to drive the Out I/O
   for (i <- 0 until NumOuts) {
-    when(io.liveOut(i).fire()) {
+    when(io.liveOut(i).fire) {
       liveOutFire_R(i) := true.B
       liveOut_R(i) := io.liveOut(i).bits
     }
@@ -339,7 +339,7 @@ class LoopBlockO1(ID: Int, NumIns: Seq[Int], NumOuts: Int, NumExits: Int)
   // Latch the exit signals
   for (i <- 0 until NumExits) {
     io.loopExit(i).ready := ~exitFire_R(i)
-    when(io.loopExit(i).fire()) {
+    when(io.loopExit(i).fire) {
       exit_R(i) <> io.loopExit(i).bits.control
       exitFire_R(i) := true.B
       endEnable_R.bits.taskID := io.loopExit(i).bits.taskID
@@ -373,12 +373,12 @@ class LoopBlockO1(ID: Int, NumIns: Seq[Int], NumOuts: Int, NumExits: Int)
       // active.  This indicates a new iteration.
       for (i <- 0 until NumIns.length) {
         for (j <- 0 until NumIns(i)) {
-          when(io.latchEnable.fire()) {
-            //            when(io.latchEnable.fire() && io.latchEnable.bits.control) {
+          when(io.latchEnable.fire) {
+            //            when(io.latchEnable.fire && io.latchEnable.bits.control) {
             // Re-enable the liveIn latches to valid for next iteration
             liveIn_R(i).predicate := io.latchEnable.bits.control
             liveIn_R_valid(i).foreach(_ := true.B)
-          }.elsewhen(io.liveIn.elements(s"field$i")(j).fire()) {
+          }.elsewhen(io.liveIn.elements(s"field$i")(j).fire) {
             // clear liveIn valid when loop has grabbed the data
             liveIn_R_valid(i)(j) := false.B
           }
@@ -389,12 +389,12 @@ class LoopBlockO1(ID: Int, NumIns: Seq[Int], NumOuts: Int, NumExits: Int)
       //  b) our live outs are ready, and
       //  c) we've seen a valid exit pulse,
       // then we can end.
-      when((exitFire_R.asUInt().orR) && IsAllValid() && IsLiveOutReady()) {
+      when((exitFire_R.asUInt.orR) && IsAllValid() && IsLiveOutReady()) {
         exitFire_R.foreach(_ := false.B)
         liveOutFire_R.foreach(_ := false.B)
         // Only exit on final (control=true) exit pulse
-        when(exit_R.asUInt().orR) {
-          endEnable_R.bits.control := exit_R.asUInt().orR
+        when(exit_R.asUInt.orR) {
+          endEnable_R.bits.control := exit_R.asUInt.orR
           endEnable_R.valid := true.B
           ValidOut() // Set Out() valid
           state := s_end
@@ -591,14 +591,14 @@ class LoopBlockNode(ID: Int, NumIns: Seq[Int], NumCarry: Seq[Int], NumOuts: Seq[
     * Latch all the inputs to the circuite
     */
   io.enable.ready := ~enable_valid_R
-  when(io.enable.fire()) {
+  when(io.enable.fire) {
     enable_R <> io.enable.bits
     enable_valid_R := true.B
   }
 
   for (i <- 0 until NumBackEdge) {
     io.loopBack(i).ready := ~loop_back_valid_R(i)
-    when(io.loopBack(i).fire()) {
+    when(io.loopBack(i).fire) {
       loop_back_R(i) <> io.loopBack(i).bits
       loop_back_valid_R(i) := true.B
     }
@@ -607,7 +607,7 @@ class LoopBlockNode(ID: Int, NumIns: Seq[Int], NumCarry: Seq[Int], NumOuts: Seq[
 
   for (i <- 0 until NumLoopFinish) {
     io.loopFinish(i).ready := ~loop_finish_valid_R(i)
-    when(io.loopFinish(i).fire()) {
+    when(io.loopFinish(i).fire) {
       loop_finish_R(i) <> io.loopFinish(i).bits
       loop_finish_valid_R(i) := true.B
     }
@@ -618,7 +618,7 @@ class LoopBlockNode(ID: Int, NumIns: Seq[Int], NumCarry: Seq[Int], NumOuts: Seq[
   // Latch the block inputs when they fire to drive the liveIn I/O.
   for (i <- 0 until NumIns.length) {
     io.InLiveIn(i).ready := ~in_live_in_valid_R(i)
-    when(io.InLiveIn(i).fire()) {
+    when(io.InLiveIn(i).fire) {
       in_live_in_R(i) <> io.InLiveIn(i).bits
       in_live_in_valid_R(i) := true.B
     }
@@ -627,7 +627,7 @@ class LoopBlockNode(ID: Int, NumIns: Seq[Int], NumCarry: Seq[Int], NumOuts: Seq[
   // Latch the liveOut inputs when they fire to drive the Out I/O
   for (i <- 0 until NumOuts.length) {
     io.InLiveOut(i).ready := ~in_live_out_valid_R(i)
-    when(io.InLiveOut(i).fire()) {
+    when(io.InLiveOut(i).fire) {
       in_live_out_R(i) <> io.InLiveOut(i).bits
       in_live_out_valid_R(i) := true.B
     }
@@ -636,7 +636,7 @@ class LoopBlockNode(ID: Int, NumIns: Seq[Int], NumCarry: Seq[Int], NumOuts: Seq[
   // Latch the exit signals
   for (i <- 0 until NumCarry.length) {
     io.CarryDepenIn(i).ready := ~in_carry_in_valid_R(i)
-    when(io.CarryDepenIn(i).fire()) {
+    when(io.CarryDepenIn(i).fire) {
       in_carry_in_R(i) <> io.CarryDepenIn(i).bits
       in_carry_in_valid_R(i) := true.B
     }
@@ -645,7 +645,7 @@ class LoopBlockNode(ID: Int, NumIns: Seq[Int], NumCarry: Seq[Int], NumOuts: Seq[
   if (NumStore > 0) {
     for (i <- 0 until NumStore) {
       io.StoreDepen(i).ready := ~store_depen_valid_R(i)
-      when(io.StoreDepen(i).fire()) {
+      when(io.StoreDepen(i).fire) {
         store_depn_R(i) <> io.StoreDepen(i).bits
         store_depen_valid_R(i) := true.B
       }
@@ -699,16 +699,16 @@ class LoopBlockNode(ID: Int, NumIns: Seq[Int], NumCarry: Seq[Int], NumOuts: Seq[
     * Connecting output handshake signals
     */
 
-  when(io.activate_loop_start.fire()) {
+  when(io.activate_loop_start.fire) {
     active_loop_start_valid_R := false.B
   }
 
-  when(io.activate_loop_back.fire()) {
+  when(io.activate_loop_back.fire) {
     active_loop_back_valid_R := false.B
   }
 
   for (i <- 0 until NumExits) {
-    when(io.loopExit(i).fire()) {
+    when(io.loopExit(i).fire) {
       loop_exit_valid_R(i) := false.B
       loop_exit_fire_R(i) := true.B
     }
@@ -717,7 +717,7 @@ class LoopBlockNode(ID: Int, NumIns: Seq[Int], NumCarry: Seq[Int], NumOuts: Seq[
   // Connect LiveIn registers to I/O
   for (i <- NumIns.indices) {
     for (j <- 0 until NumIns(i)) {
-      when(io.OutLiveIn.elements(s"field$i")(j).fire()) {
+      when(io.OutLiveIn.elements(s"field$i")(j).fire) {
         out_live_in_valid_R(i)(j) := false.B
         out_live_in_fire_R(i)(j) := true.B
       }
@@ -727,7 +727,7 @@ class LoopBlockNode(ID: Int, NumIns: Seq[Int], NumCarry: Seq[Int], NumOuts: Seq[
   // Connect LiveOut registers to I/O
   for (i <- NumOuts.indices) {
     for (j <- 0 until NumOuts(i)) {
-      when(io.OutLiveOut.elements(s"field$i")(j).fire()) {
+      when(io.OutLiveOut.elements(s"field$i")(j).fire) {
         out_live_out_valid_R(i)(j) := false.B
         out_live_out_fire_R(i)(j) := true.B
       }
@@ -737,7 +737,7 @@ class LoopBlockNode(ID: Int, NumIns: Seq[Int], NumCarry: Seq[Int], NumOuts: Seq[
   // Connect LiveIn registers to I/O
   for (i <- NumCarry.indices) {
     for (j <- 0 until NumCarry(i)) {
-      when(io.CarryDepenOut.elements(s"field$i")(j).fire()) {
+      when(io.CarryDepenOut.elements(s"field$i")(j).fire) {
         out_carry_out_valid_R(i)(j) := false.B
         out_carry_out_fire_R(i)(j) := true.B
       }
@@ -990,7 +990,7 @@ class LoopBlockNode(ID: Int, NumIns: Seq[Int], NumCarry: Seq[Int], NumOuts: Seq[
           state := s_end
           //in live out should be dumped
           if (Debug) {
-            log_out_reg := in_live_out_R(NumOuts.length - 1).asUInt()
+            log_out_reg := in_live_out_R(NumOuts.length - 1).asUInt
           }
 
 

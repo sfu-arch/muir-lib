@@ -45,13 +45,13 @@ class CallInNode(ID: Int, argTypes: Seq[Int])
 
   // Wire up enable READY and VALIDs
   io.enable.ready := ~enableFire_R
-  when(io.enable.fire()) {
+  when(io.enable.fire) {
     enableFire_R := true.B
     enable_R := io.enable.bits
   }
 
   io.In.ready := ~inFire_R
-  when(io.In.fire()) {
+  when(io.In.fire) {
     inputReg := io.In.bits
     inFire_R := true.B
   }

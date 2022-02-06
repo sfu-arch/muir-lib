@@ -102,7 +102,7 @@ class UnifiedController(ID: Int,
       }
     }
 
-    when(io.MemResp.fire()){
+    when(io.MemResp.fire){
       when(io.MemResp.bits.iswrite){
         printf("[LOG] [MemController] [MemResp]: Data: %d, IsWrite: ST\n", io.MemResp.bits.data)
       }.otherwise{
@@ -121,7 +121,7 @@ class UnifiedController(ID: Int,
   //    case "low"   => {printf(p" state: $state")}
   //  }
 
-  // printf(p"\n : ${ReadController.io.MemReq.fire()} Tag: ${ReadReq.tag} ")
+  // printf(p"\n : ${ReadController.io.MemReq.fire} Tag: ${ReadReq.tag} ")
   // printf(p"\n Cache Request ${WriteController.io.MemReq}")
   //  printf(p"Demux out:  ${io.WriteOut(0)}")
 

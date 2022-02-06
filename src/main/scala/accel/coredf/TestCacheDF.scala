@@ -37,7 +37,7 @@ class TestCacheDF(cNum : Int, sNum: Int)(implicit p: Parameters) extends CoreT(c
 
   val MemDF = Module(new TestCacheDataFlow())
   MemDF.io.start := io.start
-  override val printfSigil = "TestMemDF:  add_result_reg: " + add_result_reg.asUInt() + " state: " + state + " "
+  override val printfSigil = "TestMemDF:  add_result_reg: " + add_result_reg.asUInt + " state: " + state + " "
 
   //IO Connections
   //result is Decoupled

@@ -92,7 +92,7 @@ class LoopHeader(val NumInputs: Int, val NumOuts: Int, val ID: Int)
     valids(i) <> io.inputArg(i).valid
   }
 
-  io.Start := valids.asUInt().andR()
+  io.Start := valids.asUInt.andR()
 
 
 }

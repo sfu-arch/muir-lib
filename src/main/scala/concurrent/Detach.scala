@@ -44,7 +44,7 @@ class Detach(ID: Int)
   /*===============================================*
    *            Latch inputs. Wire up output       *
    *===============================================*/
-  when(io.enable.fire()) {
+  when(io.enable.fire) {
     latchedEnable <> io.enable.bits
   }
   // Wire up Outputs

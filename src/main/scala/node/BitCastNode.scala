@@ -52,7 +52,7 @@ class BitCastNode(NumOuts: Int, ID: Int, Debug: Boolean= false)
    *===============================================*/
 
   io.Input.ready := ~data_valid_R
-  when(io.Input.fire()) {
+  when(io.Input.fire) {
     data_R <> io.Input.bits
     data_valid_R := true.B
   }

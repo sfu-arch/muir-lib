@@ -58,12 +58,12 @@ class ConstNode(value: BigInt, NumOuts: Int = 1, ID: Int)
    *============================================*/
   switch(state) {
     is(s_IDLE) {
-      when(io.enable.fire()) {
+      when(io.enable.fire) {
         ValidOut()
         when(io.enable.bits.control) {
 
           // NOTE: Remember when you are casting signed values you have put the width as well
-          out_data_R.data := value.asSInt(xlen.W).asUInt()
+          out_data_R.data := value.asSInt(xlen.W).asUInt
           out_data_R.predicate := io.enable.bits.control
           out_data_R.taskID := task_ID_W
         }
@@ -121,7 +121,7 @@ class ConstFastNode(value: BigInt, ID: Int)
    *===============================================*/
 
 
-  val output_value = value.asSInt(xlen.W).asUInt()
+  val output_value = value.asSInt(xlen.W).asUInt
 
   io.enable.ready := ~enable_valid_R
   io.Out.valid := enable_valid_R
@@ -136,7 +136,7 @@ class ConstFastNode(value: BigInt, ID: Int)
 
   switch(state) {
     is(s_idle) {
-      when(io.enable.fire()) {
+      when(io.enable.fire) {
         io.Out.valid := true.B
         when(io.Out.fire) {
           state := s_idle

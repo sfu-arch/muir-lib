@@ -178,16 +178,16 @@ class DataBundleReg(cNum : Int, sNum: Int)(implicit p: Parameters) extends DataB
   val (counterValue, counterWrap) = Counter(countOn, 64*1024)
   //clockCycles := clockCycles + 1.U
 /*
-  when (io.nasti.ar.fire()) {
+  when (io.nasti.ar.fire) {
     printf("\nSTATUS START:  %d\n", counterValue)
   }
-  when (io.nasti.r.fire()) {
+  when (io.nasti.r.fire) {
     printf("\nSTATUS END: %d\n", counterValue)
   }
-  when (io.nasti.aw.fire()) {
+  when (io.nasti.aw.fire) {
     printf("\nCONFIG START:  %d\n", counterValue)
   }
-  when (io.nasti.b.fire()) {
+  when (io.nasti.b.fire) {
     printf("\nCONFIG END: %d\n", counterValue)
   }
 */

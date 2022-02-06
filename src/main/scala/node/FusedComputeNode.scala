@@ -92,7 +92,7 @@ def PrintOut(): Unit = {
         printf("\"State\": {\"State\": \"%x\",",state)
         PrintOut()
         printf("},\n")
-        printf("\"Outputs\": {\"Out\": %x}",io.Out(0).fire())
+        printf("\"Outputs\": {\"Out\": %x}",io.Out(0).fire)
         printf("}\n")
        }
       case everythingElse => {}

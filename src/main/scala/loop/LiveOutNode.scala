@@ -49,7 +49,7 @@ class LiveOutNode(NumOuts: Int, ID: Int)
    *===============================================*/
 
   io.InData.ready := ~indata_valid_R
-  when(io.InData.fire()) {
+  when(io.InData.fire) {
     //Latch the data
     indata_R <> io.InData.bits
     indata_valid_R := true.B
@@ -62,7 +62,7 @@ class LiveOutNode(NumOuts: Int, ID: Int)
   switch(state) {
 
     is(s_IDLE) {
-      when(io.InData.fire()) {
+      when(io.InData.fire) {
         state := s_LATCH
       }
     }
@@ -149,7 +149,7 @@ class LiveOutControlNode(NumOuts: Int, ID: Int)
    *===============================================*/
 
   io.InData.ready := ~indata_valid_R
-  when(io.InData.fire()) {
+  when(io.InData.fire) {
     //Latch the data
     indata_R <> io.InData.bits
     indata_valid_R := true.B
@@ -162,7 +162,7 @@ class LiveOutControlNode(NumOuts: Int, ID: Int)
   switch(state) {
 
     is(s_IDLE) {
-      when(io.InData.fire()) {
+      when(io.InData.fire) {
         state := s_LATCH
       }
     }

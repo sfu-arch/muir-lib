@@ -96,7 +96,7 @@ class CustomFunctionalNode(NumIns: Int, NumOuts: Int, ID: Int, opCode: String , 
         printf("\"State\": {\"State\": \"%x\",", state)
         PrintOut()
         printf("},\n")
-        printf("\"Outputs\": {\"Out\": %x}", io.Out(0).fire())
+        printf("\"Outputs\": {\"Out\": %x}", io.Out(0).fire)
         printf("}\n")
       }
       case everythingElse => {}

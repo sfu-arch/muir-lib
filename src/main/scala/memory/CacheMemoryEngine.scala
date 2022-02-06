@@ -71,7 +71,7 @@ class CacheMemoryEngine(ID: Int, NumRead: Int, NumWrite: Int)(implicit val p: Pa
 
   val NumOps = NumRead + NumWrite
   val in_arb = Module(new Arbiter(new MemReq, NumOps))
-  val in_arb_chosen = RegEnable(in_arb.io.chosen, in_arb.io.out.fire())
+  val in_arb_chosen = RegEnable(in_arb.io.chosen, in_arb.io.out.fire)
 
   for (i <- 0 until NumRead) {
     in_arb.io.in(i) <> io.rd.mem(i).MemReq

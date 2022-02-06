@@ -36,7 +36,7 @@ class TestCore(cNum : Int, sNum: Int)(implicit p: Parameters) extends CoreT(cNum
 
   val addDF = Module(new Add01DF())
 
-  override val printfSigil = "CoreDF:  add_result_reg: " + add_result_reg.asUInt() + " state: " + state + " "
+  override val printfSigil = "CoreDF:  add_result_reg: " + add_result_reg.asUInt + " state: " + state + " "
 
   //IO Connections
   io.ctrl(0).ready := true.B
@@ -106,7 +106,7 @@ class TestCore(cNum : Int, sNum: Int)(implicit p: Parameters) extends CoreT(cNum
   // Reflect state machine status to processor
   io.done  := (state === s_done)
   io.ready := (state === s_idle)
-//  io.stat  := Cat(err_latch,state.asUInt())
+//  io.stat  := Cat(err_latch,state.asUInt)
 
   // Intermediate
   //  addDF.io.result.ready  := (state === s_busy)

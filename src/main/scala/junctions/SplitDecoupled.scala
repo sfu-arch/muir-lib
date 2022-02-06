@@ -107,7 +107,7 @@ class SplitCall(val argTypes: Seq[Int])(implicit p: Parameters) extends Module {
 
   switch(state) {
     is(s_idle) {
-      when (io.In.fire()) {
+      when (io.In.fire) {
         state := s_latched
         inputReg <> io.In.bits
       }
@@ -169,7 +169,7 @@ class SplitCallNew(val argTypes: Seq[Int])(implicit p: Parameters) extends Modul
 
   switch(state) {
     is(s_idle) {
-      when (io.In.fire()) {
+      when (io.In.fire) {
         state := s_latched
         inputReg <> io.In.bits
       }
@@ -261,7 +261,7 @@ class SplitCallDCR(val ptrsArgTypes: Seq[Int], val valsArgTypes: Seq[Int])(impli
 
   switch(state) {
     is(s_idle) {
-      when (io.In.fire()) {
+      when (io.In.fire) {
         state := s_latched
         inputReg <> io.In.bits
       }

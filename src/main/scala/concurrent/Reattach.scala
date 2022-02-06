@@ -34,7 +34,7 @@ class Reattach(val NumPredOps: Int, ID: Int)
   val ctrlPredicate_R = RegInit(VecInit(Seq.fill(NumPredOps){DataBundle.default}))
   val ctrlReady_R = RegInit(VecInit(Seq.fill(NumPredOps){false.B}))
   for (i <- 0 until NumPredOps) {
-    when(io.predicateIn(i).fire()) {
+    when(io.predicateIn(i).fire) {
       ctrlReady_R(i) := true.B
       ctrlPredicate_R(i) := io.predicateIn(i).bits
     }
@@ -135,7 +135,7 @@ class ReattachNode(val NumOuts: Int = 1, ID: Int)
    *===============================================*/
 
   io.dataIn.ready := ~data_valid_R
-  when(io.dataIn.fire()) {
+  when(io.dataIn.fire) {
     data_R <> io.dataIn.bits
     data_valid_R := true.B
   }
@@ -150,7 +150,7 @@ class ReattachNode(val NumOuts: Int = 1, ID: Int)
   for (i <- 0 until NumOuts) {
     io.Out(i).valid := out_valid_R(i)
     out_ready_W(i) := io.Out(i).ready
-    when(io.Out(i).fire()) {
+    when(io.Out(i).fire) {
       // Detecting when to reset
       out_ready_R(i) := io.Out(i).ready
       // Propagating output
@@ -165,7 +165,7 @@ class ReattachNode(val NumOuts: Int = 1, ID: Int)
 
   switch(state) {
     is(s_IDLE) {
-      when(io.dataIn.fire()) {
+      when(io.dataIn.fire) {
         out_valid_R := VecInit(Seq.fill(NumOuts)(true.B))
         state := s_COMPUTE
         printf("[LOG] " + "[" + module_name + "] " + node_name + ": Output fired @ %d\n", cycleCount)
@@ -223,7 +223,7 @@ class ReattachNodeSYNC(val NumPredIn: Int = 1, ID: Int)
    *===============================================*/
 
   io.dataIn.ready := ~data_valid_R
-  when(io.dataIn.fire()) {
+  when(io.dataIn.fire) {
     data_R <> io.dataIn.bits
     data_valid_R := true.B
   }

@@ -76,17 +76,17 @@ class UnTypStoreCache(NumPredOps: Int,
 
   // ACTION: GepAddr
   io.GepAddr.ready := ~addr_valid_R
-  when(io.GepAddr.fire()) {
+  when(io.GepAddr.fire) {
     addr_R := io.GepAddr.bits
     addr_valid_R := true.B
   }
 
-  when(io.inData.fire()) {
+  when(io.inData.fire) {
     data_R := io.inData.bits
     data_valid_R := true.B
   }
 
-  when(io.enable.fire()) {
+  when(io.enable.fire) {
     succ_bundle_R.foreach(_ := io.enable.bits)
   }
 

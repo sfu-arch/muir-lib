@@ -60,13 +60,13 @@ class FPToUINode(val SrcW: Int = 0, val DesW: Int = 0, val NumOuts: Int = 1, val
 
 
   io.Input.ready := ~input_valid_R
-  when(io.Input.fire()) {
+  when(io.Input.fire) {
     input_R <> io.Input.bits
     input_valid_R := true.B
   }
 
   io.enable.ready := ~enable_valid_R
-  when(io.enable.fire()) {
+  when(io.enable.fire) {
     enable_R <> io.enable.bits
     enable_valid_R := true.B
   }

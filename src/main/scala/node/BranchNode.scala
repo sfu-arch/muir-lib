@@ -75,7 +75,7 @@ class CBranchNode(ID: Int, Debug: Boolean = false)
 
 
   io.CmpIO.ready := ~cmp_valid_R
-  when(io.CmpIO.fire()) {
+  when(io.CmpIO.fire) {
     cmp_R := io.CmpIO.bits
     cmp_valid_R := true.B
   }
@@ -124,7 +124,7 @@ class CBranchNode(ID: Int, Debug: Boolean = false)
         Reset()
         if (log) {
           printf("[LOG] " + "[" + module_name + "] [TID->%d] " +
-            node_name + ": Output fired @ %d, Value: %d\n", enable_R.taskID, cycleCount, data_out_R.asUInt())
+            node_name + ": Output fired @ %d, Value: %d\n", enable_R.taskID, cycleCount, data_out_R.asUInt)
         }
       }
     }
@@ -330,7 +330,7 @@ class CBranchFastNodeVariable(val NumTrue: Int = 1, val NumFalse: Int = 1, val I
 
         if (log) {
           printf("[LOG] " + "[" + module_name + "] [TID->%d] " +
-            node_name + ": Output fired(%d) @ %d\n", enable_R.taskID, Cat(true_output, false_output).asUInt(), cycleCount)
+            node_name + ": Output fired(%d) @ %d\n", enable_R.taskID, Cat(true_output, false_output).asUInt, cycleCount)
         }
       }
     }
@@ -699,19 +699,19 @@ class CompareBranchNode(ID: Int, opCode: String)
    *===============================================*/
 
   io.enable.ready := ~enable_valid_R
-  when(io.enable.fire()) {
+  when(io.enable.fire) {
     enable_R <> io.enable.bits
     enable_valid_R := true.B
   }
 
   io.LeftIO.ready := ~left_valid_R
-  when(io.LeftIO.fire()) {
+  when(io.LeftIO.fire) {
     left_R <> io.LeftIO.bits
     left_valid_R := true.B
   }
 
   io.RightIO.ready := ~right_valid_R
-  when(io.RightIO.fire()) {
+  when(io.RightIO.fire) {
     right_R <> io.RightIO.bits
     right_valid_R := true.B
   }
@@ -770,7 +770,7 @@ class CompareBranchNode(ID: Int, opCode: String)
               + node_name + ": Not predicated value -> reset\n", enable_R.taskID)
           }
 
-        }.elsewhen((io.LeftIO.fire() || left_valid_R) && (io.RightIO.fire() || right_valid_R)) {
+        }.elsewhen((io.LeftIO.fire || left_valid_R) && (io.RightIO.fire || right_valid_R)) {
           out_valid_R := VecInit(Seq.fill(2)(true.B))
           state := s_COMPUTE
         }
@@ -794,7 +794,7 @@ class CompareBranchNode(ID: Int, opCode: String)
 
         if (log) {
           printf("[LOG] " + "[" + module_name + "] [TID->%d] " + node_name +
-            ": Output fired @ %d, Value: %d\n", enable_R.taskID, cycleCount, FU.io.out.asUInt())
+            ": Output fired @ %d, Value: %d\n", enable_R.taskID, cycleCount, FU.io.out.asUInt)
         }
       }
     }
@@ -1086,7 +1086,7 @@ class CBranchFastNodeVariable2(val NumTrue: Int = 1, val NumFalse: Int = 1, val 
 
           if (log) {
             printf("[LOG] " + "[" + module_name + "] [TID->%d] " +
-              node_name + ": Output fired(%d) @ %d\n", enable_R.taskID, Cat(true_output, false_output).asUInt(), cycleCount)
+              node_name + ": Output fired(%d) @ %d\n", enable_R.taskID, Cat(true_output, false_output).asUInt, cycleCount)
           }
         }.otherwise {
           cmp_R := false.B
@@ -1111,7 +1111,7 @@ class CBranchFastNodeVariable2(val NumTrue: Int = 1, val NumFalse: Int = 1, val 
 
           if (log) {
             printf("[LOG] " + "[" + module_name + "] [TID->%d] " +
-              node_name + ": Output flushed(%d) @ %d\n", enable_R.taskID, Cat(true_output, false_output).asUInt(), cycleCount)
+              node_name + ": Output flushed(%d) @ %d\n", enable_R.taskID, Cat(true_output, false_output).asUInt, cycleCount)
           }
         }
 

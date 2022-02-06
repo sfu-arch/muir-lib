@@ -63,8 +63,8 @@ class MIMOQueue[T <: Data](gen: T,
   val empty = ptr_match && !maybe_full
   //  val full = ptr_match && maybe_full
   val full = entries.U - bufCount < NumIns.U
-  val do_enq = WireDefault(io.enq.fire())
-  val do_deq = WireDefault(io.deq.fire())
+  val do_enq = WireDefault(io.enq.fire)
+  val do_deq = WireDefault(io.deq.fire)
 
 
   when(io.clear) {

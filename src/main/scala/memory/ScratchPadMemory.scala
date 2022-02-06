@@ -31,7 +31,7 @@ class ScratchPadMemory(Size: Int)(implicit val p: Parameters) extends Module wit
 
   io.req.ready := true.B
 
-  when(io.req.fire()){
+  when(io.req.fire){
     io.resp.valid := false.B
   }.otherwise{
     io.resp.valid := true.B
@@ -41,7 +41,7 @@ class ScratchPadMemory(Size: Int)(implicit val p: Parameters) extends Module wit
   io.resp.bits.tag:= mem_req.tag
   io.resp.bits.iswrite := mem_req.iswrite
 
-  val req_addr = (io.req.bits.addr >> 3.U).asUInt()
+  val req_addr = (io.req.bits.addr >> 3.U).asUInt
 
 
   when(io.req.fire){

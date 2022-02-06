@@ -46,7 +46,7 @@ class LiveInNode(NumOuts: Int, ID: Int)
    *===============================================*/
 
   io.InData.ready := ~indata_valid_R
-  when(io.InData.fire()) {
+  when(io.InData.fire) {
     indata_R <> io.InData.bits
     indata_valid_R := true.B
   }
@@ -57,10 +57,10 @@ class LiveInNode(NumOuts: Int, ID: Int)
 
   switch(state) {
     is(s_IDLE) {
-      when(io.InData.fire()) {
+      when(io.InData.fire) {
         state := s_VALIDOUT
         ValidOut()
-        printf("[LOG] " + "[" + module_name + "] " + node_name + ": Latch fired @ %d, Value:%d\n", cycleCount, io.InData.bits.data.asUInt())
+        printf("[LOG] " + "[" + module_name + "] " + node_name + ": Latch fired @ %d, Value:%d\n", cycleCount, io.InData.bits.data.asUInt)
       }
     }
     is(s_VALIDOUT) {
@@ -140,13 +140,13 @@ class LiveInNewNode(NumOuts: Int, ID: Int)
    *===============================================*/
 
   io.InData.ready := ~indata_valid_R
-  when(io.InData.fire()) {
+  when(io.InData.fire) {
     indata_R <> io.InData.bits
     indata_valid_R := true.B
   }
 
   io.Invalid.ready := ~invalid_valid_R
-  when(io.Invalid.fire()) {
+  when(io.Invalid.fire) {
     invalid_R <> io.Invalid.bits
     invalid_valid_R := true.B
   }
@@ -158,13 +158,13 @@ class LiveInNewNode(NumOuts: Int, ID: Int)
 
   switch(state) {
     is(s_IDLE) {
-      when(io.enable.fire() || enable_valid_R) {
+      when(io.enable.fire || enable_valid_R) {
         when(io.enable.bits.control || enable_R.control) {
           when(indata_valid_R) {
             state := s_LATCH
             ValidOut()
 
-            printf("[LOG] " + "[" + module_name + "] " + node_name + ": Latch fired @ %d, Value:%d\n", cycleCount, io.InData.bits.data.asUInt())
+            printf("[LOG] " + "[" + module_name + "] " + node_name + ": Latch fired @ %d, Value:%d\n", cycleCount, io.InData.bits.data.asUInt)
           }
         }.otherwise {
           assert((~enable_R.control).asBool, "ERROR!!")
@@ -173,7 +173,7 @@ class LiveInNewNode(NumOuts: Int, ID: Int)
     }
     is(s_LATCH) {
       when(IsOutReady()) {
-        when(io.Invalid.fire() || invalid_valid_R) {
+        when(io.Invalid.fire || invalid_valid_R) {
           when(io.Invalid.bits.control || invalid_R.control) {
             printf("[LOG] " + "[" + module_name + "] " + node_name + ": Latch invalidate @ %d\n", cycleCount)
 

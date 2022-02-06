@@ -87,14 +87,14 @@ class DebugVMEGuardLoadBufferNode(BufferLen: Int = 2, ID: Int)
       }
     }
     is(sReq) {
-      when(io.vmeOut.cmd.fire()) {
+      when(io.vmeOut.cmd.fire) {
         rState := sBusy
       }
     }
     is(sBusy) {
       when(queue_count === BufferLen.U) {
         rState := sIdel
-        addr_debug_reg := addr_debug_reg + (queue_count * (xlen >> 3).asUInt())
+        addr_debug_reg := addr_debug_reg + (queue_count * (xlen >> 3).asUInt)
       }
     }
   }

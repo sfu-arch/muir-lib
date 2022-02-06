@@ -72,7 +72,7 @@ class LoopElement(val ID: Int)(implicit val p: Parameters)
     io.outData.valid := true.B
   }
 
-  when(io.inData.fire()){
+  when(io.inData.fire){
     state := s_LATCH
   }
 

@@ -74,13 +74,13 @@ class FPComputeNode(NumOuts: Int, ID: Int, opCode: String)
   FU.io.in2 := right_R.data
 
   io.LeftIO.ready := ~left_valid_R
-  when(io.LeftIO.fire()) {
+  when(io.LeftIO.fire) {
     left_R <> io.LeftIO.bits
     left_valid_R := true.B
   }
 
   io.RightIO.ready := ~right_valid_R
-  when(io.RightIO.fire()) {
+  when(io.RightIO.fire) {
     right_R <> io.RightIO.bits
     right_valid_R := true.B
   }
@@ -302,13 +302,13 @@ class FPCustomAdderNode(NumOuts: Int, ID: Int, opCode: String)
   FU.io.datab := right_R.data
 
   io.LeftIO.ready := ~left_valid_R
-  when(io.LeftIO.fire()) {
+  when(io.LeftIO.fire) {
     left_R <> io.LeftIO.bits
     left_valid_R := true.B
   }
 
   io.RightIO.ready := ~right_valid_R
-  when(io.RightIO.fire()) {
+  when(io.RightIO.fire) {
     right_R <> io.RightIO.bits
     right_valid_R := true.B
   }
@@ -416,13 +416,13 @@ class FPCustomSubtractorNode(NumOuts: Int, ID: Int, opCode: String)
   FU.io.datab := right_R.data
 
   io.LeftIO.ready := ~left_valid_R
-  when(io.LeftIO.fire()) {
+  when(io.LeftIO.fire) {
     left_R <> io.LeftIO.bits
     left_valid_R := true.B
   }
 
   io.RightIO.ready := ~right_valid_R
-  when(io.RightIO.fire()) {
+  when(io.RightIO.fire) {
     right_R <> io.RightIO.bits
     right_valid_R := true.B
   }
@@ -530,13 +530,13 @@ class FPCustomMultiplierNode(NumOuts: Int, ID: Int, opCode: String)
   FU.io.datab := right_R.data
 
   io.LeftIO.ready := ~left_valid_R
-  when(io.LeftIO.fire()) {
+  when(io.LeftIO.fire) {
     left_R <> io.LeftIO.bits
     left_valid_R := true.B
   }
 
   io.RightIO.ready := ~right_valid_R
-  when(io.RightIO.fire()) {
+  when(io.RightIO.fire) {
     right_R <> io.RightIO.bits
     right_valid_R := true.B
   }
@@ -644,13 +644,13 @@ class FPCustomDividerNode(NumOuts: Int, ID: Int, opCode: String)
   FU.io.datab := right_R.data
 
   io.LeftIO.ready := ~left_valid_R
-  when(io.LeftIO.fire()) {
+  when(io.LeftIO.fire) {
     left_R <> io.LeftIO.bits
     left_valid_R := true.B
   }
 
   io.RightIO.ready := ~right_valid_R
-  when(io.RightIO.fire()) {
+  when(io.RightIO.fire) {
     right_R <> io.RightIO.bits
     right_valid_R := true.B
   }

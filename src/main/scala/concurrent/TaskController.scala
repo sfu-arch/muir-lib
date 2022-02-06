@@ -169,14 +169,14 @@ class TaskController(val argTypes: Seq[Int], val retTypes: Seq[Int], numParent: 
 
   /*
   val activeID = RegInit(VecInit(Seq.fill(1<<tlen)(false.B)))
-  when(exeList.io.deq.fire()) {
+  when(exeList.io.deq.fire) {
     when(activeID(exeList.io.deq.bits.enable.taskID) === true.B) {
       error_flag := true.B
       printf("*** ID re-used active ID error %d\n", error_flag)
     }
     activeID(exeList.io.deq.bits.enable.taskID) := true.B
   }
-  when(ChildArb.io.out.fire()) {
+  when(ChildArb.io.out.fire) {
     when(activeID(ChildArb.io.out.bits.enable.taskID) === false.B) {
       error_flag := true.B
       printf("*** Error: Duplicate ID returned %d\n", error_flag)
@@ -184,13 +184,13 @@ class TaskController(val argTypes: Seq[Int], val retTypes: Seq[Int], numParent: 
     activeID(ChildArb.io.out.bits.enable.taskID) := false.B
   }
   val numOut = RegInit(0.U(16.W))
-  when(ChildArb.io.out.fire() && !retExpand.io.Out(1).fire()) {
+  when(ChildArb.io.out.fire && !retExpand.io.Out(1).fire) {
     when(numOut === 1.U) {
       error_flag := true.B
       printf("*** Error: Lost return in output %d\n", error_flag)
     }
     numOut := numOut + 1.U;
-  }.elsewhen(!ChildArb.io.out.fire() && retExpand.io.Out(1).fire()){
+  }.elsewhen(!ChildArb.io.out.fire && retExpand.io.Out(1).fire){
     when(numOut === 0.U) {
       error_flag := true.B
       printf("*** Error: numOut under-run %d\n", error_flag)

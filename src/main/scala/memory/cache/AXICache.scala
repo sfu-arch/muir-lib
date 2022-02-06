@@ -165,7 +165,7 @@ class SimpleCache(val ID: Int = 0, val debug: Boolean = false)(implicit val p: P
   // is_alloc means cache hit, hence, if is_alloc is false, it means our mask should consider only the modified byte
   // and since wdata is masked with wmask we only duplicate the write data, otherwise, since mask doesn't do anything
   // with write data we make the proper wdata using refill_buf
-  val wmask = Mux(!is_alloc, (cpu_mask << Cat(off_reg, 0.U(byteOffsetBits.W))).asUInt.zext, (-1).asSInt()).asUInt()
+  val wmask = Mux(!is_alloc, (cpu_mask << Cat(off_reg, 0.U(byteOffsetBits.W))).asUInt.zext, (-1).asSInt()).asUInt
   val wdata = Mux(!is_alloc, Fill(nWords, cpu_data),
     if (refill_buf.size == 1) io.mem.r.bits.data
     else Cat(io.mem.r.bits.data, Cat(refill_buf.init.reverse)))
@@ -232,7 +232,7 @@ class SimpleCache(val ID: Int = 0, val debug: Boolean = false)(implicit val p: P
   /**
    * Dumping cache state should add for debugging purpose
    */
-  // io.stat := state.asUInt()
+  // io.stat := state.asUInt
   // Cache FSM
   val countOn = true.B // increment counter every clock cycle
   val (counterValue, counterWrap) = Counter(countOn, 64 * 1024)
@@ -517,13 +517,13 @@ class ReferenceCache(val ID: Int = 0, val debug: Boolean = false)(implicit val p
 
   if (clog) {
     when(wen && is_alloc) {
-      printf(p"Write meta: idx:${idx_reg.asUInt()} -- data:${wmeta.tag}\n")
+      printf(p"Write meta: idx:${idx_reg.asUInt} -- data:${wmeta.tag}\n")
       printf(p"Write meta: addr: ${addr_reg}\n")
     }
   }
 
   io.mem.ar.bits := NastiReadAddressChannel(
-    0.U, (Cat(tag_reg, idx_reg) << blen.U).asUInt(), log2Up(Axi_param.dataBits / 8).U, (dataBeats - 1).U)
+    0.U, (Cat(tag_reg, idx_reg) << blen.U).asUInt, log2Up(Axi_param.dataBits / 8).U, (dataBeats - 1).U)
   io.mem.ar.valid := false.B
   // read data
   io.mem.r.ready := state === s_REFILL
@@ -545,7 +545,7 @@ class ReferenceCache(val ID: Int = 0, val debug: Boolean = false)(implicit val p
 
   // write addr
   io.mem.aw.bits := NastiWriteAddressChannel(
-    0.U, Mux(flush_mode, block_addr, Cat(rmeta.tag, idx_reg) << blen.U).asUInt(), log2Up(Axi_param.dataBits / 8).U, (dataBeats - 1).U)
+    0.U, Mux(flush_mode, block_addr, Cat(rmeta.tag, idx_reg) << blen.U).asUInt, log2Up(Axi_param.dataBits / 8).U, (dataBeats - 1).U)
   io.mem.aw.valid := false.B
   // write data
   io.mem.w.bits := NastiWriteDataChannel(
@@ -804,7 +804,7 @@ class DMECache(val ID: Int = 0, val debug: Boolean = false)(implicit val p: Para
 
   if (clog) {
     when(wen && is_alloc) {
-      printf(p"Write meta: idx:${idx_reg.asUInt()} -- data:${wmeta.tag}\n")
+      printf(p"Write meta: idx:${idx_reg.asUInt} -- data:${wmeta.tag}\n")
       printf(p"Write meta: addr: ${addr_reg}\n")
     }
   }

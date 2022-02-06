@@ -347,7 +347,7 @@ class ControlBundle(implicit p: Parameters) extends AccelBundle()(p) {
 
   def asDataBundle(): DataBundle = {
     val wire = Wire(new DataBundle)
-    wire.data := this.control.asUInt()
+    wire.data := this.control.asUInt
     wire.predicate := this.control
     wire.taskID := this.taskID
     wire
@@ -433,7 +433,7 @@ class CustomDataBundle[T <: Data](gen: T = UInt(32.W))(implicit p: Parameters) e
 
   def asDataBundle(): DataBundle = {
     val wire = Wire(new DataBundle)
-    wire.data := this.data.asUInt()
+    wire.data := this.data.asUInt
     wire.predicate := this.predicate
     wire.taskID := this.taskID
     wire

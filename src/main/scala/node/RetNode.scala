@@ -55,7 +55,7 @@ class RetNode(retTypes: Seq[Int], ID: Int)
 
   // Latching enable signal
   io.enable.ready := ~enable_valid_R
-  when(io.enable.fire()) {
+  when(io.enable.fire) {
     enable_valid_R := io.enable.valid
     //    enable_R := io.enable.bits
     output_R.enable := io.enable.bits
@@ -64,7 +64,7 @@ class RetNode(retTypes: Seq[Int], ID: Int)
   // Latching input data
   for (i <- retTypes.indices) {
     io.In.elements(s"field$i").ready := ~in_data_valid_R(i)
-    when(io.In.elements(s"field$i").fire()) {
+    when(io.In.elements(s"field$i").fire) {
       output_R.data(s"field$i") := io.In.elements(s"field$i").bits
       in_data_valid_R(i) := true.B
     }
@@ -74,7 +74,7 @@ class RetNode(retTypes: Seq[Int], ID: Int)
   io.Out.bits := output_R
   io.Out.valid := out_valid_R
 
-  when(io.Out.fire()) {
+  when(io.Out.fire) {
     out_ready_R := io.Out.ready
     out_valid_R := false.B
   }
@@ -103,7 +103,7 @@ class RetNode(retTypes: Seq[Int], ID: Int)
         if (log) {
           printf("[LOG] " + "[" + module_name + "] " + "[TID->%d] "
             + node_name + ": Output fired @ %d, Value: %d\n",
-            output_R.enable.taskID, io.In.asUInt(), output_R.data(s"field0").data)
+            output_R.enable.taskID, io.In.asUInt, output_R.data(s"field0").data)
         }
       }
     }
@@ -158,7 +158,7 @@ class RetNode2(retTypes: Seq[Int], ID: Int , Debug: Boolean = false, NumBores : 
 
   // Latching enable signal
   io.In.enable.ready := ~enable_valid_R
-  when(io.In.enable.fire()) {
+  when(io.In.enable.fire) {
     enable_valid_R := io.In.enable.valid
     output_R.enable := io.In.enable.bits
   }
@@ -166,7 +166,7 @@ class RetNode2(retTypes: Seq[Int], ID: Int , Debug: Boolean = false, NumBores : 
   // Latching input data
   for (i <- retTypes.indices) {
     io.In.data(s"field$i").ready := ~in_data_valid_R(i)
-    when(io.In.data(s"field$i").fire()) {
+    when(io.In.data(s"field$i").fire) {
       output_R.data(s"field$i") := io.In.data(s"field$i").bits
       in_data_valid_R(i) := true.B
     }
@@ -188,7 +188,7 @@ class RetNode2(retTypes: Seq[Int], ID: Int , Debug: Boolean = false, NumBores : 
   }
   //*******************************************************************
 
-  when(io.Out.fire()) {
+  when(io.Out.fire) {
     RunFinish := true.B
     out_ready_R := io.Out.ready
     out_valid_R := false.B
@@ -276,7 +276,7 @@ class RetNode2Buggy(retTypes: Seq[Int], ID: Int)
 
   // Latching enable signal
   io.In.enable.ready := ~enable_valid_R
-  when(io.In.enable.fire()) {
+  when(io.In.enable.fire) {
     enable_valid_R := io.In.enable.valid
     output_R.enable := io.In.enable.bits
   }
@@ -284,7 +284,7 @@ class RetNode2Buggy(retTypes: Seq[Int], ID: Int)
   // Latching input data
   for (i <- retTypes.indices) {
     io.In.data(s"field$i").ready := ~in_data_valid_R(i)
-    when(io.In.data(s"field$i").fire()) {
+    when(io.In.data(s"field$i").fire) {
       output_R.data(s"field$i") := io.In.data(s"field$i").bits
       in_data_valid_R(i) := true.B
     }
@@ -294,7 +294,7 @@ class RetNode2Buggy(retTypes: Seq[Int], ID: Int)
   io.Out.bits := output_R
   io.Out.valid := out_valid_R
 
-  when(io.Out.fire()) {
+  when(io.Out.fire) {
     out_ready_R := io.Out.ready
     out_valid_R := false.B
   }

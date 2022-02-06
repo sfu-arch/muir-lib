@@ -100,13 +100,13 @@ class GepOneNode(NumOuts: Int, ID: Int, Debug : Boolean = false)
    *===============================================*/
 
   io.baseAddress.ready := ~base_addr_valid_R
-  when(io.baseAddress.fire()) {
+  when(io.baseAddress.fire) {
     base_addr_R <> io.baseAddress.bits
     base_addr_valid_R := true.B
   }
 
   io.idx1.ready := ~idx1_valid_R
-  when(io.idx1.fire()) {
+  when(io.idx1.fire) {
     idx1_R <> io.idx1.bits
     idx1_valid_R := true.B
   }
@@ -209,19 +209,19 @@ class GepTwoNode(NumOuts: Int, ID: Int)
    *===============================================*/
 
   io.baseAddress.ready := ~base_addr_valid_R
-  when(io.baseAddress.fire()) {
+  when(io.baseAddress.fire) {
     base_addr_R <> io.baseAddress.bits
     base_addr_valid_R := true.B
   }
 
   io.idx1.ready := ~idx1_valid_R
-  when(io.idx1.fire()) {
+  when(io.idx1.fire) {
     idx1_R <> io.idx1.bits
     idx1_valid_R := true.B
   }
 
   io.idx2.ready := ~idx2_valid_R
-  when(io.idx2.fire()) {
+  when(io.idx2.fire) {
     idx2_R <> io.idx2.bits
     idx2_valid_R := true.B
   }
@@ -309,7 +309,7 @@ class GepNodeStack(NumOuts: Int, ID: Int)
    *===============================================*/
 
   io.baseAddress.ready := ~base_addr_valid_R
-  when(io.baseAddress.fire()) {
+  when(io.baseAddress.fire) {
     base_addr_R <> io.baseAddress.bits
     base_addr_valid_R := true.B
   }
@@ -413,13 +413,13 @@ class GepStructOneNode(NumOuts: Int, ID: Int)
    *===============================================*/
 
   io.baseAddress.ready := ~base_addr_valid_R
-  when(io.baseAddress.fire()) {
+  when(io.baseAddress.fire) {
     base_addr_R <> io.baseAddress.bits
     base_addr_valid_R := true.B
   }
 
   io.idx1.ready := ~idx1_valid_R
-  when(io.idx1.fire()) {
+  when(io.idx1.fire) {
     idx1_R <> io.idx1.bits
     idx1_valid_R := true.B
   }
@@ -528,19 +528,19 @@ class GepStructTwoNode(NumOuts: Int, ID: Int)
    *===============================================*/
 
   io.baseAddress.ready := ~base_addr_valid_R
-  when(io.baseAddress.fire()) {
+  when(io.baseAddress.fire) {
     base_addr_R <> io.baseAddress.bits
     base_addr_valid_R := true.B
   }
 
   io.idx1.ready := ~idx1_valid_R
-  when(io.idx1.fire()) {
+  when(io.idx1.fire) {
     idx1_R <> io.idx1.bits
     idx1_valid_R := true.B
   }
 
   io.idx2.ready := ~idx2_valid_R
-  when(io.idx2.fire()) {
+  when(io.idx2.fire) {
     idx2_R <> io.idx2.bits
     idx2_valid_R := true.B
   }
@@ -646,13 +646,13 @@ class GepArrayOneNode(NumOuts: Int, ID: Int)
    *===============================================*/
 
   io.baseAddress.ready := ~base_addr_valid_R
-  when(io.baseAddress.fire()) {
+  when(io.baseAddress.fire) {
     base_addr_R <> io.baseAddress.bits
     base_addr_valid_R := true.B
   }
 
   io.idx1.ready := ~idx1_valid_R
-  when(io.idx1.fire()) {
+  when(io.idx1.fire) {
     idx1_R <> io.idx1.bits
     idx1_valid_R := true.B
   }
@@ -762,19 +762,19 @@ class GepArrayTwoNode(NumOuts: Int, ID: Int)
    *===============================================*/
 
   io.baseAddress.ready := ~base_addr_valid_R
-  when(io.baseAddress.fire()) {
+  when(io.baseAddress.fire) {
     base_addr_R <> io.baseAddress.bits
     base_addr_valid_R := true.B
   }
 
   io.idx1.ready := ~idx1_valid_R
-  when(io.idx1.fire()) {
+  when(io.idx1.fire) {
     idx1_R <> io.idx1.bits
     idx1_valid_R := true.B
   }
 
   io.idx2.ready := ~idx2_valid_R
-  when(io.idx2.fire()) {
+  when(io.idx2.fire) {
     idx2_R <> io.idx2.bits
     idx2_valid_R := true.B
   }
@@ -895,14 +895,14 @@ class GepNode(NumIns: Int, NumOuts: Int, ID: Int)
    *===============================================*/
 
   io.baseAddress.ready := ~base_addr_valid_R
-  when(io.baseAddress.fire()) {
+  when(io.baseAddress.fire) {
     base_addr_R <> io.baseAddress.bits
     base_addr_valid_R := true.B
   }
 
   for (i <- 0 until NumIns) {
     io.idx(i).ready := ~idx_valid_R(i)
-    when(io.idx(i).fire()) {
+    when(io.idx(i).fire) {
       idx_R(i) <> io.idx(i).bits
       idx_valid_R(i) := true.B
     }
@@ -1013,14 +1013,14 @@ class GepFastNode(NumIns: Int, NumOuts: Int, ID: Int)
    *===============================================*/
 
   io.baseAddress.ready := ~base_addr_valid_R
-  when(io.baseAddress.fire()) {
+  when(io.baseAddress.fire) {
     base_addr_R <> io.baseAddress.bits
     base_addr_valid_R := true.B
   }
 
   for (i <- 0 until NumIns) {
     io.idx(i).ready := ~idx_valid_R(i)
-    when(io.idx(i).fire()) {
+    when(io.idx(i).fire) {
       idx_R(i) <> io.idx(i).bits
       idx_valid_R(i) := true.B
     }

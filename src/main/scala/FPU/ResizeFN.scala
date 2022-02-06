@@ -65,7 +65,7 @@ class FNtoFNNode(Src: FType, Des: FType, NumOuts: Int, ID: Int)
 
 
   io.Input.ready := ~Input_valid_R
-  when(io.Input.fire()) {
+  when(io.Input.fire) {
     Input_R <> io.Input.bits
     Input_valid_R := true.B
   }

@@ -87,21 +87,21 @@ class StoreNode(Typ: UInt = MT_W, ID: Int, RouteID: Int)(implicit val p: Paramet
 
   // ACTION: GepAddr
   io.GepAddr.ready := ~addr_valid_R
-  when(io.GepAddr.fire()) {
+  when(io.GepAddr.fire) {
     addr_R <> io.GepAddr.bits
     addr_valid_R := true.B
   }
 
   // ACTION: inData
   io.inData.ready := ~data_valid_R
-  when(io.inData.fire()) {
+  when(io.inData.fire) {
     // Latch the data
     data_R <> io.inData.bits
     data_valid_R := true.B
   }
 
   io.enable.ready := ~enable_valid_R
-  when(io.enable.fire()) {
+  when(io.enable.fire) {
     enable_R <> io.enable.bits
     enable_valid_R := true.B
   }

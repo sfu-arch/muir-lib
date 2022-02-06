@@ -57,7 +57,7 @@ class StreamLoad(bufSize: Int, debug: Boolean = false)(
       }
     }
     is(sReadCmd) {
-      when(io.vme_rd.cmd.fire()) {
+      when(io.vme_rd.cmd.fire) {
         state := sReadData
       }
     }
@@ -76,13 +76,13 @@ class StreamLoad(bufSize: Int, debug: Boolean = false)(
   dataCtrl.io.start := state === sIdle & io.start
   dataCtrl.io.inst := io.inst
   dataCtrl.io.baddr := io.baddr
-  dataCtrl.io.xinit := io.vme_rd.cmd.fire()
-  dataCtrl.io.xupdate := io.vme_rd.data.fire()
-  dataCtrl.io.yupdate := io.vme_rd.data.fire()
+  dataCtrl.io.xinit := io.vme_rd.cmd.fire
+  dataCtrl.io.xupdate := io.vme_rd.data.fire
+  dataCtrl.io.yupdate := io.vme_rd.data.fire
 
   when(state === sIdle) {
     dataCtrlDone := false.B
-  }.elsewhen(io.vme_rd.data.fire() && dataCtrl.io.done) {
+  }.elsewhen(io.vme_rd.data.fire && dataCtrl.io.done) {
     dataCtrlDone := true.B
   }
 
@@ -105,12 +105,12 @@ class StreamLoad(bufSize: Int, debug: Boolean = false)(
   queue.io.enq.bits := io.vme_rd.data.bits.asTypeOf(queue.io.enq.bits)
   queue.io.enq.valid := io.vme_rd.data.valid
 
-  io.out.bits := queue.io.deq.bits.asUInt()
+  io.out.bits := queue.io.deq.bits.asUInt
   io.out.valid := queue.io.deq.valid
   queue.io.deq.ready := io.out.ready
 
   // done
-  val done_no_pad = io.vme_rd.data.fire() & dataCtrl.io.done & dec.xpad_1 === 0.U & dec.ypad_1 === 0.U
+  val done_no_pad = io.vme_rd.data.fire & dataCtrl.io.done & dec.xpad_1 === 0.U & dec.ypad_1 === 0.U
   io.done := done_no_pad
 }
 

@@ -39,7 +39,7 @@ class MemArbiter(NumPorts:Int)(implicit p: Parameters) extends MemArbiterIO(NumP
   val reqArb  = Module(new RRArbiter(new MemReq, NumPorts))
   reqArb.io.in <> io.cpu.MemReq
   val chosen_reg = RegInit(0.U)
-  when (reqArb.io.out.fire()) {
+  when (reqArb.io.out.fire) {
     chosen_reg := reqArb.io.chosen
   }
   io.cache.MemReq <> reqArb.io.out

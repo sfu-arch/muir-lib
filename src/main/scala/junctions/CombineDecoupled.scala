@@ -41,7 +41,7 @@ class CombineData(val argTypes: Seq[Int])(implicit p: Parameters) extends Module
   val outputReg  = RegInit(0.U.asTypeOf(io.Out.bits))
 
   for (i <- argTypes.indices) {
-    when(io.Out.fire()){
+    when(io.Out.fire){
       inputReady(i) := true.B
     }.elsewhen(io.In(s"field$i").valid) {
       outputReg(s"field$i") := io.In(s"field$i").bits
@@ -65,18 +65,18 @@ class CombineCall(val argTypes: Seq[Int])(implicit p: Parameters) extends Module
   val outputReg  = RegInit(0.U.asTypeOf(io.Out))
 
   for (i <- argTypes.indices) {
-    when(io.Out.fire()){
+    when(io.Out.fire){
       inputReady(i) := true.B
-    }.elsewhen(io.In.data(s"field$i").fire()) {
+    }.elsewhen(io.In.data(s"field$i").fire) {
       outputReg.bits.data(s"field$i") := io.In.data(s"field$i").bits
       inputReady(i) := false.B
     }
     io.In.data(s"field$i").ready := inputReady(i)
   }
 
-  when(io.Out.fire()){
+  when(io.Out.fire){
     inputReady(argTypes.length) := true.B
-  }.elsewhen(io.In.enable.fire()) {
+  }.elsewhen(io.In.enable.fire) {
     outputReg.bits.enable <> io.In.enable.bits
     inputReady (argTypes.length) := false.B
   }

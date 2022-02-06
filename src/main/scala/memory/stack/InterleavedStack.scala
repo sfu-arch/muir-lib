@@ -46,14 +46,14 @@ class InterleavedStack(val size : Int, ramIdx : List[Int], NumPorts:Int)(implici
   /*
   val sel = Seq.fill(NumPorts)(RegInit(0.U(numBits.W)))
   for (i <- 0 until NumPorts) {
-    when(io.MemReq(i).fire()) {
+    when(io.MemReq(i).fire) {
       sel(i) := io.MemReq(i).bits.addr(ramIdx(0), ramIdx(1))
     }
   }
   */
   val sel = Seq.fill(numRAMs)(RegInit(0.U(log2Ceil(NumPorts).W)))
   for (mem <- 0 until numRAMs) {
-    when(arbs(mem).io.cache.MemReq.fire()) {
+    when(arbs(mem).io.cache.MemReq.fire) {
       sel(mem) := arbs(mem).io.cache.chosen
     }
   }

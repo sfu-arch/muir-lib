@@ -108,7 +108,7 @@ class ReadTableEntry(id: Int)(implicit p: Parameters) extends ReadEntryIO()(p) w
   /*=======================================================
   =            Latch Inputs. Calculate masks              =
   ========================================================*/
-  when(io.NodeReq.fire()) {
+  when(io.NodeReq.fire) {
     request_R := io.NodeReq.bits
     // Calculate things to start the sending process
     // Base word address
@@ -132,7 +132,7 @@ class ReadTableEntry(id: Int)(implicit p: Parameters) extends ReadEntryIO()(p) w
 
   switch(state) {
     is(s_idle) {
-      when(io.NodeReq.fire()) {
+      when(io.NodeReq.fire) {
         state := s_SENDING
       }
     }
@@ -251,7 +251,7 @@ class ReadMemoryController (NumOps: Int, BaseSize: Int, NumEntries: Int, Seriali
     // Allocator wireup with table entries
     alloc_arb.io.in(i).valid := read_entry.io.free
     alloc_arb.io.in(i).bits := DontCare
-    read_entry.io.NodeReq.valid := alloc_arb.io.in(i).fire()
+    read_entry.io.NodeReq.valid := alloc_arb.io.in(i).fire
     read_entry.io.NodeReq.bits := in_arb.io.out.bits
 
     // Table entries -> MemReq arbiter.
@@ -291,7 +291,7 @@ class ReadMemoryController (NumOps: Int, BaseSize: Int, NumEntries: Int, Seriali
 
   // Output arbiter -> Demux
   out_arb.io.out.ready := true.B
-  out_demux.io.enable := out_arb.io.out.fire()
+  out_demux.io.enable := out_arb.io.out.fire
   out_demux.io.input.bits := out_arb.io.out.bits
   out_demux.io.input.valid := out_arb.io.out.valid
 

@@ -28,7 +28,7 @@ class StackMem(size : Int)(implicit val p: Parameters) extends Module with HasAc
   io.req.ready := true.B
 
   val addr = io.req.bits.addr(wordindex + log2Ceil(size) - 1, wordindex)
-  when(io.req.fire() && io.req.bits.iswrite) {
+  when(io.req.fire && io.req.bits.iswrite) {
     mem.write(addr, io.req.bits.data)
   }
 
