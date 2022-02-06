@@ -17,16 +17,18 @@ import utility.UniformPrintfs
 
 /**
   * Defining LoopOutputBundle
+  *
   * @param gen Datatype
   * @tparam T
   */
-class LoopOutputBundleIO[+T <: Data](gen: T) extends Bundle(){
-  val bits  = Output(gen.cloneType)
+class LoopOutputBundleIO[+T <: Data](gen: T) extends Bundle() {
+  val bits = Output(gen.cloneType)
   val valid = Output(Bool())
+
   override def cloneType: this.type = new LoopOutputBundleIO(gen).asInstanceOf[this.type]
 }
 
-object LoopOutputBundle{
+object LoopOutputBundle {
   def apply[T <: Data](gen: T): LoopOutputBundleIO[T] = new LoopOutputBundleIO(gen)
 }
 
@@ -37,7 +39,7 @@ object LoopOutputBundle{
 class LoopHeaderIO[T <: Data](val NumInputs: Int, val NumOuts: Int)
                              (gen: T)(implicit p: Parameters) extends AccelBundle()(p) {
 
-  val inputArg  = Vec(NumInputs, Flipped(Decoupled(gen)))
+  val inputArg = Vec(NumInputs, Flipped(Decoupled(gen)))
   val outputArg = Vec(NumOuts, Decoupled(gen))
 
   /**
@@ -61,13 +63,18 @@ class LoopHeaderIO[T <: Data](val NumInputs: Int, val NumOuts: Int)
 }
 
 
-
 class LoopHeader(val NumInputs: Int, val NumOuts: Int, val ID: Int)
-                (implicit val p: Parameters) extends Module with HasAccelParams with UniformPrintfs {
+                (implicit val p: Parameters)
+  extends Module
+    with HasAccelParams
+    with UniformPrintfs
+    with HasDebugCodes {
 
   lazy val io = IO(new LoopHeaderIO(NumInputs, NumOuts)(new DataBundle()))
 
-  val valids = WireInit(VecInit(Seq.fill(NumInputs){false.B}))
+  val valids = WireInit(VecInit(Seq.fill(NumInputs) {
+    false.B
+  }))
 
   val Args = for (i <- 0 until NumInputs) yield {
     val arg = Module(new LoopElement(ID = i))
@@ -81,7 +88,7 @@ class LoopHeader(val NumInputs: Int, val NumOuts: Int, val ID: Int)
   }
 
   for (i <- 0 until NumOuts) {
-    io.outputArg(i).bits  <> Args(i).io.outData.data
+    io.outputArg(i).bits <> Args(i).io.outData.data
     io.outputArg(i).valid <> Args(i).io.outData.valid
   }
 

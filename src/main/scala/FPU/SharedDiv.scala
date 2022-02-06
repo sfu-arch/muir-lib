@@ -63,21 +63,19 @@ class SharedFPU(NumOps: Int, PipeDepth: Int)(t: FType)
   /**
     * Register choosen arbiter select
     */
+  RouteQ.io.enq.bits := 0.U
+  RouteQ.io.enq.valid := false.B
   when(in_arbiter.io.out.fire){
     RouteQ.io.enq.bits := in_arbiter.io.chosen
     RouteQ.io.enq.valid := true.B
-  }.otherwise{
-    RouteQ.io.enq.bits := 0.U
-    RouteQ.io.enq.valid := false.B
   }
 
   RouteQ.io.deq.ready := ds.io.outValid_div || ds.io.outValid_sqrt
+  io.OutData.foreach(_.bits.data := 0.U)
+  io.OutData.foreach(_.valid := false.B)
   when(ds.io.outValid_div || ds.io.outValid_sqrt){
     io.OutData(RouteQ.io.deq.bits).bits.data := fNFromRecFN(t.expWidth, t.sigWidth, ds.io.out)
     io.OutData(RouteQ.io.deq.bits).valid := true.B
-  }.otherwise{
-    io.OutData.foreach(_.bits.data := 0.U)
-    io.OutData.foreach(_.valid := false.B)
   }
 
 }

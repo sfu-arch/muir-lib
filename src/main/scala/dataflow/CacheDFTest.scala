@@ -1,6 +1,7 @@
 package dandelion.accel
 
 import chisel3._
+import chisel3.stage.ChiselStage
 import chipsalliance.rocketchip.config._
 import dandelion.config._
 import dandelion.control._
@@ -255,7 +256,8 @@ import java.io.{File, FileWriter}
 object cacheMain extends App {
   val dir = new File("RTL/cacheTest") ; dir.mkdirs
   implicit val p = new WithAccelConfig
-  val chirrtl = firrtl.Parser.parse(chisel3.Driver.emit(() => new cacheDF()))
+//  val chirrtl = firrtl.Parser.parse(chisel3.Driver.emit(() => new cacheDF()))
+  val chirrtl = firrtl.Parser.parse((new ChiselStage).emitChirrtl(new cacheDF()))
 
   val verilogFile = new File(dir, s"${chirrtl.main}.v")
   val verilogWriter = new FileWriter(verilogFile)

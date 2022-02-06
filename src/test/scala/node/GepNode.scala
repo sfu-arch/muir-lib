@@ -85,7 +85,7 @@ class GepTests extends  FlatSpec with Matchers {
      chisel3.iotesters.Driver.execute(
        Array(
          // "-ll", "Info",
-         "-tbn", "verilator",
+         "-tbn", "firrtl",
          "-td", "test_run_dir/GepNodeTester",
          "-tts", "0001"),
        () => new GepOneNode(NumOuts = 1, ID = 0)(numByte1 = 2)) {

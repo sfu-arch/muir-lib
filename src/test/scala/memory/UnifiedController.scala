@@ -103,25 +103,7 @@ class UnifiedControllerTests (c: UnifiedController)(implicit p: Parameters) exte
 		else {
 			poke(c.io.MemResp.valid, 0)
 		}
-
 		println(s" IO MemReq Valid  ${peek(c.io.MemReq.valid)}")
-		if(peek(c.io.ReadOut(0).valid) == 1) {
-
-			println(s"^^^^^^^^^^^^^^")
-			println(s"ReadOut(0) Resp :  -------------")
-			println(s" IO ReadResp Valid  ${peek(c.io.ReadOut(0))}")
-		}
-
-
-		if(peek(c.io.WriteOut(0).valid) == 1) {
-
-			println(s"^^^^^^^^^^^^^^")
-			println(s"WriteOut(0) Resp :  -------------")
-			println(s" IO WriteOut Valid  ${peek(c.io.WriteOut(0))}")
-		}
-
-
-
 		step(1)
 	}
 
@@ -141,7 +123,7 @@ class UnifiedControllerTester extends  FlatSpec with Matchers {
 		it should "Memory Controller tester" in {
 		chisel3.iotesters.Driver.execute(Array(
 			// "-ll", "Info",
-			"-tbn", "verilator",
+			"-tbn", "firrtl",
 			"-td", "test_run_dir",
 			"-tts", "0001"),
 			() => new UnifiedController(ID=10,Size=32,NReads=1,NWrites=1)(

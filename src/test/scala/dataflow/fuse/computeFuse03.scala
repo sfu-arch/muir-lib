@@ -14,15 +14,10 @@ import dandelion.dataflow._
 import firrtl_interpreter.InterpreterOptions
 
 
-
-
 // Tester.
 class computeF03CTester(df: ComputeFuse03CDF)
                   (implicit p: Parameters) extends PeekPokeTester(df)  {
 
-  for (i <- 0 until 12) {
-    poke(s"df.io.data$i.bits.taskID", 2.U)
-  }
   poke(df.io.data0.bits.data, 4.U)
   poke(df.io.data0.valid, false.B)
   poke(df.io.data0.bits.predicate, true.B)
@@ -104,21 +99,23 @@ class computeF03CTester(df: ComputeFuse03CDF)
     if(peek(df.io.dataOut1.valid) == 1)
       poke(df.io.dataOut1.ready, false.B)
 
-    if((peek(df.io.dataOut0.valid) == 1) && 
+    if((peek(df.io.dataOut0.valid) == 1) &&
         (peek(df.io.dataOut1.valid) == 1))
       println(s"Finish: ${i}\n")
 
     println(s"t: ${i}\n ------------------------")
     step(1)
   }
-
-
 }
 
 class ComputeF03CTests extends  FlatSpec with Matchers {
   implicit val p = new WithAccelConfig ++ new WithTestConfig
   it should "Not fuse tester" in {
-    chisel3.iotesters.Driver.execute(Array("--backend-name", "verilator", "--target-dir", "test_run_dir"),
+    chisel3.iotesters.Driver.execute(
+      Array(
+        "--backend-name", "firrtl",
+        "--target-dir", "test_run_dir"
+      ),
       () => new ComputeFuse03CDF()) {
       c => new computeF03CTester(c)
     } should be(true)

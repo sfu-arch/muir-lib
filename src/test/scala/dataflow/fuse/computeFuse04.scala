@@ -81,7 +81,7 @@ class computeF04PTester(df: ComputeFuse04PDF)
 class ComputeF04PTests extends  FlatSpec with Matchers {
   implicit val p = new WithAccelConfig ++ new WithTestConfig
   it should "Not fuse tester" in {
-    chisel3.iotesters.Driver.execute(Array("--backend-name", "verilator", "--target-dir", "test_run_dir"),
+    chisel3.iotesters.Driver.execute(Array("--backend-name", "firrtl", "--target-dir", "test_run_dir"),
       () => new ComputeFuse04PDF()) {
       c => new computeF04PTester(c)
     } should be(true)

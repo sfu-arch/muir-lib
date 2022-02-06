@@ -169,10 +169,11 @@ case object MemParamKey extends Field[AXIParams]
 
 case object DebugParamKey extends Field[DebugParams]
 
-class WithAccelConfig(inParams: DandelionAccelParams = DandelionAccelParams())
+class WithAccelConfig(inParams: DandelionAccelParams = DandelionAccelParams(), inDebugs: DebugParams =  DebugParams())
   extends Config((site, here, up) => {
     // Core
     case DandelionConfigKey => inParams
+    case DebugParamKey =>  inDebugs
   }
   )
 

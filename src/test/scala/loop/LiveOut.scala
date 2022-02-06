@@ -92,7 +92,7 @@ class LiveOutTests extends  FlatSpec with Matchers {
      chisel3.iotesters.Driver.execute(
      Array(
        // "-ll", "Info",
-       "-tbn", "verilator",
+       "-tbn", "firrtl",
        "-td", "test_run_dir",
        "-tts", "0001"),
        () => new LiveOutNode(NumOuts = 1, ID = 0)) {

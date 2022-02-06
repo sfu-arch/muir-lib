@@ -58,7 +58,7 @@ class LoadNodeTests(c: UnTypLoad) extends PeekPokeTester(c) {
 
       if (t > 5 && peek(c.io.memReq.ready) == 1)
       {
-        poke(c.io.memResp.data,t)
+        poke(c.io.memResp.bits.data,t)
         poke(c.io.memResp.valid,true)
       }
        // printf(s"t: ${t}  io.Out: ${peek(c.io.Out(0))} \n")
@@ -78,7 +78,7 @@ class LoadNodeTester extends  FlatSpec with Matchers {
     chisel3.iotesters.Driver.execute(
       Array(
         // "-ll", "Info",
-        "-tbn", "verilator",
+        "-tbn", "firrtl",
         "-td", "test_run_dir/LoadNodeTester",
         "-tts", "0001"),
       () => new UnTypLoad(NumPredOps=1,NumSuccOps=1,NumOuts=1,Typ=MT_W,ID=1,RouteID=0)) { c =>

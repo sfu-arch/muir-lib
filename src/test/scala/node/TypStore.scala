@@ -44,9 +44,6 @@ class TypStoreTests(c: TypStore) extends PeekPokeTester(c) {
       // poke(c.io.memResp.data,t)
       poke(c.io.memResp.valid, true)
     }
-
-
-    // }
   }
 }
 
@@ -60,7 +57,7 @@ class TypStoreTester extends FlatSpec with Matchers {
       Array(
         // "-ll", "Info",
         "-tn", "test03",
-        "-tbn", "verilator",
+        "-tbn", "firrtl",
         "-td", "test_run_dir/test03",
         "-tts", "0001"),
       () => new TypStore(NumPredOps = 0, NumSuccOps = 0, NumOuts = 1, ID = 1, RouteID = 0)) { c =>

@@ -61,7 +61,7 @@ class computeFuse01Tester(df: ComputeFuse01DF)
 
 class ComputeF01Tests extends  FlatSpec with Matchers {
   implicit val p = new WithAccelConfig ++ new WithTestConfig
-  val myargs = Array("--backend-name", "verilator", "--target-dir", "test_run_dir")
+  val myargs = Array("--backend-name", "firrtl", "--target-dir", "test_run_dir")
   chisel3.iotesters.Driver.execute(myargs, () => new ComputeFuse01DF()(p))
   { c => new computeFuse01Tester(c)  }
 }

@@ -76,7 +76,7 @@ class ChainTester(df: Chain)
      chisel3.iotesters.Driver.execute(
        Array(
          // "-ll", "Info",
-         "-tbn", "verilator",
+         "-tbn", "firrtl",
          "-td", "test_run_dir/FusedComputeNodeTester",
          "-tts", "0001"),
        () => new Chain(NumOps = 2, ID = 0, OpCodes = Array("add","add"))(sign = false)) {

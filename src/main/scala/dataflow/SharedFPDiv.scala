@@ -19,6 +19,8 @@ class FPDivDataFlow(implicit val p: Parameters) extends Module with HasAccelPara
 
   val FPDiv = Module(new FPDivSqrtNode(NumOuts = 1, ID = 0, RouteID = 0, "SQRT")(t = S))
 
+  FPDiv.io.enable.bits.debug := false.B
+
 
   SharedDiv.io.InData(0) <> FPDiv.io.FUReq
   FPDiv.io.FUResp <> SharedDiv.io.OutData(0)

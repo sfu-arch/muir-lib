@@ -53,6 +53,12 @@ class ReadWriteArbiter()
   override val printfSigil = "ReadWriteArbiter: "
 
   //-----------------------------------
+  io.ReadMemResp.bits.iswrite := false.B
+  io.WriteMemResp.bits.data := 0.U
+  io.ReadMemResp.bits.tag := 0.U
+  io.ReadMemResp.bits.data := 0.U
+  io.WriteMemResp.bits.iswrite := false.B
+  io.WriteMemResp.bits.tag := 0.U
 
   // Table entries -> MemReq arbiter.
   cachereq_arb.io.in(RdIdx) <> io.ReadMemReq
@@ -75,7 +81,7 @@ class ReadWriteArbiter()
   // Driver Circuit
   // Cache response Demux
   cacheresp_demux.io.en := io.MemResp.valid
-  cacheresp_demux.io.input := io.MemResp
+  cacheresp_demux.io.input := io.MemResp.bits
   //Note RdIdx == 0 , so is isSt for Loads
   //ToDO this could be dangerous - fix this
   cacheresp_demux.io.sel := io.MemResp.bits.iswrite

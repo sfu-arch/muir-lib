@@ -44,6 +44,8 @@ class CBranchNode(ID: Int, Debug: Boolean = false)
   val (cycleCount, _) = Counter(true.B, 32 * 1024)
   override val printfSigil = "[" + module_name + "] " + node_name + ": " + ID + " "
 
+  io.Out.foreach(_.bits.debug := false.B)
+
   /*===========================================*
    *            Registers                      *
    *===========================================*/
