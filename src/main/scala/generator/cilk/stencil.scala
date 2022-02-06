@@ -338,18 +338,3 @@ class stencilDF(implicit p: Parameters) extends stencilDFIO()(p) {
 
 }
 
-import java.io.{File, FileWriter}
-
-object stencilTop extends App {
-  val dir = new File("RTL/stencilTop");
-  dir.mkdirs
-  implicit val p = new WithAccelConfig
-  val chirrtl = firrtl.Parser.parse(chisel3.Driver.emit(() => new stencilDF()))
-
-  val verilogFile = new File(dir, s"${chirrtl.main}.v")
-  val verilogWriter = new FileWriter(verilogFile)
-  val compileResult = (new firrtl.VerilogCompiler).compileAndEmit(firrtl.CircuitState(chirrtl, firrtl.ChirrtlForm))
-  val compiledStuff = compileResult.getEmittedCircuit
-  verilogWriter.write(compiledStuff.value)
-  verilogWriter.close()
-}

@@ -18,8 +18,6 @@ class LoadIO(NumPredOps: Int,
   val memReq = Decoupled(new ReadReq())
   // Memory response.
   val memResp = Flipped(Valid(new ReadResp()))
-
-  override def cloneType = new LoadIO(NumPredOps, NumSuccOps, NumOuts, Debug).asInstanceOf[this.type]
 }
 
 /**

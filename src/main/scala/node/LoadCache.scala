@@ -16,8 +16,6 @@ class LoadCacheIO(NumPredOps: Int,
   val GepAddr = Flipped(Decoupled(new DataBundle))
   val MemReq = Decoupled(new MemReq)
   val MemResp = Flipped(Valid(new MemResp))
-
-  override def cloneType = new LoadCacheIO(NumPredOps, NumSuccOps, NumOuts, Debug).asInstanceOf[this.type]
 }
 
 /**

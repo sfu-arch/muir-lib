@@ -17,7 +17,6 @@ class CallNodeIO(val argTypes: Seq[Int], val retTypes: Seq[Int])(implicit p: Par
   val callOut = Decoupled(new Call(argTypes))          // To task
   val retIn   = Flipped(Decoupled(new Call(retTypes))) // From task
   val Out     = new CallDecoupled(retTypes)            // Returns to calling block(s)
-  override def cloneType = new CallNodeIO(argTypes,retTypes).asInstanceOf[this.type]
 }
 
 class CallNode(ID: Int, argTypes: Seq[Int], retTypes: Seq[Int])
@@ -25,7 +24,7 @@ class CallNode(ID: Int, argTypes: Seq[Int], retTypes: Seq[Int])
                name: sourcecode.Name,
                file: sourcecode.File) extends Module
   with UniformPrintfs {
-  override lazy val io = IO(new CallNodeIO(argTypes, retTypes)(p))
+  val io = IO(new CallNodeIO(argTypes, retTypes)(p))
 
   val node_name = name.value
   val module_name = file.value.split("/").tail.last.split("\\.").head.capitalize

@@ -17,9 +17,6 @@ class ComputeNodeIO(NumOuts: Int, Debug: Boolean, GuardVals: Seq[Int] = List(), 
   extends HandShakingIONPS(NumOuts, Debug)(new DataBundle) {
   val LeftIO = Flipped(Decoupled(new DataBundle()))
   val RightIO = Flipped(Decoupled(new DataBundle()))
-
-  override def cloneType = new ComputeNodeIO(NumOuts, Debug).asInstanceOf[this.type]
-
 }
 
 class ComputeNode(NumOuts: Int, ID: Int, opCode: String)

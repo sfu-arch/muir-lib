@@ -1166,18 +1166,3 @@ class conv2dSerialDF(implicit p: Parameters) extends conv2dSerialDFIO()(p) {
 
 }
 
-import java.io.{File, FileWriter}
-
-object conv2dSerialTop extends App {
-  val dir = new File("RTL/conv2dSerialTop");
-  dir.mkdirs
-  implicit val p = new WithAccelConfig
-  val chirrtl = firrtl.Parser.parse(chisel3.Driver.emit(() => new conv2dSerialDF()))
-
-  val verilogFile = new File(dir, s"${chirrtl.main}.v")
-  val verilogWriter = new FileWriter(verilogFile)
-  val compileResult = (new firrtl.VerilogCompiler).compileAndEmit(firrtl.CircuitState(chirrtl, firrtl.ChirrtlForm))
-  val compiledStuff = compileResult.getEmittedCircuit
-  verilogWriter.write(compiledStuff.value)
-  verilogWriter.close()
-}

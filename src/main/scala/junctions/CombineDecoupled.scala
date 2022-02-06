@@ -33,7 +33,6 @@ class CombineDataIO(val argTypes: Seq[Int])(implicit p: Parameters) extends Acce
   val In =  Flipped(new VariableDecoupledData(argTypes))
   val Out = Decoupled(new VariableData(argTypes))
 
-  override def cloneType = new CombineDataIO(argTypes).asInstanceOf[this.type]
 }
 
 class CombineData(val argTypes: Seq[Int])(implicit p: Parameters) extends Module {
@@ -58,7 +57,6 @@ class CombineData(val argTypes: Seq[Int])(implicit p: Parameters) extends Module
 class CombineCallIO(val argTypes: Seq[Int])(implicit p: Parameters) extends AccelBundle {
   val In =  Flipped(new CallDecoupled(argTypes))
   val Out = Decoupled(new Call(argTypes))
-  override def cloneType = new CombineCallIO(argTypes).asInstanceOf[this.type]
 }
 
 class CombineCall(val argTypes: Seq[Int])(implicit p: Parameters) extends Module {

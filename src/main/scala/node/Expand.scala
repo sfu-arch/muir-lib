@@ -17,8 +17,6 @@ class ExpandNodeIO[T <: Data](NumOuts: Int)(gen: T)
                              (implicit p: Parameters)
   extends HandShakingIONPS(NumOuts)(gen) {
   val InData = Flipped(Decoupled(gen))
-
-  override def cloneType = new ExpandNodeIO(NumOuts)(gen).asInstanceOf[this.type]
 }
 
 class ExpandNode[T <: Data](NumOuts: Int, ID: Int)(gen: T)

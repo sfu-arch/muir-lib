@@ -23,9 +23,6 @@ class GepNodeOneIO(NumOuts: Int, Debug : Boolean = false)
   val baseAddress = Flipped(Decoupled(new DataBundle()))
   val idx1 = Flipped(Decoupled(new DataBundle()))
 
-  //  3.1
-  override def cloneType = new GepNodeOneIO(NumOuts, Debug).asInstanceOf[this.type]
-
 }
 
 class GepNodeTwoIO(NumOuts: Int, Debug : Boolean = false)
@@ -39,8 +36,6 @@ class GepNodeTwoIO(NumOuts: Int, Debug : Boolean = false)
   val idx1 = Flipped(Decoupled(new DataBundle()))
   val idx2 = Flipped(Decoupled(new DataBundle()))
 
-  override def cloneType = new GepNodeTwoIO(NumOuts, Debug).asInstanceOf[this.type]
-
 }
 
 class GepNodeStackIO(NumOuts: Int)
@@ -51,8 +46,6 @@ class GepNodeStackIO(NumOuts: Int)
   // Inputs are always latched.
   // If Ready is LOW; Do not change the inputs as this will cause a bug
   val baseAddress = Flipped(Decoupled(new DataBundle()))
-
-  override def cloneType = new GepNodeStackIO(NumOuts).asInstanceOf[this.type]
 
 }
 
@@ -66,7 +59,6 @@ class GepNodeIO(NumIns: Int, NumOuts: Int)
   val baseAddress = Flipped(Decoupled(new DataBundle()))
   val idx = Vec(NumIns, Flipped(Decoupled(new DataBundle())))
 
-  override def cloneType = new GepNodeIO(NumIns, NumOuts).asInstanceOf[this.type]
 }
 
 
@@ -858,9 +850,6 @@ class GepIO(NumIns: Int, NumOuts: Int)
   val enable = Flipped(Decoupled(new ControlBundle))
 
   val Out = Vec(NumOuts, Decoupled(new DataBundle))
-
-  //  3.1
-  override def cloneType = new GepIO(NumIns, NumOuts).asInstanceOf[this.type]
 }
 
 

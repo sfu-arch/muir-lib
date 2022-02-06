@@ -16,8 +16,6 @@ class CallOutNodeIO(val argTypes: Seq[Int],
                     NumOuts: Int)(implicit p: Parameters)
   extends HandShakingIOPS(NumPredOps, NumSuccOps, NumOuts)(new Call(argTypes)) {
   val In = Flipped(new VariableDecoupledData(argTypes)) // Requests from calling block(s)
-
-  override def cloneType = new CallOutNodeIO(argTypes, NumPredOps, NumSuccOps, NumOuts).asInstanceOf[this.type]
 }
 
 class CallOutNode(ID: Int, val argTypes: Seq[Int], NumSuccOps: Int = 0, NoReturn: Bool = false.B)
@@ -173,8 +171,6 @@ class CallOutDCRNodeIO(val PtrsTypes: Seq[Int],
   extends HandShakingIOPS(NumPredOps, NumSuccOps, NumOuts)(new CallDCR(PtrsTypes, ValsTypes)) {
   val inPtrs = Flipped(new VariableDecoupledData(PtrsTypes)) // Requests from calling block(s)
   val inVals = Flipped(new VariableDecoupledData(ValsTypes)) // Requests from calling block(s)
-
-  override def cloneType = new CallOutDCRNodeIO(PtrsTypes, ValsTypes, NumPredOps, NumSuccOps, NumOuts).asInstanceOf[this.type]
 }
 
 class CallOutDCRNode(ID: Int, val PtrsTypes: Seq[Int], val ValsTypes: Seq[Int], NumSuccOps: Int = 0, NoReturn: Bool = false.B)

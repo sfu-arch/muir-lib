@@ -231,8 +231,6 @@ object NastiWriteResponseChannel {
 class NastiArbiterIO(arbN: Int)(implicit p: Parameters) extends Bundle {
   val master = Vec(arbN, new NastiIO).flip
   val slave = new NastiIO
-  override def cloneType =
-    new NastiArbiterIO(arbN).asInstanceOf[this.type]
 }
 
 /** Arbitrate among arbN masters requesting to a single slave */

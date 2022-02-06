@@ -25,7 +25,6 @@ class BasicBlockIO(NumInputs: Int,
 
   val predicateIn = Vec(NumInputs, Flipped(Decoupled(new ControlBundle())))
 
-  override def cloneType = new BasicBlockIO(NumInputs, NumOuts, NumPhi).asInstanceOf[this.type]
 }
 
 /**
@@ -153,7 +152,6 @@ class BasicBlockNoMaskDepIO(NumOuts: Int)
   //  val predicateIn = Vec(NumInputs, Flipped(Decoupled(new ControlBundle())))
   val predicateIn = Flipped(Decoupled(new ControlBundle()))
 
-  override def cloneType = new BasicBlockNoMaskDepIO(NumOuts).asInstanceOf[this.type]
 }
 
 
@@ -173,7 +171,6 @@ class BasicBlockNoMaskFastIO(val NumOuts: Int)(implicit p: Parameters)
   val predicateIn = Flipped(Decoupled(new ControlBundle()))
   val Out = Vec(NumOuts, Decoupled(new ControlBundle))
 
-  override def cloneType = new BasicBlockNoMaskFastIO(NumOuts).asInstanceOf[this.type]
 }
 
 
@@ -183,7 +180,6 @@ class BasicBlockNoMaskFastVecIO(val NumInputs: Int, val NumOuts: Int)(implicit p
   val predicateIn = Vec(NumInputs, Flipped(Decoupled(new ControlBundle())))
   val Out = Vec(NumOuts, Decoupled(new ControlBundle))
 
-  override def cloneType = new BasicBlockNoMaskFastVecIO(NumInputs, NumOuts).asInstanceOf[this.type]
 }
 
 /**
@@ -334,7 +330,6 @@ class LoopHeadNodeIO(val NumOuts: Int, val NumPhi: Int)(implicit p: Parameters) 
   val Out = Vec(NumOuts, Decoupled(new ControlBundle))
   val MaskBB = Vec(NumPhi, Decoupled(UInt(2.W)))
 
-  override def cloneType = new LoopHeadNodeIO(NumOuts, NumPhi).asInstanceOf[this.type]
 }
 
 @deprecated("Use new loop node design to capture live-in and live-outs, this is old version to handle loops, this node will be removed from next release", "dandelion-1.0")

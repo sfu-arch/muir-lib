@@ -29,7 +29,7 @@ class LoopEndIO(val NumInputs: Int, val NumOuts: Int)
 class LoopEnd(val NumInputs: Int, val NumOuts: Int, val ID: Int)
                 (implicit val p: Parameters) extends Module with HasAccelParams with UniformPrintfs {
 
-  override lazy val io = IO(new LoopEndIO(NumInputs, NumOuts))
+  val io = IO(new LoopEndIO(NumInputs, NumOuts))
 
   val Args = for (i <- 0 until NumInputs) yield {
     val arg = Module(new LiveOutNode(NumOuts = 1, ID = i))

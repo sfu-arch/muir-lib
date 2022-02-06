@@ -19,8 +19,6 @@ class CMEMaster(implicit val p: Parameters) extends Bundle with HasAccelShellPar
   val MemReq = Decoupled(new MemReq)
   val MemResp = Flipped(Valid(new MemResp))
 
-  override def cloneType =
-    new CMEMaster().asInstanceOf[this.type]
 }
 
 /**
@@ -33,8 +31,6 @@ class CMEClient(implicit val p: Parameters) extends Bundle with HasAccelShellPar
   val MemReq = Flipped(Decoupled(new MemReq))
   val MemResp = Valid(new MemResp)
 
-  override def cloneType =
-    new CMEClient().asInstanceOf[this.type]
 }
 
 /**
@@ -47,8 +43,6 @@ class CMEClient(implicit val p: Parameters) extends Bundle with HasAccelShellPar
 class CMEClientVector(NumOps: Int)(implicit val p: Parameters) extends Bundle with HasAccelShellParams {
   val mem = Vec(NumOps, new CMEClient)
 
-  override def cloneType =
-    new CMEClientVector(NumOps).asInstanceOf[this.type]
 }
 
 

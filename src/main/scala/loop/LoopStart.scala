@@ -27,8 +27,6 @@ class LoopStartIO(val NumInputs: Int, val NumOuts: Int)
     */
   val Finish = Vec(NumInputs, Flipped(Decoupled(new ControlBundle())))
 
-  override def cloneType = new LoopStartIO(NumInputs, NumOuts).asInstanceOf[this.type]
-
 }
 
 
@@ -36,7 +34,7 @@ class LoopStartIO(val NumInputs: Int, val NumOuts: Int)
 class LoopStart(val NumInputs: Int, val NumOuts: Int, val ID: Int)
                 (implicit val p: Parameters) extends Module with HasAccelParams with UniformPrintfs {
 
-  override lazy val io = IO(new LoopStartIO(NumInputs, NumOuts))
+  val io = IO(new LoopStartIO(NumInputs, NumOuts))
 
   val Args = for (i <- 0 until NumInputs) yield {
     val arg = Module(new LiveInNode(NumOuts = 1, ID = i))

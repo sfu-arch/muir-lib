@@ -227,8 +227,6 @@ object MemResp {
 
 //class RelayNode output
 class RelayOutput(implicit p: Parameters) extends AccelBundle()(p) {
-  override def cloneType = new RelayOutput().asInstanceOf[this.type]
-
   val DataNode = Decoupled(UInt(xlen.W))
   val TokenNode = Input(UInt(tlen.W))
 }
@@ -442,7 +440,6 @@ class CustomDataBundle[T <: Data](gen: T = UInt(32.W))(implicit p: Parameters) e
   }
 
 
-  override def cloneType: this.type = new CustomDataBundle(gen).asInstanceOf[this.type]
 }
 
 object CustomDataBundle {
@@ -489,6 +486,7 @@ class VariableCustom(val argTypes: Seq[Bits])(implicit p: Parameters) extends Re
   def apply(elt: String) = elements(elt)
 
   override def cloneType = new VariableCustom(argTypes).asInstanceOf[this.type]
+
 }
 
 // Bundle of decoupled types specified by the argTypes parameter
@@ -499,8 +497,8 @@ class VariableDecoupledCustom(val argTypes: Seq[Bits])(implicit p: Parameters) e
   override val elements = ListMap(elts map { case (field, elt) => field -> elt.cloneType }: _*)
 
   def apply(elt: String) = elements(elt)
-
   override def cloneType = new VariableDecoupledCustom(argTypes).asInstanceOf[this.type]
+
 }
 
 // Bundle of DataBundles with data width specified by the argTypes parameter
@@ -515,8 +513,8 @@ class VariableData(val argTypes: Seq[Int])(implicit p: Parameters) extends Recor
   override val elements = ListMap(elts map { case (field, elt) => field -> elt.cloneType }: _*)
 
   def apply(elt: String) = elements(elt)
-
   override def cloneType = new VariableData(argTypes).asInstanceOf[this.type]
+
 }
 
 // Bundle of Decoupled DataBundles with data width specified by the argTypes parameter
@@ -531,8 +529,8 @@ class VariableDecoupledData(val argTypes: Seq[Int])(implicit p: Parameters) exte
   override val elements = ListMap(elts map { case (field, elt) => field -> elt.cloneType }: _*)
 
   def apply(elt: String) = elements(elt)
-
   override def cloneType = new VariableDecoupledData(argTypes).asInstanceOf[this.type]
+
 }
 
 // Bundle of Decoupled DataBundle Vectors. Data width is default. Intended for use on outputs
@@ -544,8 +542,8 @@ class VariableDecoupledVec(val argTypes: Seq[Int])(implicit p: Parameters) exten
   override val elements = ListMap(elts map { case (field, elt) => field -> elt.cloneType }: _*)
 
   def apply(elt: String) = elements(elt)
-
   override def cloneType = new VariableDecoupledVec(argTypes).asInstanceOf[this.type]
+
 }
 
 // Call type that wraps an enable and variable DataBundle together
@@ -553,7 +551,6 @@ class Call(val argTypes: Seq[Int])(implicit p: Parameters) extends AccelBundle()
   val enable = new ControlBundle
   val data = new VariableData(argTypes)
 
-  override def cloneType = new Call(argTypes).asInstanceOf[this.type]
 }
 
 // Call type that wraps an enable and variable DataBundle together
@@ -563,7 +560,6 @@ class CallDCR(val ptrsArgTypes: Seq[Int],
   val dataPtrs = new VariableData(ptrsArgTypes)
   val dataVals = new VariableData(valsArgTypes)
 
-  override def cloneType = new CallDCR(ptrsArgTypes, valsArgTypes).asInstanceOf[this.type]
 }
 
 // Call type that wraps a decoupled enable and decoupled variable data bundle together
@@ -571,7 +567,6 @@ class CallDecoupled(val argTypes: Seq[Int])(implicit p: Parameters) extends Acce
   val enable = Decoupled(new ControlBundle)
   val data = new VariableDecoupledData(argTypes)
 
-  override def cloneType = new CallDecoupled(argTypes).asInstanceOf[this.type]
 }
 
 // Call type that wraps a decoupled enable and decoupled vector DataBundle together
@@ -579,7 +574,6 @@ class CallDecoupledVec(val argTypes: Seq[Int])(implicit p: Parameters) extends A
   val enable = Decoupled(new ControlBundle)
   val data = new VariableDecoupledVec(argTypes)
 
-  override def cloneType = new CallDecoupledVec(argTypes).asInstanceOf[this.type]
 }
 
 
@@ -590,7 +584,6 @@ class CallDCRDecoupled(val ptrsArgTypes: Seq[Int],
   val dataPtrs = new VariableDecoupledData(ptrsArgTypes)
   val dataVals = new VariableDecoupledData(valsArgTypes)
 
-  override def cloneType = new CallDCRDecoupled(ptrsArgTypes, valsArgTypes).asInstanceOf[this.type]
 }
 
 // Call type that wraps a decoupled enable and decoupled vector DataBundle together
@@ -600,7 +593,6 @@ class CallDCRDecoupledVec(val ptrsArgTypes: Seq[Int],
   val dataPtrs = new VariableDecoupledVec(ptrsArgTypes)
   val dataVals = new VariableDecoupledVec(valsArgTypes)
 
-  override def cloneType = new CallDCRDecoupledVec(ptrsArgTypes, valsArgTypes).asInstanceOf[this.type]
 }
 
 // Function unit request type
@@ -609,5 +601,4 @@ class FUReq(implicit p: Parameters) extends RouteID {
   val data_b = UInt(xlen.W)
   val sqrt = Bool()
 
-  override def cloneType = new FUReq().asInstanceOf[this.type]
 }

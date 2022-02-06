@@ -14,8 +14,6 @@ class SyncIO(NumOuts: Int, NumInc: Int, NumDec: Int)(implicit p: Parameters)
   extends HandShakingIONPS(NumOuts)(new ControlBundle)(p) {
   val incIn = Flipped(Vec(NumInc, Decoupled(new ControlBundle())))
   val decIn = Flipped(Vec(NumDec, Decoupled(new ControlBundle())))
-
-  override def cloneType = new SyncIO(NumOuts, NumInc, NumDec).asInstanceOf[this.type]
 }
 
 class Sync(NumOuts: Int, NumInc: Int, NumDec: Int, ID: Int)
@@ -126,7 +124,7 @@ class SyncNode(NumOuts: Int, ID: Int,
                name: sourcecode.Name,
                file: sourcecode.File)
   extends Module with HasAccelParams with UniformPrintfs {
-  override lazy val io = IO(new SyncNodeIO(NumOuts))
+  val io = IO(new SyncNodeIO(NumOuts))
 
   // Printf debugging
   val node_name = name.value

@@ -13,7 +13,6 @@ import utility.UniformPrintfs
 class ReattachIO(val NumPredOps: Int)(implicit p: Parameters)
   extends HandShakingIONPS(NumOuts = 1)(new ControlBundle)(p) {
   val predicateIn = Vec(NumPredOps, Flipped(Decoupled(new DataBundle()(p))))
-  override def cloneType = new ReattachIO(NumPredOps).asInstanceOf[this.type]
 }
 
 class Reattach(val NumPredOps: Int, ID: Int)
@@ -105,7 +104,7 @@ class ReattachNode(val NumOuts: Int = 1, ID: Int)
                      name: sourcecode.Name,
                      file: sourcecode.File)
   extends Module with HasAccelParams with UniformPrintfs {
-  override lazy val io = IO(new ReattachNodeIO(NumOuts))
+  val io = IO(new ReattachNodeIO(NumOuts))
 
   val node_name = name.value
   val module_name = file.value.split("/").tail.last.split("\\.").head.capitalize

@@ -26,8 +26,6 @@ class AllocaNodeIO(NumOuts: Int, Debug: Boolean)(implicit p: Parameters)
   val allocaReqIO = Decoupled(new AllocaReq)
   val allocaRespIO = Flipped(Valid(new AllocaResp))
 
-  override def cloneType = new AllocaNodeIO(NumOuts, Debug).asInstanceOf[this.type]
-
 }
 
 class AllocaNode(NumOuts: Int, ID: Int, RouteID: Int, FrameSize: Int = 16, Debug: Boolean = false)

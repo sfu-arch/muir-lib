@@ -18,7 +18,6 @@ class StoreCacheIO(NumPredOps: Int,
   val MemReq = Decoupled(new MemReq)
   val MemResp = Flipped(Valid(new MemResp))
 
-  override def cloneType = new StoreCacheIO(NumPredOps, NumSuccOps, NumOuts, Debug).asInstanceOf[this.type]
 }
 
 /**

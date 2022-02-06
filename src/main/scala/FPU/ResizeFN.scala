@@ -16,7 +16,6 @@ class FNtoFNNodeIO(Src: FType, Des: FType,NumOuts: Int)
     val Input = Flipped(Decoupled(new CustomDataBundle(UInt((Src.ieeeWidth).W))))
     // Output gets initialized as part of Handshaking.
 
-  override def cloneType = new FNtoFNNodeIO(Src, Des, NumOuts).asInstanceOf[this.type]
 }
 
 class FNtoFNNode(Src: FType, Des: FType, NumOuts: Int, ID: Int)

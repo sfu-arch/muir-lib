@@ -96,8 +96,6 @@ class TypReduceComputeIO(NumOuts: Int)(implicit p: Parameters)
   // LeftIO: Left input data for computation
   val LeftIO = Flipped(Decoupled(new TypBundle))
 
-  override def cloneType = new TypReduceComputeIO(NumOuts).asInstanceOf[this.type]
-
 }
 
 class TypReduceCompute[T <: Numbers : OperatorReductionLike](NumOuts: Int, ID: Int, opCode: String)(sign: Boolean)(gen: => T)(implicit p: Parameters)

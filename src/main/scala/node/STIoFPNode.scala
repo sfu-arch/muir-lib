@@ -22,8 +22,6 @@ class STIoFPNodeIO(val src: Int, val des: Int, val nout: Int)
   val Out = Vec(nout, Decoupled(new DataBundle()))
   //val Out = Output(Vec(nout, Decoupled(UInt(des.W))))
 
-  override def cloneType = new ZextNodeIO(src, des, nout).asInstanceOf[this.type]
-
 }
 
 class STIoFPNode(val SrcW: Int = 0, val DesW: Int = 0, val NumOuts: Int = 1, val ID: Int = 0)

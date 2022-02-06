@@ -21,12 +21,11 @@ class StackIO(NumOps: Int)
   val InData = Vec(NumOps, Flipped(Decoupled(new AllocaReq)))
   val OutData = Vec(NumOps, Valid(new AllocaResp))
 
-  override def cloneType = new StackIO(NumOps).asInstanceOf[this.type]
 }
 
 class Stack(NumOps: Int)
            (implicit val p: Parameters) extends Module with HasAccelParams with UniformPrintfs{
-  override lazy val io = IO(new StackIO(NumOps))
+  val io = IO(new StackIO(NumOps))
 
   /**
     * Instantiating Arbiter module and connecting inputs to the output

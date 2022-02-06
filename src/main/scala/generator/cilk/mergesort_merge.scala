@@ -1523,17 +1523,3 @@ class mergesort_mergeDF(implicit p: Parameters) extends mergesort_mergeDFIO()(p)
 */
 }
 
-import java.io.{File, FileWriter}
-object mergesort_mergeMain extends App {
-  val dir = new File("RTL/mergesort_merge") ; dir.mkdirs
-  implicit val p = new WithAccelConfig
-  val chirrtl = firrtl.Parser.parse(chisel3.Driver.emit(() => new mergesort_mergeDF()))
-
-  val verilogFile = new File(dir, s"${chirrtl.main}.v")
-  val verilogWriter = new FileWriter(verilogFile)
-  val compileResult = (new firrtl.VerilogCompiler).compileAndEmit(firrtl.CircuitState(chirrtl, firrtl.ChirrtlForm))
-  val compiledStuff = compileResult.getEmittedCircuit
-  verilogWriter.write(compiledStuff.value)
-  verilogWriter.close()
-}
-

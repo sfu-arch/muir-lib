@@ -1398,17 +1398,3 @@ class softmax09aMain(implicit p: Parameters) extends softmax09aTopIO {
 
 }
 
-
-object test_09_conv2d_a_ir_4Top extends App {
-  val dir = new File("RTL/test_09_conv2d_a_ir_4Top");
-  dir.mkdirs
-  implicit val p = new WithAccelConfig
-  val chirrtl = firrtl.Parser.parse(chisel3.Driver.emit(() => new softmax09aMain()))
-
-  val verilogFile = new File(dir, s"${chirrtl.main}.v")
-  val verilogWriter = new FileWriter(verilogFile)
-  val compileResult = (new firrtl.VerilogCompiler).compileAndEmit(firrtl.CircuitState(chirrtl, firrtl.ChirrtlForm))
-  val compiledStuff = compileResult.getEmittedCircuit
-  verilogWriter.write(compiledStuff.value)
-  verilogWriter.close()
-}

@@ -30,7 +30,7 @@ class RetNode(retTypes: Seq[Int], ID: Int)
   val node_name = name.value
   val module_name = file.value.split("/").tail.last.split("\\.").head.capitalize
 
-  override lazy val io = IO(new RetNodeIO(retTypes)(p))
+  val io = IO(new RetNodeIO(retTypes)(p))
   override val printfSigil = module_name + ": " + node_name + ID + " "
 
 
@@ -116,9 +116,6 @@ class RetNode2IO(retTypes: Seq[Int], Debug:Boolean = false , NumBores : Int = 0)
   extends Bundle {
   val In = Flipped(new CallDecoupled(retTypes))
   val Out = Decoupled(new Call(retTypes))
-
-  override def cloneType = new RetNode2IO(retTypes, Debug, NumBores).asInstanceOf[this.type]
-
 }
 
 class RetNode2(retTypes: Seq[Int], ID: Int , Debug: Boolean = false, NumBores : Int = 0)
@@ -130,7 +127,7 @@ class RetNode2(retTypes: Seq[Int], ID: Int , Debug: Boolean = false, NumBores : 
   val node_name = name.value
   val module_name = file.value.split("/").tail.last.split("\\.").head.capitalize
 
-  override lazy val io = IO(new RetNode2IO(retTypes)(p))
+  val io = IO(new RetNode2IO(retTypes)(p))
   override val printfSigil = module_name + ": " + node_name + ID + " "
 
 
@@ -248,7 +245,7 @@ class RetNode2Buggy(retTypes: Seq[Int], ID: Int)
   val node_name = name.value
   val module_name = file.value.split("/").tail.last.split("\\.").head.capitalize
 
-  override lazy val io = IO(new RetNode2IO(retTypes)(p))
+  val io = IO(new RetNode2IO(retTypes)(p))
   override val printfSigil = module_name + ": " + node_name + ID + " "
 
 

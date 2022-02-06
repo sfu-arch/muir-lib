@@ -15,9 +15,6 @@ class BitCastNodeIO(NumOuts: Int, Debug:Boolean)
   // LeftIO: Left input data for computation
   val Input = Flipped(Decoupled(new DataBundle()))
 
-
-  override def cloneType = new BitCastNodeIO(NumOuts, Debug).asInstanceOf[this.type]
-
 }
 
 class BitCastNode(NumOuts: Int, ID: Int, Debug: Boolean= false)

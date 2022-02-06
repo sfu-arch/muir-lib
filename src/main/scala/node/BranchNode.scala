@@ -26,8 +26,6 @@ class CBranchNodeIO(NumOuts: Int = 2, Debug: Boolean = false)
 
   // RightIO: Right input data for computation
   val CmpIO = Flipped(Decoupled(new DataBundle))
-
-  override def cloneType = new CBranchNodeIO(NumOuts, Debug).asInstanceOf[this.type]
 }
 
 class CBranchNode(ID: Int, Debug: Boolean = false)
@@ -384,7 +382,7 @@ class CBranchNodeVariableLoop(val NumTrue: Int = 1, val NumFalse: Int = 1, val N
                               file: sourcecode.File)
   extends Module with HasAccelParams with UniformPrintfs {
 
-  override lazy val io = IO(new CBranchIO(NumTrue = NumTrue, NumFalse = NumFalse, NumPredecessor = NumPredecessor))
+  val io = IO(new CBranchIO(NumTrue = NumTrue, NumFalse = NumFalse, NumPredecessor = NumPredecessor))
 
   // Printf debugging
   override val printfSigil = "Node (CBR) ID: " + ID + " "
@@ -950,8 +948,6 @@ class CBranchIO(val NumTrue: Int, val NumFalse: Int, val NumPredecessor: Int = 0
   //Output
   val TrueOutput = Vec(NumTrue, Decoupled(new ControlBundle))
   val FalseOutput = Vec(NumFalse, Decoupled(new ControlBundle))
-
-  override def cloneType = new CBranchIO(NumTrue, NumFalse, NumPredecessor).asInstanceOf[this.type]
 }
 
 
@@ -1170,7 +1166,7 @@ class CBranchNodeVariable(val NumTrue: Int = 1, val NumFalse: Int = 1, val NumPr
                           file: sourcecode.File)
   extends Module with HasAccelParams with UniformPrintfs {
 
-  override lazy val io = IO(new CBranchIO(NumTrue = NumTrue, NumFalse = NumFalse, NumPredecessor = NumPredecessor))
+  val io = IO(new CBranchIO(NumTrue = NumTrue, NumFalse = NumFalse, NumPredecessor = NumPredecessor))
 
   // Printf debugging
   override val printfSigil = "Node (CBR) ID: " + ID + " "

@@ -16,8 +16,6 @@ import util._
 class FusedComputeNodeIO(NumIns: Int, NumOuts: Int)
                    (implicit p: Parameters)
 extends HandShakingFusedIO (NumIns, NumOuts)(new DataBundle) {
-  override def cloneType = new FusedComputeNodeIO(NumIns, NumOuts).asInstanceOf[this.type]
-
 }
 
 class FusedComputeNode(NumIns: Int, NumOuts: Int, ID: Int, opCode: String)

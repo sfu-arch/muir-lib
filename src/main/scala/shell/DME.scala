@@ -31,9 +31,6 @@ class DMEReadMaster(implicit val p: Parameters) extends Bundle with HasAccelShel
   val dataBits = memParams.dataBits
   val cmd = Decoupled(new DMECmd)
   val data = Flipped(Decoupled(UInt(dataBits.W)))
-
-  override def cloneType =
-    new DMEReadMaster().asInstanceOf[this.type]
 }
 
 /** DMEReadClient.
@@ -46,8 +43,6 @@ class DMEReadClient(implicit val p: Parameters) extends Bundle with HasAccelShel
   val cmd = Flipped(Decoupled(new DMECmd))
   val data = Decoupled(UInt(dataBits.W))
 
-  override def cloneType =
-    new DMEReadClient().asInstanceOf[this.type]
 }
 
 /** DMEWriteMaster.
@@ -61,8 +56,6 @@ class DMEWriteMaster(implicit val p: Parameters) extends Bundle with HasAccelShe
   val data = Decoupled(UInt(dataBits.W))
   val ack = Input(Bool())
 
-  override def cloneType =
-    new DMEWriteMaster().asInstanceOf[this.type]
 }
 
 /** DMEWriteClient.
@@ -76,8 +69,6 @@ class DMEWriteClient(implicit val p: Parameters) extends Bundle with HasAccelShe
   val data = Flipped(Decoupled(UInt(dataBits.W)))
   val ack = Output(Bool())
 
-  override def cloneType =
-    new DMEWriteClient().asInstanceOf[this.type]
 }
 
 /** DMEMaster.
@@ -128,7 +119,7 @@ class DME(implicit val p: Parameters) extends Module with HasAccelShellParams {
 
   val nReadClients = dmeParams.nReadClients
   val rd_arb = Module(new Arbiter(new DMECmd, nReadClients))
-  val rd_arb_chosen = RegEnable(rd_arb.io.chosen, rd_arb.io.out.fire())
+  val rd_arb_chosen = RegEnable(rd_arb.io.chosen, rd_arb.io.out.fire)
 
   for (i <- 0 until nReadClients) {
     rd_arb.io.in(i) <> io.dme.rd(i).cmd
@@ -149,7 +140,7 @@ class DME(implicit val p: Parameters) extends Module with HasAccelShellParams {
       }
     }
     is(sReadData) {
-      when(io.mem.r.fire() && io.mem.r.bits.last) {
+      when(io.mem.r.fire && io.mem.r.bits.last) {
         rstate := sReadIdle
       }
     }
@@ -158,7 +149,7 @@ class DME(implicit val p: Parameters) extends Module with HasAccelShellParams {
   /* ----------------------------------------------------------------*/
   val nWriteClients = dmeParams.nWriteClients
   val wr_arb = Module(new Arbiter(new DMECmd, nWriteClients))
-  val wr_arb_chosen = RegEnable(wr_arb.io.chosen, wr_arb.io.out.fire())
+  val wr_arb_chosen = RegEnable(wr_arb.io.chosen, wr_arb.io.out.fire)
 
   for (i <- 0 until nWriteClients) {
     wr_arb.io.in(i) <> io.dme.wr(i).cmd
@@ -173,7 +164,7 @@ class DME(implicit val p: Parameters) extends Module with HasAccelShellParams {
 
   when(wstate === sWriteIdle) {
     wr_cnt := 0.U
-  }.elsewhen(io.mem.w.fire()) {
+  }.elsewhen(io.mem.w.fire) {
     wr_cnt := wr_cnt + 1.U
   }
 
@@ -218,7 +209,7 @@ class DME(implicit val p: Parameters) extends Module with HasAccelShellParams {
 
   // wr arb
   for (i <- 0 until nWriteClients) {
-    io.dme.wr(i).ack := (wr_arb_chosen === i.U) && io.mem.b.fire()
+    io.dme.wr(i).ack := (wr_arb_chosen === i.U) && io.mem.b.fire
     io.dme.wr(i).data.ready := (wr_arb_chosen === i.U) && (wstate === sWriteData) && (io.mem.w.ready)
   }
 

@@ -438,25 +438,3 @@ class cilk_saxpyMainTMTop(children: Int)(implicit val p: Parameters)
 
 }
 
-
-
-import java.io.{File, FileWriter}
-
-object cilk_saxpyTop extends App {
-  val dir = new File("RTL/cilk_saxpyTop4");
-  dir.mkdirs
-  implicit val p = new WithAccelConfig
-  //val testParams = p.alterPartial({
-    //case TLEN => 5
-    //case TRACE => true
-  //})
-
-  val chirrtl = firrtl.Parser.parse(chisel3.Driver.emit(() => new cilk_saxpyMainTMTop(4)))
-
-  val verilogFile = new File(dir, s"${chirrtl.main}.v")
-  val verilogWriter = new FileWriter(verilogFile)
-  val compileResult = (new firrtl.VerilogCompiler).compileAndEmit(firrtl.CircuitState(chirrtl, firrtl.ChirrtlForm))
-  val compiledStuff = compileResult.getEmittedCircuit
-  verilogWriter.write(compiledStuff.value)
-  verilogWriter.close()
-}

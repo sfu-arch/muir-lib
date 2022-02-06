@@ -19,8 +19,6 @@ class FPComputeNodeIO(NumOuts: Int)
   // RightIO: Right input data for computation
   val RightIO = Flipped(Decoupled(new DataBundle()))
 
-  override def cloneType = new FPComputeNodeIO(NumOuts).asInstanceOf[this.type]
-
 }
 
 /**

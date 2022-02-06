@@ -45,8 +45,6 @@ class LoopBlockIO(NumIns: Seq[Int], NumOuts: Int, NumExits: Int)(implicit p: Par
   val loopExit = Flipped(Vec(NumExits, Decoupled(new ControlBundle())))
   val liveOut = Flipped(Vec(NumOuts, Decoupled(new DataBundle())))
   val endEnable = Decoupled(new ControlBundle())
-
-  override def cloneType = new LoopBlockIO(NumIns, NumOuts, NumExits).asInstanceOf[this.type]
 }
 
 @deprecated("Please use LoopBlockO1 if you have compiled your program with O1 optmization", "1.0")
@@ -504,9 +502,6 @@ class LoopBlockNodeIO(NumIns: Seq[Int], NumCarry: Seq[Int], NumOuts: Seq[Int],
   //Output control signal
   val loopExit = Vec(NumExits, Decoupled(new ControlBundle()))
 
-
-  override def cloneType = new LoopBlockNodeIO(NumIns, NumCarry,
-    NumOuts, NumBackEdge, NumLoopFinish, NumExits, NumStore, Debug).asInstanceOf[this.type]
 }
 
 class LoopBlockNode(ID: Int, NumIns: Seq[Int], NumCarry: Seq[Int], NumOuts: Seq[Int],

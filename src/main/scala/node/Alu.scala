@@ -161,8 +161,6 @@ class UALUIO(xlen: Int, val opCode: String) extends Bundle {
   val in3 = if (AluOpCode.opMap(opCode) == AluOpCode.Mac)
     Some(Input(UInt(xlen.W))) else None
   val out = Output(UInt(xlen.W))
-
-  override def cloneType: this.type = new UALUIO(xlen, opCode).asInstanceOf[this.type]
 }
 
 class UALU(val xlen: Int, val opCode: String, val issign: Boolean = false) extends Module {
@@ -246,10 +244,6 @@ class DSPIO[T <: Data : RealBits](gen: T, val opCode: String) extends Bundle {
   else None
 
   val out = Output(UInt(gen.getWidth.W))
-
-  override def cloneType: this.type
-
-  = new DSPIO(gen, opCode).asInstanceOf[this.type]
 }
 
 // Parameterized Chisel Module; takes in type parameters as explained above

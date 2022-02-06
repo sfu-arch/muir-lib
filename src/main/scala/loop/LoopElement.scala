@@ -40,7 +40,7 @@ class LoopElementIO()(implicit p: Parameters) extends AccelBundle() {
 class LoopElement(val ID: Int)(implicit val p: Parameters)
   extends Module with HasAccelParams with UniformPrintfs {
 
-  override lazy val io = IO(new LoopElementIO())
+  val io = IO(new LoopElementIO())
 
   // Printf debugging
   override val printfSigil = "Node ID: " + ID + " "

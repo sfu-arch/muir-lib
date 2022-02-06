@@ -833,17 +833,3 @@ class dense04aMain(implicit p: Parameters) extends dense04aTopIO {
 
 }
 
-
-object test_04_dense_a_ir_4Top extends App {
-  val dir = new File("RTL/test_04_dense_a_ir_4Top");
-  dir.mkdirs
-  implicit val p = new WithAccelConfig
-  val chirrtl = firrtl.Parser.parse(chisel3.Driver.emit(() => new dense04aMain()))
-
-  val verilogFile = new File(dir, s"${chirrtl.main}.v")
-  val verilogWriter = new FileWriter(verilogFile)
-  val compileResult = (new firrtl.VerilogCompiler).compileAndEmit(firrtl.CircuitState(chirrtl, firrtl.ChirrtlForm))
-  val compiledStuff = compileResult.getEmittedCircuit
-  verilogWriter.write(compiledStuff.value)
-  verilogWriter.close()
-}

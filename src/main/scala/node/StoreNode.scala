@@ -44,7 +44,7 @@ class StoreNode(Typ: UInt = MT_W, ID: Int, RouteID: Int)(implicit val p: Paramet
   extends Module with HasAccelParams with UniformPrintfs {
 
   // Set up StoreIO
-  override lazy val io = IO(new StoreNodeIO())
+  val io = IO(new StoreNodeIO())
 
   override val printfSigil = "Node (STORE) ID: " + ID + " "
 

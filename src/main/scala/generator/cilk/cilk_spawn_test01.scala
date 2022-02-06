@@ -470,17 +470,3 @@ class cilk_spawn_test01DF(implicit p: Parameters) extends cilk_spawn_test01DFIO(
 
 }
 
-import java.io.{File, FileWriter}
-object cilk_spawn_test01Main extends App {
-  val dir = new File("RTL/cilk_spawn_test01") ; dir.mkdirs
-  implicit val p = new WithAccelConfig
-  val chirrtl = firrtl.Parser.parse(chisel3.Driver.emit(() => new cilk_spawn_test01DF()))
-
-  val verilogFile = new File(dir, s"${chirrtl.main}.v")
-  val verilogWriter = new FileWriter(verilogFile)
-  val compileResult = (new firrtl.VerilogCompiler).compileAndEmit(firrtl.CircuitState(chirrtl, firrtl.ChirrtlForm))
-  val compiledStuff = compileResult.getEmittedCircuit
-  verilogWriter.write(compiledStuff.value)
-  verilogWriter.close()
-}
-

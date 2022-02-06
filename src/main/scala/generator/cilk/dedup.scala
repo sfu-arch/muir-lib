@@ -676,17 +676,3 @@ class dedupTop(tiles : Int)(implicit p: Parameters) extends dedupTopIO  {
 
 }
 
-import java.io.{File, FileWriter}
-object dedupMain extends App {
-  val dir = new File("RTL/dedupTop") ; dir.mkdirs
-
-  implicit val p = new WithAccelConfig(DandelionAccelParams(taskLen = 6, printLog = false))
-  val chirrtl = firrtl.Parser.parse(chisel3.Driver.emit(() => new dedupTop(1)(p)))
-
-  val verilogFile = new File(dir, s"${chirrtl.main}.v")
-  val verilogWriter = new FileWriter(verilogFile)
-  val compileResult = (new firrtl.VerilogCompiler).compileAndEmit(firrtl.CircuitState(chirrtl, firrtl.ChirrtlForm))
-  val compiledStuff = compileResult.getEmittedCircuit
-  verilogWriter.write(compiledStuff.value)
-  verilogWriter.close()
-}

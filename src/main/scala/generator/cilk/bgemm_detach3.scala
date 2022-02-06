@@ -577,18 +577,4 @@ class bgemm_detach3DF(implicit p: Parameters) extends bgemm_detach3DFIO()(p) {
 
 }
 
-import java.io.{File, FileWriter}
 
-object bgemm_detach3Top extends App {
-  val dir = new File("RTL/bgemm_detach3Top");
-  dir.mkdirs
-  implicit val p = new WithAccelConfig
-  val chirrtl = firrtl.Parser.parse(chisel3.Driver.emit(() => new bgemm_detach3DF()))
-
-  val verilogFile = new File(dir, s"${chirrtl.main}.v")
-  val verilogWriter = new FileWriter(verilogFile)
-  val compileResult = (new firrtl.VerilogCompiler).compileAndEmit(firrtl.CircuitState(chirrtl, firrtl.ChirrtlForm))
-  val compiledStuff = compileResult.getEmittedCircuit
-  verilogWriter.write(compiledStuff.value)
-  verilogWriter.close()
-}

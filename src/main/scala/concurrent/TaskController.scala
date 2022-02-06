@@ -14,7 +14,6 @@ import utility.UniformPrintfs
 class ParentBundle()(implicit p: Parameters) extends AccelBundle {
   val sid = UInt(tlen.W) // Static ID (e.g. parent identifier)
   val did = UInt(tlen.W) // Dynamic ID (e.g. parent's task #)
-  //  override def cloneType: this.type = new ParentBundle(argTypes).asInstanceOf[this.type]
 }
 
 class TaskControllerIO(val argTypes: Seq[Int], val retTypes: Seq[Int], numParent: Int, numChild: Int)(implicit p: Parameters)
@@ -23,9 +22,6 @@ class TaskControllerIO(val argTypes: Seq[Int], val retTypes: Seq[Int], numParent
   val parentOut = Vec(numParent, Decoupled(new Call(retTypes))) // Returns to calling block(s)
   val childIn = Vec(numChild, Flipped(Decoupled(new Call(retTypes)))) // Returns from sub-block
   val childOut = Vec(numChild, Decoupled(new Call(argTypes))) // Requests to sub-block
-
-  // 3.1
-  override def cloneType = new TaskControllerIO(argTypes, retTypes, numParent, numChild).asInstanceOf[this.type]
 }
 
 class TaskController(val argTypes: Seq[Int], val retTypes: Seq[Int], numParent: Int, numChild: Int)

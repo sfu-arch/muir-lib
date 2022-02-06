@@ -368,16 +368,3 @@ class dedup_S2DF(implicit p: Parameters) extends dedup_S2DFIO()(p) {
 
 }
 
-import java.io.{File, FileWriter}
-object dedup_S2Main extends App {
-  val dir = new File("RTL/dedup_S2") ; dir.mkdirs
-  implicit val p = new WithAccelConfig
-  val chirrtl = firrtl.Parser.parse(chisel3.Driver.emit(() => new dedup_S2DF()))
-
-  val verilogFile = new File(dir, s"${chirrtl.main}.v")
-  val verilogWriter = new FileWriter(verilogFile)
-  val compileResult = (new firrtl.VerilogCompiler).compileAndEmit(firrtl.CircuitState(chirrtl, firrtl.ChirrtlForm))
-  val compiledStuff = compileResult.getEmittedCircuit
-  verilogWriter.write(compiledStuff.value)
-  verilogWriter.close()
-}

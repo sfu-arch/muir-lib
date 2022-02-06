@@ -29,8 +29,6 @@ class RegFileBundle(size: Int)(implicit p: Parameters) extends AccelBundle()(p) 
   val wdata  = Input(UInt(xlen.W))
   val wmask  = Input(UInt((xlen/8).W))
 
-  override def cloneType = new RegFileBundle(size).asInstanceOf[this.type]
-
 }
 
 

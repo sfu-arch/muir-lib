@@ -16,8 +16,6 @@ import util._
 class CustomFunctionalNodeIO(NumIns: Int, NumOuts: Int, Debug : Boolean = false)
                             (implicit p: Parameters)
   extends HandShakingFusedIO(NumIns, NumOuts , Debug)(new DataBundle) {
-
-  override def cloneType = new CustomFunctionalNodeIO(NumIns, NumOuts, Debug).asInstanceOf[this.type]
 }
 
 class CustomFunctionalNode(NumIns: Int, NumOuts: Int, ID: Int, opCode: String , Debug : Boolean = false)

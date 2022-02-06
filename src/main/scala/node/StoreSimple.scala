@@ -33,7 +33,6 @@ class StoreIO(NumPredOps: Int,
   // Memory response.
   val memResp = Flipped(Valid(new WriteResp()))
 
-  override def cloneType = new StoreIO(NumPredOps, NumSuccOps, NumOuts, Debug).asInstanceOf[this.type]
 }
 
 /**

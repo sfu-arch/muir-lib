@@ -19,7 +19,6 @@ class SharedFPUIO(NumOps: Int, argTypes: Seq[Int])
 
   val OutData = Vec(NumOps, Valid(new FUResp))
 
-  override def cloneType = new SharedFPUIO(NumOps, argTypes).asInstanceOf[this.type]
 }
 
 class SharedFPU(NumOps: Int, PipeDepth: Int)(t: FType)
@@ -27,7 +26,7 @@ class SharedFPU(NumOps: Int, PipeDepth: Int)(t: FType)
                 name: sourcecode.Name,
                 file: sourcecode.File)
   extends Module with HasAccelParams with UniformPrintfs {
-  override lazy val io = IO(new SharedFPUIO(NumOps, argTypes = List(xlen, xlen, xlen)))
+  val io = IO(new SharedFPUIO(NumOps, argTypes = List(xlen, xlen, xlen)))
 
   // Printf debugging
   val node_name = name.value

@@ -1109,18 +1109,4 @@ class k2mmDF(implicit p: Parameters) extends k2mmDFIO()(p) {
 
 }
 
-import java.io.{File, FileWriter}
 
-object k2mmTop extends App {
-  val dir = new File("RTL/k2mmTop");
-  dir.mkdirs
-  implicit val p = new WithAccelConfig
-  val chirrtl = firrtl.Parser.parse(chisel3.Driver.emit(() => new k2mmDF()))
-
-  val verilogFile = new File(dir, s"${chirrtl.main}.v")
-  val verilogWriter = new FileWriter(verilogFile)
-  val compileResult = (new firrtl.VerilogCompiler).compileAndEmit(firrtl.CircuitState(chirrtl, firrtl.ChirrtlForm))
-  val compiledStuff = compileResult.getEmittedCircuit
-  verilogWriter.write(compiledStuff.value)
-  verilogWriter.close()
-}

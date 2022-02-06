@@ -21,9 +21,6 @@ class FPToUINodeIO(val src: Int, val des: Int, val nout: Int)
   //Output of the input (Zexted version)
   val Out = Vec(nout, Decoupled(new DataBundle()))
   //val Out = Output(Vec(nout, Decoupled(UInt(des.W))))
-
-  override def cloneType = new ZextNodeIO(src, des, nout).asInstanceOf[this.type]
-
 }
 
 class FPToUINode(val SrcW: Int = 0, val DesW: Int = 0, val NumOuts: Int = 1, val ID: Int = 0)

@@ -545,18 +545,3 @@ class ms_mergesortDF(implicit p: Parameters) extends ms_mergesortDFIO()(p) {
 
 }
 
-import java.io.{File, FileWriter}
-
-object ms_mergesortTop extends App {
-  val dir = new File("RTL/ms_mergesortTop");
-  dir.mkdirs
-  implicit val p = new WithAccelConfig
-  val chirrtl = firrtl.Parser.parse(chisel3.Driver.emit(() => new ms_mergesortDF()))
-
-  val verilogFile = new File(dir, s"${chirrtl.main}.v")
-  val verilogWriter = new FileWriter(verilogFile)
-  val compileResult = (new firrtl.VerilogCompiler).compileAndEmit(firrtl.CircuitState(chirrtl, firrtl.ChirrtlForm))
-  val compiledStuff = compileResult.getEmittedCircuit
-  verilogWriter.write(compiledStuff.value)
-  verilogWriter.close()
-}

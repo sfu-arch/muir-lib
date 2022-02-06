@@ -124,7 +124,7 @@ class DCR(implicit val p: Parameters) extends Module with HasAccelShellParams {
     }
   }
 
-  when(io.host.aw.fire()) {
+  when(io.host.aw.fire) {
     waddr := io.host.aw.bits.addr
   }
 
@@ -153,25 +153,25 @@ class DCR(implicit val p: Parameters) extends Module with HasAccelShellParams {
 
   when(io.dcr.finish) {
     reg(0) := "b_10".U
-  }.elsewhen(io.host.w.fire() && addr(0).U === waddr) {
+  }.elsewhen(io.host.w.fire && addr(0).U === waddr) {
     reg(0) := wdata
   }
 
   for (i <- 0 until vp.nECnt) {
     when(io.dcr.ecnt(i).valid) {
       reg(eo + i) := io.dcr.ecnt(i).bits
-    }.elsewhen(io.host.w.fire() && addr(eo + i).U === waddr) {
+    }.elsewhen(io.host.w.fire && addr(eo + i).U === waddr) {
       reg(eo + i) := wdata
     }
   }
 
   for (i <- 0 until (vp.nVals + nPtrs)) {
-    when(io.host.w.fire() && addr(vo + i).U === waddr) {
+    when(io.host.w.fire && addr(vo + i).U === waddr) {
       reg(vo + i) := wdata
     }
   }
 
-  when(io.host.ar.fire()) {
+  when(io.host.ar.fire) {
     rdata := MuxLookup(io.host.ar.bits.addr, 0.U, reg_map)
   }
 
