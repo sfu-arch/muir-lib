@@ -63,7 +63,7 @@ class StoreNodeTester extends FlatSpec with Matchers {
     chisel3.iotesters.Driver.execute(
       Array(
         // "-ll", "Info",
-        "-tbn", "verilator",
+        "-tbn", "firrtl",
         "-td", "test_run_dir/StoreNodeTester",
         "-tts", "0001"),
       () => new UnTypStore(NumPredOps = 1, NumSuccOps = 1, NumOuts = 1, Typ = MT_W, ID = 1, RouteID = 0)) { c =>

@@ -37,6 +37,12 @@ class CustomFunctionalNode(NumIns: Int, NumOuts: Int, ID: Int, opCode: String , 
   val s_idle :: s_LATCH :: s_COMPUTE :: Nil = Enum(3)
   val state = RegInit(s_idle)
 
+
+  //Setting outputs to default
+  io.Out.foreach(_.bits.taskID := 0.U)
+  io.Out.foreach(_.bits.data := 0.U)
+  io.Out.foreach(_.bits.predicate:= false.B)
+
   /*==========================================*
    *           Predicate Evaluation           *
    *==========================================*/

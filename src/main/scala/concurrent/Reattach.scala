@@ -52,6 +52,7 @@ class Reattach(val NumPredOps: Int, ID: Int)
   val start = ctrlReady_R.asUInt.andR && IsEnableValid()
   val predicate = ctrlPredicate_R(0).predicate
 
+  io.Out.foreach(_.bits.debug := false.B)
   io.Out(0).bits.control := ctrlPredicate_R(0).predicate
   io.Out(0).bits.taskID := ctrlPredicate_R(0).taskID | enable_R.taskID
 

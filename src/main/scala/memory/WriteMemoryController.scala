@@ -176,7 +176,8 @@ class WriteTableEntry(id: Int)(implicit p: Parameters) extends WriteEntryIO( )(p
   }
 }
 
-abstract class WController(NumOps: Int, BaseSize: Int, NumEntries: Int)(implicit val p: Parameters) extends Module with HasAccelParams {
+abstract class WController(NumOps: Int, BaseSize: Int, NumEntries: Int)
+                          (implicit val p: Parameters) extends Module with HasAccelParams {
   val io = IO(new Bundle {
     val WriteIn  = Vec(NumOps, Flipped(Decoupled(new WriteReq( ))))
     val WriteOut = Vec(NumOps, Output(new WriteResp( )))
@@ -185,7 +186,8 @@ abstract class WController(NumOps: Int, BaseSize: Int, NumEntries: Int)(implicit
   })
 }
 
-class WriteMemoryController(NumOps: Int, BaseSize: Int, NumEntries: Int, Serialize: Boolean = true)(implicit p: Parameters) extends WController(NumOps, BaseSize, NumEntries)(p) {
+class WriteMemoryController(NumOps: Int, BaseSize: Int, NumEntries: Int, Serialize: Boolean = true)
+                           (implicit p: Parameters) extends WController(NumOps, BaseSize, NumEntries)(p) {
   require(NumEntries >= 0)
   // Number of MLP entries
   val MLPSize   = NumEntries
@@ -258,7 +260,7 @@ class WriteMemoryController(NumOps: Int, BaseSize: Int, NumEntries: Int, Seriali
 
   // Cache response Demux
   cacheresp_demux.io.en := io.MemResp.valid
-  cacheresp_demux.io.input := io.MemResp
+  cacheresp_demux.io.input := io.MemResp.bits
   cacheresp_demux.io.sel := io.MemResp.bits.tag
 
   // Output arbiter -> Demux

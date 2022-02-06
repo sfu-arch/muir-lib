@@ -28,11 +28,6 @@ class computeTester(df: ComputeNode)
   poke(df.io.enable.valid, false.B)
   poke(df.io.Out(0).ready, false.B)
   println(s"Output: ${peek(df.io.Out(0))}\n")
-  //p
-  if(df.isDebug()){
-
-   // println(s"STATE of ComputeNode is : 0x${peek(df.io.LogCheck.get.bits.data.asUInt())}\n")
-  }
 
   //V
   step(1)
@@ -68,7 +63,7 @@ class computeTester(df: ComputeNode)
 class CompTests extends  FlatSpec with Matchers {
    implicit val p = new WithAccelConfig ++ new WithTestConfig
   it should "Dataflow tester" in {
-     chisel3.iotesters.Driver(() => new ComputeNode(NumOuts = 1, ID = 0, opCode = "Add")(sign = false, Debug = true)) {
+     chisel3.iotesters.Driver(() => new ComputeNode(NumOuts = 1, ID = 0, opCode = "Add")(sign = false, Debug = false)) {
        c => new computeTester(c)
      } should be(true)
    }

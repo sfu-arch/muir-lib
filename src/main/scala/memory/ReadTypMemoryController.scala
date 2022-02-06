@@ -179,7 +179,7 @@ class ReadTypMemoryController(NumOps: Int,
 
   // Output arbiter and demuxes
   val out_arb   = Module(new LockingRRArbiter(new ReadResp, MLPSize, count = beats))
-  val out_demux = Module(new DeMuxTree(BaseSize = BaseSize, NumOps = NumOps, new ReadResp( )))
+  val out_demux = Module(new DeMuxTree(BaseSize = BaseSize, NumOps = NumOps, new ReadResp()))
 
   /*=====================================================================
 =            Wire up incoming reads from nodes to ReadMSHR            =
@@ -245,7 +245,8 @@ class ReadTypMemoryController(NumOps: Int,
   // Output arbiter -> Demux
   out_arb.io.out.ready := true.B
   out_demux.io.enable := out_arb.io.out.fire( )
-  out_demux.io.input := out_arb.io.out.bits
+  out_demux.io.input.bits := out_arb.io.out.bits
+  out_demux.io.input.valid := true.B
 
   // printf(p"\n Demux output: ${cacheresp_demux.io.outputs}")
 

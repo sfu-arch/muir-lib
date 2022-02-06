@@ -36,7 +36,7 @@ class TypLoadTests(c: TypLoad) extends PeekPokeTester(c) {
 
     if (t > 8) {
       poke(c.io.memResp.valid, true)
-      poke(c.io.memResp.data, 0x1eadbeef + t)
+      poke(c.io.memResp.bits.data, 0x1eadbeef + t)
     }
   }
 }
@@ -51,7 +51,7 @@ class TypLoadTester extends FlatSpec with Matchers {
       Array(
         // "-ll", "Info",
         "-tn", "test03",
-        "-tbn", "verilator",
+        "-tbn", "firrtl",
         "-td", "test_run_dir/test03",
         "-tts", "0001"),
       () => new TypLoad(NumPredOps = 0, NumSuccOps = 0, NumOuts = 1, ID = 1, RouteID = 0)) { c =>

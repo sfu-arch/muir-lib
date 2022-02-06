@@ -30,6 +30,7 @@ class Add01DF(implicit p: Parameters) extends Add01DFIO() {
 
   //Setting b0_entry predicates to be true
   // will start immediately
+  b0_entry.io.predicateIn.foreach(_.bits.debug := false.B)
   b0_entry.io.predicateIn(0).bits.control := true.B
   b0_entry.io.predicateIn(0).bits.taskID := 0.U
 

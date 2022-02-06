@@ -67,8 +67,8 @@ class ReadTypTableEntryTests(c: ReadTypTableEntry)
 
 
 
-      println(s"MemResp.data: ${peek(c.io.MemResp.data)}")
-      println(s"MemResp.tag: ${peek(c.io.MemResp.tag)}")
+      println(s"MemResp.data: ${peek(c.io.MemResp.bits.data)}")
+      println(s"MemResp.tag: ${peek(c.io.MemResp.bits.tag)}")
     }
 
 
@@ -83,8 +83,8 @@ class ReadTypTableEntryTests(c: ReadTypTableEntry)
     if(t==6) {
 
       println(s"Sending Valid Response from Memory")
-      poke(c.io.MemResp.data, 34)
-      poke(c.io.MemResp.tag, 0)
+      poke(c.io.MemResp.bits.data, 34)
+      poke(c.io.MemResp.bits.tag, 0)
       poke(c.io.MemResp.valid, 1)
     }
 

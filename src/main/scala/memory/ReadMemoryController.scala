@@ -286,7 +286,7 @@ class ReadMemoryController (NumOps: Int, BaseSize: Int, NumEntries: Int, Seriali
 
   // Cache response Demux
   cacheresp_demux.io.en := io.MemResp.valid
-  cacheresp_demux.io.input := io.MemResp
+  cacheresp_demux.io.input := io.MemResp.bits
   cacheresp_demux.io.sel := io.MemResp.bits.tag
 
   // Output arbiter -> Demux

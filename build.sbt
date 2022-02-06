@@ -10,14 +10,14 @@ enablePlugins(PackPlugin)
 lazy val commonSettings = Seq(
   name := "dandelion-lib",
   organization := "edu.sfu.cs",
-  version      := "1.0-SNAPSHOT",
+  version := "1.0-SNAPSHOT",
   scalaVersion := "2.12.10",
-  parallelExecution in Global := true,
-  parallelExecution in Test := true,
-  logBuffered in Test := false,
-  testOptions in Test += Tests.Argument("-oDS"),
-  traceLevel   := 15,
-  scalacOptions ++= Seq("-deprecation","-unchecked","-Xsource:2.11"),
+  Global / parallelExecution := true,
+  Test / parallelExecution := true,
+  Test / logBuffered := false,
+  Test / testOptions += Tests.Argument("-oDF"),
+  Test / traceLevel := 15,
+  scalacOptions ++= Seq("-deprecation", "-unchecked", "-Xsource:2.11"),
   libraryDependencies ++= Seq("org.scala-lang" % "scala-reflect" % scalaVersion.value),
   libraryDependencies ++= Seq("org.json4s" %% "json4s-jackson" % "3.6.1"),
   libraryDependencies ++= Seq("com.lihaoyi" %% "sourcecode" % "0.1.4"),
@@ -38,40 +38,40 @@ lazy val commonSettings = Seq(
 def dependOnChisel(prj: Project) = {
   prj.settings(
     libraryDependencies ++= Seq("edu.berkeley.cs" %% "chisel3" % "3.3-SNAPSHOT")
-    )
+  )
 }
 
 def dependOnIoTesters(prj: Project) = {
   prj.settings(
     libraryDependencies ++= Seq("edu.berkeley.cs" %% "chisel-iotesters" % "1.3-SNAPSHOT")
-    )
+  )
 }
 
 
 lazy val `api-config-chipsalliance` = (project in file("api-config-chipsalliance/build-rules/sbt"))
   .settings(commonSettings)
   .settings(publishArtifact := false)
-lazy val hardfloat  = dependOnChisel(project)
+lazy val hardfloat = dependOnChisel(project)
   .settings(commonSettings)
   .settings(publishArtifact := false)
 
-lazy val dandelion= dependOnChisel(project in file("."))
+lazy val dandelion = dependOnChisel(project in file("."))
   .settings(commonSettings, chipSettings)
   .dependsOn(`api-config-chipsalliance` % "compile-internal;test-internal")
   .dependsOn(hardfloat % "compile-internal;test-internal")
   .settings(
-      aggregate := false,
-      // Include macro classes, resources, and sources in main jar.
-      mappings in (Compile, packageBin) ++= (mappings in (`api-config-chipsalliance`, Compile, packageBin)).value,
-      mappings in (Compile, packageSrc) ++= (mappings in (`api-config-chipsalliance`, Compile, packageSrc)).value,
-      mappings in (Compile, packageBin) ++= (mappings in (hardfloat, Compile, packageBin)).value,
-      mappings in (Compile, packageSrc) ++= (mappings in (hardfloat, Compile, packageSrc)).value,
-      exportJars := true
+    aggregate := false,
+    // Include macro classes, resources, and sources in main jar.
+    Compile / packageSrc / mappings ++= (mappings in (`api-config-chipsalliance`, Compile, packageBin)).value,
+    Compile / packageSrc / mappings ++= (mappings in (`api-config-chipsalliance`, Compile, packageSrc)).value,
+    Compile / packageSrc / mappings ++= (mappings in (hardfloat, Compile, packageBin)).value,
+    Compile / packageSrc / mappings ++= (mappings in (hardfloat, Compile, packageSrc)).value,
+    exportJars := true
   )
 
 lazy val addons = settingKey[Seq[String]]("list of addons used for this build")
 lazy val make = inputKey[Unit]("trigger backend-specific makefile command")
-val setMake = NotSpace ~ ( Space ~> NotSpace )
+val setMake = NotSpace ~ (Space ~> NotSpace)
 
 lazy val chipSettings = Seq(
   addons := {
@@ -80,7 +80,7 @@ lazy val chipSettings = Seq(
     a.split(" ")
   },
   unmanagedSourceDirectories in Compile ++= addons.value.map(baseDirectory.value / _ / "src/main/scala"),
-  mainClass in (Compile, run) := Some("dandelion.Generator"),
+  mainClass in(Compile, run) := Some("dandelion.Generator"),
   make := {
     val jobs = java.lang.Runtime.getRuntime.availableProcessors
     val (makeDir, target) = setMake.parsed

@@ -11,7 +11,9 @@ import dandelion.arbiters._
 import dandelion.memory._
 import dandelion.config._
 
-class ComputeFuse03SDF(implicit val p: Parameters) extends Module with HasAccelParams {
+class ComputeFuse03SDF(implicit val p: Parameters) extends Module
+  with HasAccelParams
+  with HasDebugCodes {
 
   val io = IO(new Bundle {
     val data0 = Flipped(Decoupled(new DataBundle()))
@@ -80,7 +82,7 @@ class ComputeFuse03SDF(implicit val p: Parameters) extends Module with HasAccelP
 
 
 
-class ComputeFuse03PDF(implicit val p: Parameters) extends Module with HasAccelParams {
+class ComputeFuse03PDF(implicit val p: Parameters) extends Module with HasAccelParams with HasDebugCodes {
 
   val io = IO(new Bundle {
     val data0 = Flipped(Decoupled(new DataBundle()))

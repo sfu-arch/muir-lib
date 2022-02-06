@@ -198,7 +198,7 @@ class WriteTypMemoryController
 
   // Output arbiter and demuxes
   val out_arb   = Module(new RRArbiter(new WriteResp, MLPSize))
-  val out_demux = Module(new DeMuxTree(BaseSize = BaseSize, NumOps = NumOps, new WriteResp( )))
+  val out_demux = Module(new DeMuxTree(BaseSize = BaseSize, NumOps = NumOps, new WriteResp()))
 
   /*=====================================================================
   =            Wire up incoming reads from nodes to ReadMSHR            =
@@ -265,7 +265,8 @@ class WriteTypMemoryController
   // Output arbiter -> Demux
   out_arb.io.out.ready := true.B
   out_demux.io.enable := out_arb.io.out.fire( )
-  out_demux.io.input := out_arb.io.out.bits
+  out_demux.io.input.bits := out_arb.io.out.bits
+  out_demux.io.input.valid := true.B
 
 
 }

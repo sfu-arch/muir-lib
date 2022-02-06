@@ -102,7 +102,7 @@ class ControlTests extends FlatSpec with Matchers {
     chisel3.iotesters.Driver.execute(
      Array(
        // "-ll", "Info",
-       "-tbn", "verilator",
+       "-tbn", "firrtl",
        "-td", "test_run_dir",
        "-tts", "0001"),
       () => new BasicBlockNode(NumInputs = 2, NumOuts = 2, NumPhi = 1, BID = 0)){

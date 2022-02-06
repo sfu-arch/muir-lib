@@ -108,6 +108,7 @@ class AddDF(implicit p: Parameters) extends AddDFIO() {
     */
 
   //Grounding entry BasicBlock
+  b0_entry.io.predicateIn.foreach(_.bits.debug := false.B)
   b0_entry.io.predicateIn(0).bits.control := true.B
   b0_entry.io.predicateIn(0).bits.taskID := 0.U
   b0_entry.io.predicateIn(0).valid := true.B

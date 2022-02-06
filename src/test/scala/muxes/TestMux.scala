@@ -26,14 +26,6 @@ class TestMuxTests(df: TestMux)
   poke(df.io.ReadIn(2).data, 2.U)
   poke(df.io.ReadIn(3).data, 3.U)
 
-
-  poke(df.io.ReadIn(0).valid, true.B)
-  poke(df.io.ReadIn(1).valid, true.B)
-  poke(df.io.ReadIn(2).valid, true.B)
-  poke(df.io.ReadIn(3).valid, true.B)
-
-
-
   println(s"EN  : ${peek(df.io.EN)}")
   println(s"SEL  : ${peek(df.io.SEL)}\n")
   println(s"ReadIn(0)  : ${peek(df.io.ReadIn(0))}")
@@ -43,8 +35,6 @@ class TestMuxTests(df: TestMux)
 
 
   println(s"\nReadOut  : ${peek(df.io.ReadOut)}\n")
-
-
 
 }
 

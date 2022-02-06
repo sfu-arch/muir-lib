@@ -40,7 +40,7 @@ class sextTests extends  FlatSpec with Matchers {
     chisel3.iotesters.Driver.execute(
       Array(
         // "-ll", "Info",
-        "-tbn", "verilator",
+        "-tbn", "firrtl",
         "-td", "test_run_dir/sextNodeTester",
         "-tts", "0001"),
       () => new SextNode()) {
