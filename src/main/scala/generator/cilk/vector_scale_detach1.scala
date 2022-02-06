@@ -388,18 +388,3 @@ class vector_scale_detach1DF(implicit p: Parameters) extends vector_scale_detach
 
 }
 
-import java.io.{File, FileWriter}
-
-object vector_scale_detach1Top extends App {
-  val dir = new File("RTL/vector_scale_detach1Top");
-  dir.mkdirs
-  implicit val p = new WithAccelConfig
-  val chirrtl = firrtl.Parser.parse(chisel3.Driver.emit(() => new vector_scale_detach1DF()))
-
-  val verilogFile = new File(dir, s"${chirrtl.main}.v")
-  val verilogWriter = new FileWriter(verilogFile)
-  val compileResult = (new firrtl.VerilogCompiler).compileAndEmit(firrtl.CircuitState(chirrtl, firrtl.ChirrtlForm))
-  val compiledStuff = compileResult.getEmittedCircuit
-  verilogWriter.write(compiledStuff.value)
-  verilogWriter.close()
-}

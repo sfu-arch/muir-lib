@@ -52,7 +52,6 @@ class HandShakingIONPS[T <: Data](val NumOuts: Int, val Debug: Boolean = false)(
   val LogCheck = if (Debug) Some (Decoupled(new CustomDataBundle(UInt (32.W)))) else None
   val LogCheckAddr = if (Debug) Some (Decoupled(new CustomDataBundle(UInt (32.W)))) else None
   hs*/
-  override def cloneType = new HandShakingIONPS(NumOuts)(gen).asInstanceOf[this.type]
 
 }
 
@@ -85,7 +84,6 @@ class HandShakingIOPS[T <: Data](val NumPredOps: Int,
   /*hs
   val LogCheck = if (Debug) Some(Decoupled(new CustomDataBundle(UInt(2.W)))) else None
   hs*/
-  override def cloneType = new HandShakingIOPS(NumPredOps, NumSuccOps, NumOuts)(gen).asInstanceOf[this.type]
 
 }
 
@@ -109,7 +107,6 @@ class HandShakingFusedIO[T <: Data](val NumIns: Int, val NumOuts: Int,
   /*hs
   val LogCheck = if (Debug) Some(Decoupled(new CustomDataBundle(UInt(2.W)))) else None
   hs*/
-  override def cloneType = new HandShakingFusedIO(NumIns, NumOuts)(gen).asInstanceOf[this.type]
 
 }
 
@@ -132,7 +129,6 @@ class HandShakingCtrlMaskIO(val NumInputs: Int,
   /*hs
   val LogCheck = if (Debug) Some(Decoupled(new CustomDataBundle(UInt(2.W)))) else None
   hs*/
-  override def cloneType = new HandShakingCtrlMaskIO(NumInputs, NumOuts, NumPhi).asInstanceOf[this.type]
 }
 
 /**
@@ -149,7 +145,6 @@ class HandShakingCtrlNoMaskIO(val NumOuts: Int, val Debug: Boolean = false)(impl
   /*hs
   val LogCheck = if (Debug) Some(Decoupled(new CustomDataBundle(UInt(2.W)))) else None
   hs*/
-  override def cloneType = new HandShakingCtrlNoMaskIO(NumOuts).asInstanceOf[this.type]
 }
 
 /*==============================================================
@@ -987,7 +982,6 @@ class HandShakingAliasIO[T <: Data](NumPredOps: Int,
     val Out    = Output(Vec(NumAliasSuccOps, Decoupled(new DataBundle)))
   }
 
-  override def cloneType = new HandShakingAliasIO(NumPredOps, NumSuccOps, NumAliasPredOps, NumAliasSuccOps, NumOuts)(gen).asInstanceOf[this.type]
 }
 
 //PV ask about two HSs

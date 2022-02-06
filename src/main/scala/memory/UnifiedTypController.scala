@@ -99,7 +99,7 @@ class UnifiedTypController (ID: Int,
 
   switch(state) {
     is(sIdle){
-      when(ReadWriteArbiter.io.MemReq.fire()) {
+      when(ReadWriteArbiter.io.MemReq.fire) {
         cacheReq_R := ReadWriteArbiter.io.MemReq.bits
         state := sReq
       }
@@ -108,7 +108,7 @@ class UnifiedTypController (ID: Int,
     is(sReq) {
 
       ReadWriteArbiter.io.MemReq.ready := false.B
-      when(io.MemReq.fire()) {
+      when(io.MemReq.fire) {
         state := sResp
       }
     }
@@ -121,7 +121,7 @@ class UnifiedTypController (ID: Int,
     }
 
     is(sDone) {
-      when(ReadWriteArbiter.io.MemResp.fire()) {
+      when(ReadWriteArbiter.io.MemResp.fire) {
         state := sIdle
       }
     }
@@ -147,7 +147,7 @@ class UnifiedTypController (ID: Int,
 //    case "low"   => {printf(p" state: $state")}
 //  }
 
-  // printf(p"\n : ${ReadController.io.MemReq.fire()} Tag: ${ReadReq.tag} ")
+  // printf(p"\n : ${ReadController.io.MemReq.fire} Tag: ${ReadReq.tag} ")
   // printf(p"\n Cache Request ${WriteController.io.MemReq}")
   //  printf(p"Demux out:  ${io.WriteOut(0)}")
 

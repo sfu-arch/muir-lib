@@ -969,18 +969,3 @@ class test_cache01DF(implicit p: Parameters) extends test_cache01DFIO()(p) {
 
 }
 
-import java.io.{File, FileWriter}
-
-object test_cache01Top extends App {
-  val dir = new File("RTL/test_cache01Top");
-  dir.mkdirs
-  implicit val p = new WithAccelConfig
-  val chirrtl = firrtl.Parser.parse(chisel3.Driver.emit(() => new test_cache01DF()))
-
-  val verilogFile = new File(dir, s"${chirrtl.main}.v")
-  val verilogWriter = new FileWriter(verilogFile)
-  val compileResult = (new firrtl.VerilogCompiler).compileAndEmit(firrtl.CircuitState(chirrtl, firrtl.ChirrtlForm))
-  val compiledStuff = compileResult.getEmittedCircuit
-  verilogWriter.write(compiledStuff.value)
-  verilogWriter.close()
-}

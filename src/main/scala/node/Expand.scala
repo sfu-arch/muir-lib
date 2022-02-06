@@ -17,8 +17,6 @@ class ExpandNodeIO[T <: Data](NumOuts: Int)(gen: T)
                              (implicit p: Parameters)
   extends HandShakingIONPS(NumOuts)(gen) {
   val InData = Flipped(Decoupled(gen))
-
-  override def cloneType = new ExpandNodeIO(NumOuts)(gen).asInstanceOf[this.type]
 }
 
 class ExpandNode[T <: Data](NumOuts: Int, ID: Int)(gen: T)
@@ -50,7 +48,7 @@ class ExpandNode[T <: Data](NumOuts: Int, ID: Int)(gen: T)
 
 
   io.InData.ready := ~indata_valid_R
-  when(io.InData.fire()) {
+  when(io.InData.fire) {
     state := s_LATCH
     indata_R <> io.InData.bits
     indata_valid_R := true.B
@@ -120,7 +118,7 @@ class ExpandFastNode[T <: Data](NumOuts: Int, ID: Int)(gen: T)
 
 
   io.InData.ready := ~indata_valid_R
-  when(io.InData.fire()) {
+  when(io.InData.fire) {
     indata_R <> io.InData.bits
     indata_valid_R := true.B
   }

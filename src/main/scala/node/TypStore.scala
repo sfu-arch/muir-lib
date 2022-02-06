@@ -32,7 +32,6 @@ class TypStoreIO(NumPredOps: Int,
   // Memory response.
   val memResp = Flipped(Valid(new WriteResp()))
 
-  override def cloneType = new TypStoreIO(NumPredOps, NumSuccOps, NumOuts).asInstanceOf[this.type]
 }
 
 /**
@@ -87,13 +86,13 @@ class TypStore(NumPredOps: Int,
 
   // ACTION: GepAddr
   io.GepAddr.ready := ~addr_valid_R
-  when(io.GepAddr.fire()) {
+  when(io.GepAddr.fire) {
     addr_R := io.GepAddr.bits
     addr_valid_R := true.B
   }
 
   // ACTION: inData
-  when(io.inData.fire()) {
+  when(io.inData.fire) {
     // Latch the data
     data_R := io.inData.bits
     data_valid_R := true.B
@@ -127,7 +126,7 @@ class TypStore(NumPredOps: Int,
   io.memReq.bits.mask    := 15.U
 
   // Connect successors outputs to the enable status
-  when(io.enable.fire()) {
+  when(io.enable.fire) {
     succ_bundle_R.foreach(_ := io.enable.bits)
   }
   when(start & predicate) {
@@ -139,7 +138,7 @@ class TypStore(NumPredOps: Int,
         when(enable_valid_R && mem_req_fire) {
           io.memReq.valid := true.B
           // Arbitration ready. Move on to the next word
-          when(io.memReq.fire()) {
+          when(io.memReq.fire) {
             sendptr.inc()
             // If last word then move to next state.
             when(sendptr.value === (beats - 1).U) {
@@ -201,7 +200,7 @@ class TypStore(NumPredOps: Int,
       case "low"   => {
         printfInfo("Cycle %d : { \"Inputs\": {\"GepAddr\": %x, \"inData\": %x },\n",x, (addr_valid_R),(data_valid_R))
         printf("\"State\": {\"State\": %x, \"data_R\": \"%x,%x\" },",state,data_R.data,io.Out(0).bits.predicate)
-        printf("\"Outputs\": {\"Out\": %x}",io.Out(0).fire())
+        printf("\"Outputs\": {\"Out\": %x}",io.Out(0).fire)
         printf("}")
        }
       case everythingElse => {}

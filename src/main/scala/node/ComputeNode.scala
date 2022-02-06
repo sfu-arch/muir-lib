@@ -17,9 +17,6 @@ class ComputeNodeIO(NumOuts: Int, Debug: Boolean, GuardVals: Seq[Int] = List(), 
   extends HandShakingIONPS(NumOuts, Debug)(new DataBundle) {
   val LeftIO = Flipped(Decoupled(new DataBundle()))
   val RightIO = Flipped(Decoupled(new DataBundle()))
-
-  override def cloneType = new ComputeNodeIO(NumOuts, Debug).asInstanceOf[this.type]
-
 }
 
 class ComputeNode(NumOuts: Int, ID: Int, opCode: String)
@@ -102,13 +99,13 @@ class ComputeNode(NumOuts: Int, ID: Int, opCode: String)
   FU.io.in2 := right_R.data
 
   io.LeftIO.ready := ~left_valid_R
-  when(io.LeftIO.fire()) {
+  when(io.LeftIO.fire) {
     left_R <> io.LeftIO.bits
     left_valid_R := true.B
   }
 
   io.RightIO.ready := ~right_valid_R
-  when(io.RightIO.fire()) {
+  when(io.RightIO.fire) {
     right_R <> io.RightIO.bits
     right_valid_R := true.B
   }

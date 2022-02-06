@@ -871,19 +871,3 @@ class fibTop(tiles: Int)(implicit p: Parameters) extends fibTopIO()(p) {
   io.out <> TC.io.parentOut(2 * NumFibs)
 }
 
-import java.io.{File, FileWriter}
-
-object fibMain extends App {
-  val dir = new File("RTL/fibTop");
-  dir.mkdirs
-  implicit val p = new WithAccelConfig(DandelionAccelParams(taskLen = 11, printLog = false))
-  val chirrtl = firrtl.Parser.parse(chisel3.Driver.emit(() => new fibTop(4)(p)))
-
-  val verilogFile = new File(dir, s"/${chirrtl.main}.v")
-  val verilogWriter = new FileWriter(verilogFile)
-  val compileResult = (new firrtl.VerilogCompiler).compileAndEmit(firrtl.CircuitState(chirrtl, firrtl.ChirrtlForm))
-  val compiledStuff = compileResult.getEmittedCircuit
-  verilogWriter.write(compiledStuff.value)
-  verilogWriter.close()
-}
-

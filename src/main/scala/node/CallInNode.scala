@@ -16,8 +16,6 @@ class CallInNodeIO(val argTypes: Seq[Int])(implicit p: Parameters)
   // Data I/O
   val In   = Flipped(Decoupled(new Call(argTypes))) // From task
   val Out  = new CallDecoupled(argTypes)            // Returns to calling block(s)
-
-  override def cloneType = new CallInNodeIO(argTypes).asInstanceOf[this.type]
 }
 
 class CallInNode(ID: Int, argTypes: Seq[Int])
@@ -25,7 +23,7 @@ class CallInNode(ID: Int, argTypes: Seq[Int])
                name: sourcecode.Name,
                file: sourcecode.File) extends Module
   with UniformPrintfs with HasAccelParams {
-  override lazy val io = IO(new CallInNodeIO(argTypes)(p))
+  val io = IO(new CallInNodeIO(argTypes)(p))
 
   val node_name = name.value
   val module_name = file.value.split("/").tail.last.split("\\.").head.capitalize
@@ -47,13 +45,13 @@ class CallInNode(ID: Int, argTypes: Seq[Int])
 
   // Wire up enable READY and VALIDs
   io.enable.ready := ~enableFire_R
-  when(io.enable.fire()) {
+  when(io.enable.fire) {
     enableFire_R := true.B
     enable_R := io.enable.bits
   }
 
   io.In.ready := ~inFire_R
-  when(io.In.fire()) {
+  when(io.In.fire) {
     inputReg := io.In.bits
     inFire_R := true.B
   }

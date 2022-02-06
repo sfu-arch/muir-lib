@@ -18,8 +18,6 @@ class LoadIO(NumPredOps: Int,
   val memReq = Decoupled(new ReadReq())
   // Memory response.
   val memResp = Flipped(Valid(new ReadResp()))
-
-  override def cloneType = new LoadIO(NumPredOps, NumSuccOps, NumOuts, Debug).asInstanceOf[this.type]
 }
 
 /**
@@ -70,7 +68,7 @@ class UnTypLoad(NumPredOps: Int,
 
   //Initialization READY-VALIDs for GepAddr and Predecessor memory ops
   io.GepAddr.ready := ~addr_valid_R
-  when(io.GepAddr.fire()) {
+  when(io.GepAddr.fire) {
     addr_R := io.GepAddr.bits
     addr_valid_R := true.B
   }
@@ -135,7 +133,7 @@ class UnTypLoad(NumPredOps: Int,
   io.memReq.bits.taskID := addr_R.taskID
 
   // Connect successors outputs to the enable status
-  when(io.enable.fire()) {
+  when(io.enable.fire) {
     succ_bundle_R.foreach(_ := io.enable.bits)
   }
 

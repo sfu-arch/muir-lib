@@ -98,8 +98,8 @@ class SimpleCache(val ID: Int = 0, val debug: Boolean = false)(implicit val p: P
 
   // Counters
   require(dataBeats > 0)
-  val (read_count, read_wrap_out) = Counter(io.mem.r.fire(), dataBeats)
-  val (write_count, write_wrap_out) = Counter(io.mem.w.fire(), dataBeats)
+  val (read_count, read_wrap_out) = Counter(io.mem.r.fire, dataBeats)
+  val (write_count, write_wrap_out) = Counter(io.mem.w.fire, dataBeats)
 
   //  val (block_count, block_wrap) = Counter(flush_state === s_flush_BLOCK, nWords)
   val (set_count, set_wrap) = Counter(flush_state === s_flush_START, nSets)
@@ -152,7 +152,7 @@ class SimpleCache(val ID: Int = 0, val debug: Boolean = false)(implicit val p: P
   io.cpu.req.ready := is_idle || (state === s_READ_CACHE && hit)
 
   // Latch the cpu request
-  when(io.cpu.req.fire()) {
+  when(io.cpu.req.fire) {
     addr_reg := addr
     cpu_tag := io.cpu.req.bits.tag
     cpu_data := io.cpu.req.bits.data
@@ -165,7 +165,7 @@ class SimpleCache(val ID: Int = 0, val debug: Boolean = false)(implicit val p: P
   // is_alloc means cache hit, hence, if is_alloc is false, it means our mask should consider only the modified byte
   // and since wdata is masked with wmask we only duplicate the write data, otherwise, since mask doesn't do anything
   // with write data we make the proper wdata using refill_buf
-  val wmask = Mux(!is_alloc, (cpu_mask << Cat(off_reg, 0.U(byteOffsetBits.W))).asUInt.zext, (-1).asSInt()).asUInt()
+  val wmask = Mux(!is_alloc, (cpu_mask << Cat(off_reg, 0.U(byteOffsetBits.W))).asUInt.zext, (-1).asSInt()).asUInt
   val wdata = Mux(!is_alloc, Fill(nWords, cpu_data),
     if (refill_buf.size == 1) io.mem.r.bits.data
     else Cat(io.mem.r.bits.data, Cat(refill_buf.init.reverse)))
@@ -201,7 +201,7 @@ class SimpleCache(val ID: Int = 0, val debug: Boolean = false)(implicit val p: P
 
   // read data
   io.mem.r.ready := state === s_REFILL
-  when(io.mem.r.fire()) {
+  when(io.mem.r.fire) {
     refill_buf(read_count) := io.mem.r.bits.data
   }
 
@@ -232,7 +232,7 @@ class SimpleCache(val ID: Int = 0, val debug: Boolean = false)(implicit val p: P
   /**
    * Dumping cache state should add for debugging purpose
    */
-  // io.stat := state.asUInt()
+  // io.stat := state.asUInt
   // Cache FSM
   val countOn = true.B // increment counter every clock cycle
   val (counterValue, counterWrap) = Counter(countOn, 64 * 1024)
@@ -273,9 +273,9 @@ class SimpleCache(val ID: Int = 0, val debug: Boolean = false)(implicit val p: P
       }.otherwise {
         io.mem.aw.valid := is_dirty
         io.mem.ar.valid := !is_dirty
-        when(io.mem.aw.fire()) {
+        when(io.mem.aw.fire) {
           state := s_WRITE_BACK
-        }.elsewhen(io.mem.ar.fire()) {
+        }.elsewhen(io.mem.ar.fire) {
           state := s_REFILL
         }
       }
@@ -293,9 +293,9 @@ class SimpleCache(val ID: Int = 0, val debug: Boolean = false)(implicit val p: P
         }
         io.mem.aw.valid := is_dirty
         io.mem.ar.valid := !is_dirty
-        when(io.mem.aw.fire()) {
+        when(io.mem.aw.fire) {
           state := s_WRITE_BACK
-        }.elsewhen(io.mem.ar.fire()) {
+        }.elsewhen(io.mem.ar.fire) {
           state := s_REFILL
         }
       }
@@ -308,13 +308,13 @@ class SimpleCache(val ID: Int = 0, val debug: Boolean = false)(implicit val p: P
     }
     is(s_WRITE_ACK) {
       io.mem.b.ready := true.B
-      when(io.mem.b.fire()) {
+      when(io.mem.b.fire) {
         state := s_REFILL_READY
       }
     }
     is(s_REFILL_READY) {
       io.mem.ar.valid := true.B
-      when(io.mem.ar.fire()) {
+      when(io.mem.ar.fire) {
         state := s_REFILL
       }
     }
@@ -366,7 +366,7 @@ class SimpleCache(val ID: Int = 0, val debug: Boolean = false)(implicit val p: P
       io.mem.aw.valid := true.B
       io.mem.ar.valid := false.B
 
-      when(io.mem.aw.fire()) {
+      when(io.mem.aw.fire) {
         flush_state := s_flush_WRITE_BACK
       }
     }
@@ -381,7 +381,7 @@ class SimpleCache(val ID: Int = 0, val debug: Boolean = false)(implicit val p: P
     }
     is(s_flush_WRITE_ACK) {
       io.mem.b.ready := true.B
-      when(io.mem.b.fire()) {
+      when(io.mem.b.fire) {
         flush_state := s_flush_START
       }
     }
@@ -439,8 +439,8 @@ class ReferenceCache(val ID: Int = 0, val debug: Boolean = false)(implicit val p
 
   // Counters
   require(dataBeats > 0)
-  val (read_count, read_wrap_out) = Counter(io.mem.r.fire(), dataBeats)
-  val (write_count, write_wrap_out) = Counter(io.mem.w.fire(), dataBeats)
+  val (read_count, read_wrap_out) = Counter(io.mem.r.fire, dataBeats)
+  val (write_count, write_wrap_out) = Counter(io.mem.w.fire, dataBeats)
 
   val (set_count, set_wrap) = Counter(flush_state === s_flush_START, nSets)
   val dirty_cache_block = Cat((dataMem map (_.read(set_count - 1.U).asUInt)).reverse)
@@ -517,17 +517,17 @@ class ReferenceCache(val ID: Int = 0, val debug: Boolean = false)(implicit val p
 
   if (clog) {
     when(wen && is_alloc) {
-      printf(p"Write meta: idx:${idx_reg.asUInt()} -- data:${wmeta.tag}\n")
+      printf(p"Write meta: idx:${idx_reg.asUInt} -- data:${wmeta.tag}\n")
       printf(p"Write meta: addr: ${addr_reg}\n")
     }
   }
 
   io.mem.ar.bits := NastiReadAddressChannel(
-    0.U, (Cat(tag_reg, idx_reg) << blen.U).asUInt(), log2Up(Axi_param.dataBits / 8).U, (dataBeats - 1).U)
+    0.U, (Cat(tag_reg, idx_reg) << blen.U).asUInt, log2Up(Axi_param.dataBits / 8).U, (dataBeats - 1).U)
   io.mem.ar.valid := false.B
   // read data
   io.mem.r.ready := state === s_REFILL
-  when(io.mem.r.fire()) {
+  when(io.mem.r.fire) {
     refill_buf(read_count) := io.mem.r.bits.data
   }
 
@@ -545,7 +545,7 @@ class ReferenceCache(val ID: Int = 0, val debug: Boolean = false)(implicit val p
 
   // write addr
   io.mem.aw.bits := NastiWriteAddressChannel(
-    0.U, Mux(flush_mode, block_addr, Cat(rmeta.tag, idx_reg) << blen.U).asUInt(), log2Up(Axi_param.dataBits / 8).U, (dataBeats - 1).U)
+    0.U, Mux(flush_mode, block_addr, Cat(rmeta.tag, idx_reg) << blen.U).asUInt, log2Up(Axi_param.dataBits / 8).U, (dataBeats - 1).U)
   io.mem.aw.valid := false.B
   // write data
   io.mem.w.bits := NastiWriteDataChannel(
@@ -576,9 +576,9 @@ class ReferenceCache(val ID: Int = 0, val debug: Boolean = false)(implicit val p
       }.otherwise {
         io.mem.aw.valid := is_dirty
         io.mem.ar.valid := !is_dirty
-        when(io.mem.aw.fire()) {
+        when(io.mem.aw.fire) {
           state := s_WRITE_BACK
-        }.elsewhen(io.mem.ar.fire()) {
+        }.elsewhen(io.mem.ar.fire) {
           state := s_REFILL
         }
       }
@@ -589,9 +589,9 @@ class ReferenceCache(val ID: Int = 0, val debug: Boolean = false)(implicit val p
       }.otherwise {
         io.mem.aw.valid := is_dirty
         io.mem.ar.valid := !is_dirty
-        when(io.mem.aw.fire()) {
+        when(io.mem.aw.fire) {
           state := s_WRITE_BACK
-        }.elsewhen(io.mem.ar.fire()) {
+        }.elsewhen(io.mem.ar.fire) {
           state := s_REFILL
         }
       }
@@ -604,13 +604,13 @@ class ReferenceCache(val ID: Int = 0, val debug: Boolean = false)(implicit val p
     }
     is(s_WRITE_ACK) {
       io.mem.b.ready := true.B
-      when(io.mem.b.fire()) {
+      when(io.mem.b.fire) {
         state := s_REFILL_READY
       }
     }
     is(s_REFILL_READY) {
       io.mem.ar.valid := true.B
-      when(io.mem.ar.fire()) {
+      when(io.mem.ar.fire) {
         state := s_REFILL
       }
     }
@@ -665,7 +665,7 @@ class ReferenceCache(val ID: Int = 0, val debug: Boolean = false)(implicit val p
       io.mem.aw.valid := true.B
       io.mem.ar.valid := false.B
 
-      when(io.mem.aw.fire()) {
+      when(io.mem.aw.fire) {
         flush_state := s_flush_WRITE_BACK
       }
     }
@@ -680,7 +680,7 @@ class ReferenceCache(val ID: Int = 0, val debug: Boolean = false)(implicit val p
     }
     is(s_flush_WRITE_ACK) {
       io.mem.b.ready := true.B
-      when(io.mem.b.fire()) {
+      when(io.mem.b.fire) {
         flush_state := s_flush_START
       }
     }
@@ -728,8 +728,8 @@ class DMECache(val ID: Int = 0, val debug: Boolean = false)(implicit val p: Para
 
   // Counters
   require(dataBeats > 0)
-  val (read_count, read_wrap_out) = Counter(io.mem.rd.data.fire(), dataBeats)
-  val (write_count, write_wrap_out) = Counter(io.mem.wr.data.fire(), dataBeats)
+  val (read_count, read_wrap_out) = Counter(io.mem.rd.data.fire, dataBeats)
+  val (write_count, write_wrap_out) = Counter(io.mem.wr.data.fire, dataBeats)
 
   val (set_count, set_wrap) = Counter(flush_state === s_flush_START, nSets)
   val dirty_cache_block = Cat((dataMem map (_.read(set_count - 1.U).asUInt)).reverse)
@@ -804,7 +804,7 @@ class DMECache(val ID: Int = 0, val debug: Boolean = false)(implicit val p: Para
 
   if (clog) {
     when(wen && is_alloc) {
-      printf(p"Write meta: idx:${idx_reg.asUInt()} -- data:${wmeta.tag}\n")
+      printf(p"Write meta: idx:${idx_reg.asUInt} -- data:${wmeta.tag}\n")
       printf(p"Write meta: addr: ${addr_reg}\n")
     }
   }
@@ -815,7 +815,7 @@ class DMECache(val ID: Int = 0, val debug: Boolean = false)(implicit val p: Para
 
   // read data
   io.mem.rd.data.ready := state === s_REFILL
-  when(io.mem.rd.data.fire()) {
+  when(io.mem.rd.data.fire) {
     refill_buf(read_count) := io.mem.rd.data.bits
   }
 
@@ -867,9 +867,9 @@ class DMECache(val ID: Int = 0, val debug: Boolean = false)(implicit val p: Para
       }.otherwise {
         io.mem.wr.cmd.valid := is_dirty
         io.mem.rd.cmd.valid := !is_dirty
-        when(io.mem.wr.cmd.fire()) {
+        when(io.mem.wr.cmd.fire) {
           state := s_WRITE_BACK
-        }.elsewhen(io.mem.rd.cmd.fire()) {
+        }.elsewhen(io.mem.rd.cmd.fire) {
           state := s_REFILL
         }
       }
@@ -880,9 +880,9 @@ class DMECache(val ID: Int = 0, val debug: Boolean = false)(implicit val p: Para
       }.otherwise {
         io.mem.wr.cmd.valid := is_dirty
         io.mem.rd.cmd.valid := !is_dirty
-        when(io.mem.wr.cmd.fire()) {
+        when(io.mem.wr.cmd.fire) {
           state := s_WRITE_BACK
-        }.elsewhen(io.mem.rd.cmd.fire()) {
+        }.elsewhen(io.mem.rd.cmd.fire) {
           state := s_REFILL
         }
       }
@@ -900,7 +900,7 @@ class DMECache(val ID: Int = 0, val debug: Boolean = false)(implicit val p: Para
     }
     is(s_REFILL_READY) {
       io.mem.rd.cmd.valid := true.B
-      when(io.mem.rd.cmd.fire()) {
+      when(io.mem.rd.cmd.fire) {
         state := s_REFILL
       }
     }
@@ -955,7 +955,7 @@ class DMECache(val ID: Int = 0, val debug: Boolean = false)(implicit val p: Para
       io.mem.wr.cmd.valid := true.B
       io.mem.rd.cmd.valid := false.B
 
-      when(io.mem.wr.cmd.fire()) {
+      when(io.mem.wr.cmd.fire) {
         flush_state := s_flush_WRITE_BACK
       }
     }

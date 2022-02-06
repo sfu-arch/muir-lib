@@ -1523,18 +1523,3 @@ class k3mmDF(implicit p: Parameters) extends k3mmDFIO()(p) {
 
 }
 
-import java.io.{File, FileWriter}
-
-object k3mmTop extends App {
-  val dir = new File("RTL/k3mmTop");
-  dir.mkdirs
-  implicit val p = new WithAccelConfig
-  val chirrtl = firrtl.Parser.parse(chisel3.Driver.emit(() => new k3mmDF()))
-
-  val verilogFile = new File(dir, s"${chirrtl.main}.v")
-  val verilogWriter = new FileWriter(verilogFile)
-  val compileResult = (new firrtl.VerilogCompiler).compileAndEmit(firrtl.CircuitState(chirrtl, firrtl.ChirrtlForm))
-  val compiledStuff = compileResult.getEmittedCircuit
-  verilogWriter.write(compiledStuff.value)
-  verilogWriter.close()
-}

@@ -64,8 +64,8 @@ class StoreMIMOQueue[T <: Data](gen: T,
   val ptr_match = enq_ptr === deq_ptr
   val empty = ptr_match && !maybe_full
   val full = ptr_match && maybe_full
-  val do_enq = WireDefault(io.enq.fire())
-  val do_deq = WireDefault(io.deq.fire())
+  val do_enq = WireDefault(io.enq.fire)
+  val do_deq = WireDefault(io.deq.fire)
 
   val last = RegInit(init = false.B)
   when(io.last) {last := true.B}

@@ -30,7 +30,7 @@ class RetNode(retTypes: Seq[Int], ID: Int)
   val node_name = name.value
   val module_name = file.value.split("/").tail.last.split("\\.").head.capitalize
 
-  override lazy val io = IO(new RetNodeIO(retTypes)(p))
+  val io = IO(new RetNodeIO(retTypes)(p))
   override val printfSigil = module_name + ": " + node_name + ID + " "
 
 
@@ -55,7 +55,7 @@ class RetNode(retTypes: Seq[Int], ID: Int)
 
   // Latching enable signal
   io.enable.ready := ~enable_valid_R
-  when(io.enable.fire()) {
+  when(io.enable.fire) {
     enable_valid_R := io.enable.valid
     //    enable_R := io.enable.bits
     output_R.enable := io.enable.bits
@@ -64,7 +64,7 @@ class RetNode(retTypes: Seq[Int], ID: Int)
   // Latching input data
   for (i <- retTypes.indices) {
     io.In.elements(s"field$i").ready := ~in_data_valid_R(i)
-    when(io.In.elements(s"field$i").fire()) {
+    when(io.In.elements(s"field$i").fire) {
       output_R.data(s"field$i") := io.In.elements(s"field$i").bits
       in_data_valid_R(i) := true.B
     }
@@ -74,7 +74,7 @@ class RetNode(retTypes: Seq[Int], ID: Int)
   io.Out.bits := output_R
   io.Out.valid := out_valid_R
 
-  when(io.Out.fire()) {
+  when(io.Out.fire) {
     out_ready_R := io.Out.ready
     out_valid_R := false.B
   }
@@ -103,7 +103,7 @@ class RetNode(retTypes: Seq[Int], ID: Int)
         if (log) {
           printf("[LOG] " + "[" + module_name + "] " + "[TID->%d] "
             + node_name + ": Output fired @ %d, Value: %d\n",
-            output_R.enable.taskID, io.In.asUInt(), output_R.data(s"field0").data)
+            output_R.enable.taskID, io.In.asUInt, output_R.data(s"field0").data)
         }
       }
     }
@@ -116,9 +116,6 @@ class RetNode2IO(retTypes: Seq[Int], Debug:Boolean = false , NumBores : Int = 0)
   extends Bundle {
   val In = Flipped(new CallDecoupled(retTypes))
   val Out = Decoupled(new Call(retTypes))
-
-  override def cloneType = new RetNode2IO(retTypes, Debug, NumBores).asInstanceOf[this.type]
-
 }
 
 class RetNode2(retTypes: Seq[Int], ID: Int , Debug: Boolean = false, NumBores : Int = 0)
@@ -130,7 +127,7 @@ class RetNode2(retTypes: Seq[Int], ID: Int , Debug: Boolean = false, NumBores : 
   val node_name = name.value
   val module_name = file.value.split("/").tail.last.split("\\.").head.capitalize
 
-  override lazy val io = IO(new RetNode2IO(retTypes)(p))
+  val io = IO(new RetNode2IO(retTypes)(p))
   override val printfSigil = module_name + ": " + node_name + ID + " "
 
 
@@ -161,7 +158,7 @@ class RetNode2(retTypes: Seq[Int], ID: Int , Debug: Boolean = false, NumBores : 
 
   // Latching enable signal
   io.In.enable.ready := ~enable_valid_R
-  when(io.In.enable.fire()) {
+  when(io.In.enable.fire) {
     enable_valid_R := io.In.enable.valid
     output_R.enable := io.In.enable.bits
   }
@@ -169,7 +166,7 @@ class RetNode2(retTypes: Seq[Int], ID: Int , Debug: Boolean = false, NumBores : 
   // Latching input data
   for (i <- retTypes.indices) {
     io.In.data(s"field$i").ready := ~in_data_valid_R(i)
-    when(io.In.data(s"field$i").fire()) {
+    when(io.In.data(s"field$i").fire) {
       output_R.data(s"field$i") := io.In.data(s"field$i").bits
       in_data_valid_R(i) := true.B
     }
@@ -191,7 +188,7 @@ class RetNode2(retTypes: Seq[Int], ID: Int , Debug: Boolean = false, NumBores : 
   }
   //*******************************************************************
 
-  when(io.Out.fire()) {
+  when(io.Out.fire) {
     RunFinish := true.B
     out_ready_R := io.Out.ready
     out_valid_R := false.B
@@ -248,7 +245,7 @@ class RetNode2Buggy(retTypes: Seq[Int], ID: Int)
   val node_name = name.value
   val module_name = file.value.split("/").tail.last.split("\\.").head.capitalize
 
-  override lazy val io = IO(new RetNode2IO(retTypes)(p))
+  val io = IO(new RetNode2IO(retTypes)(p))
   override val printfSigil = module_name + ": " + node_name + ID + " "
 
 
@@ -279,7 +276,7 @@ class RetNode2Buggy(retTypes: Seq[Int], ID: Int)
 
   // Latching enable signal
   io.In.enable.ready := ~enable_valid_R
-  when(io.In.enable.fire()) {
+  when(io.In.enable.fire) {
     enable_valid_R := io.In.enable.valid
     output_R.enable := io.In.enable.bits
   }
@@ -287,7 +284,7 @@ class RetNode2Buggy(retTypes: Seq[Int], ID: Int)
   // Latching input data
   for (i <- retTypes.indices) {
     io.In.data(s"field$i").ready := ~in_data_valid_R(i)
-    when(io.In.data(s"field$i").fire()) {
+    when(io.In.data(s"field$i").fire) {
       output_R.data(s"field$i") := io.In.data(s"field$i").bits
       in_data_valid_R(i) := true.B
     }
@@ -297,7 +294,7 @@ class RetNode2Buggy(retTypes: Seq[Int], ID: Int)
   io.Out.bits := output_R
   io.Out.valid := out_valid_R
 
-  when(io.Out.fire()) {
+  when(io.Out.fire) {
     out_ready_R := io.Out.ready
     out_valid_R := false.B
   }

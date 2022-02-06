@@ -14,8 +14,6 @@ class SyncIO(NumOuts: Int, NumInc: Int, NumDec: Int)(implicit p: Parameters)
   extends HandShakingIONPS(NumOuts)(new ControlBundle)(p) {
   val incIn = Flipped(Vec(NumInc, Decoupled(new ControlBundle())))
   val decIn = Flipped(Vec(NumDec, Decoupled(new ControlBundle())))
-
-  override def cloneType = new SyncIO(NumOuts, NumInc, NumDec).asInstanceOf[this.type]
 }
 
 class Sync(NumOuts: Int, NumInc: Int, NumDec: Int, ID: Int)
@@ -61,8 +59,8 @@ class Sync(NumOuts: Int, NumInc: Int, NumDec: Int, ID: Int)
 
   incArb.io.out.ready := true.B
   decArb.io.out.ready := true.B
-  val inc = incArb.io.out.fire() && incArb.io.out.bits.control
-  val dec = decArb.io.out.fire() && decArb.io.out.bits.control
+  val inc = incArb.io.out.fire && incArb.io.out.bits.control
+  val dec = decArb.io.out.fire && decArb.io.out.bits.control
   when(inc && !dec) {
     syncCount := syncCount + 1.U
   }.elsewhen(!inc && dec) {
@@ -126,7 +124,7 @@ class SyncNode(NumOuts: Int, ID: Int,
                name: sourcecode.Name,
                file: sourcecode.File)
   extends Module with HasAccelParams with UniformPrintfs {
-  override lazy val io = IO(new SyncNodeIO(NumOuts))
+  val io = IO(new SyncNodeIO(NumOuts))
 
   // Printf debugging
   val node_name = name.value
@@ -156,13 +154,13 @@ class SyncNode(NumOuts: Int, ID: Int,
 
   // Latching inputs
   io.incIn.ready := ~inc_valid_R
-  when(io.incIn.fire()) {
+  when(io.incIn.fire) {
     inc_R <> io.incIn.bits
     inc_valid_R := true.B
   }
 
   io.decIn.ready := ~dec_valid_R
-  when(io.decIn.fire()) {
+  when(io.decIn.fire) {
     dec_R <> io.decIn.bits
     dec_valid_R := true.B
   }
@@ -177,7 +175,7 @@ class SyncNode(NumOuts: Int, ID: Int,
   for (i <- 0 until NumOuts) {
     io.Out(i).valid := out_valid_R(i)
     out_ready_W(i) := io.Out(i).ready
-    when(io.Out(i).fire()) {
+    when(io.Out(i).fire) {
       // Detecting when to reset
       out_ready_R(i) := io.Out(i).ready
       // Propagating output
@@ -202,7 +200,7 @@ class SyncNode(NumOuts: Int, ID: Int,
   // Transition state machine
   switch(state) {
     is(s_IDLE) {
-      when((io.incIn.fire() && io.incIn.bits.control) ||
+      when((io.incIn.fire && io.incIn.bits.control) ||
         (inc_valid_R && inc_R.control)) {
         sync_count := sync_count + 1.U
         state := s_IDLE
@@ -212,11 +210,11 @@ class SyncNode(NumOuts: Int, ID: Int,
 
         enableID := inc_R.taskID
 
-      }.elsewhen((io.incIn.fire() && (~io.incIn.bits.control).asBool) ||
+      }.elsewhen((io.incIn.fire && (~io.incIn.bits.control).asBool) ||
         (inc_valid_R && (~inc_R.control).asBool)) {
         state := s_COUNT
 
-      }.elsewhen((io.decIn.fire() && io.decIn.bits.control) ||
+      }.elsewhen((io.decIn.fire && io.decIn.bits.control) ||
         (dec_valid_R && dec_R.control)) {
         assert(sync_count > 0.U, "Sync counter can not be zero when it's decrementing")
         sync_count := sync_count - 1.U
@@ -225,7 +223,7 @@ class SyncNode(NumOuts: Int, ID: Int,
         dec_R := ControlBundle.default
         dec_valid_R := false.B
 
-      }.elsewhen(io.decIn.fire() && (~io.decIn.bits.control).asBool ||
+      }.elsewhen(io.decIn.fire && (~io.decIn.bits.control).asBool ||
         (dec_valid_R && (~dec_R.control).asBool)) {
 
         //Valid the output
@@ -243,7 +241,7 @@ class SyncNode(NumOuts: Int, ID: Int,
     }
 
     is(s_COUNT) {
-      when((io.decIn.fire() && io.decIn.bits.control) ||
+      when((io.decIn.fire && io.decIn.bits.control) ||
         (dec_valid_R && dec_R.control)) {
         assert(sync_count > 0.U, "Sync counter can not be zero for decrement")
         sync_count := sync_count - 1.U
@@ -324,7 +322,7 @@ class SyncTC(NumOuts: Int, NumInc: Int, NumDec: Int, ID: Int)
 
   updateArb.io.out.ready := true.B
 
-  val update = RegNext(init = false.B, next = updateArb.io.out.fire() && updateArb.io.out.bits.control)
+  val update = RegNext(init = false.B, next = updateArb.io.out.fire && updateArb.io.out.bits.control)
   val dec = RegNext(init = 0.U, next = updateArb.io.chosen)
   val updateID = RegNext(init = 0.U, next = updateArb.io.out.bits.taskID)
 

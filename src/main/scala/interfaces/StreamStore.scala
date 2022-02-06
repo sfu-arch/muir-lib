@@ -60,7 +60,7 @@ class StreamStore(bufSize: Int, NumIns: Int)(implicit p: Parameters)
   val state = RegInit(sIdle)
 
 
-  when(storeQueue.io.enq.fire()){
+  when(storeQueue.io.enq.fire){
     pushCnt.inc()
   }
 
@@ -81,8 +81,8 @@ class StreamStore(bufSize: Int, NumIns: Int)(implicit p: Parameters)
       }
     }
     is(sLoading){
-      when(storeQueue.io.count > (math.pow(2, mp.lenBits).toInt * bus_width).asUInt()){
-        len := math.pow(2, mp.lenBits).toInt.asUInt() - 1.U
+      when(storeQueue.io.count > (math.pow(2, mp.lenBits).toInt * bus_width).asUInt){
+        len := math.pow(2, mp.lenBits).toInt.asUInt - 1.U
         state := sSendReq
       }.elsewhen(last){
         len := Mux (storeQueue.io.count % bus_width.U(storeQueue.io.count.getWidth.W) === 0.U,
@@ -92,7 +92,7 @@ class StreamStore(bufSize: Int, NumIns: Int)(implicit p: Parameters)
       }
     }
     is(sSendReq){
-      when(io.ume_wr.cmd.fire()){
+      when(io.ume_wr.cmd.fire){
         state := sBusy
       }
     }
@@ -103,7 +103,7 @@ class StreamStore(bufSize: Int, NumIns: Int)(implicit p: Parameters)
       }
     }
     is(sLastReq){
-      when(io.ume_wr.cmd.fire()){
+      when(io.ume_wr.cmd.fire){
         state := sLastSending
       }
     }
@@ -126,7 +126,7 @@ class StreamStore(bufSize: Int, NumIns: Int)(implicit p: Parameters)
   storeQueue.io.enq.valid := io.in.valid
   io.in.ready := storeQueue.io.enq.ready && !last
 
-  io.ume_wr.data.bits := storeQueue.io.deq.bits.asUInt()
+  io.ume_wr.data.bits := storeQueue.io.deq.bits.asUInt
   io.ume_wr.data.valid := storeQueue.io.deq.valid
   storeQueue.io.deq.ready := io.ume_wr.data.ready
 

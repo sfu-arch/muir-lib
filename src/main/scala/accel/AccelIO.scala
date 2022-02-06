@@ -24,8 +24,6 @@ class DandelionAccelIO[T <: Data](val ArgsIn: Seq[Int],
   val MemReq = Decoupled(new MemReq)
   val out = Decoupled(new Call(Returns))
 
-  override def cloneType = new DandelionAccelIO(ArgsIn, Returns)(p).asInstanceOf[this.type]
-
 }
 
 
@@ -33,7 +31,7 @@ abstract class DandelionAccelModule(val ArgsIn: Seq[Int],
                                     val Returns: Seq[Int])(implicit val p: Parameters) extends Module
   with HasAccelParams
   with HasAccelShellParams {
-  override lazy val io = IO(new DandelionAccelIO(ArgsIn, Returns))
+  lazy val io = IO(new DandelionAccelIO(ArgsIn, Returns))
 }
 
 
@@ -56,8 +54,6 @@ class DandelionAccelDCRIO[T <: Data](val PtrsIn: Seq[Int],
   val MemReq = Decoupled(new MemReq)
   val out = Decoupled(new Call(RetsOut))
 
-  override def cloneType = new DandelionAccelDCRIO(PtrsIn, ValsIn, RetsOut)(p).asInstanceOf[this.type]
-
 }
 
 
@@ -79,15 +75,13 @@ class DandelionAccelDebugIO(val numDebugNode: Int)(implicit p: Parameters)
   val enableNode = Vec(numDebugNode, Input(Bool()))
   val vmeOut = Vec(numDebugNode, new DMEWriteMaster)
 
-  override def cloneType = new DandelionAccelDebugIO(numDebugNode).asInstanceOf[this.type]
-
 }
 
 
 abstract class DandelionAccelDebugModule(val numDebugNode: Int, val boreIDList: Seq[Int])(implicit val p: Parameters) extends Module
   with HasAccelParams
   with HasAccelShellParams {
-  override lazy val io = IO(new DandelionAccelDebugIO(numDebugNode))
+  lazy val io = IO(new DandelionAccelDebugIO(numDebugNode))
 
   require(numDebugNode == boreIDList.length,
     s"You the size boreIDs should be equalt to number debug nodes\n")
@@ -104,15 +98,13 @@ class DandelionAccelReadDebugIO(val numDebugNode: Int)(implicit p: Parameters)
   val addrDebug = Vec(numDebugNode, Input(UInt(memParams.addrBits.W)))
   val vmeIn = Vec(numDebugNode, new DMEReadMaster)
 
-  override def cloneType = new DandelionAccelReadDebugIO(numDebugNode).asInstanceOf[this.type]
-
 }
 
 
 abstract class DandelionAccelReadDebugModule(val numDebugNode: Int, val boreIDList: Seq[Int])(implicit val p: Parameters) extends Module
   with HasAccelParams
   with HasAccelShellParams {
-  override lazy val io = IO(new DandelionAccelReadDebugIO(numDebugNode))
+  lazy val io = IO(new DandelionAccelReadDebugIO(numDebugNode))
 
   require(numDebugNode == boreIDList.length,
     s"You the size boreIDs should be equalt to number debug nodes\n")

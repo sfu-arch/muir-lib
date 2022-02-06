@@ -59,8 +59,8 @@ class QueueFPGA[T <: Data](gen: T,
   val ptr_match = enq_ptr.value === deq_ptr.value
   val empty = ptr_match && !maybe_full
   val full = ptr_match && maybe_full
-  val do_enq = WireDefault(io.enq.fire())
-  val do_deq = WireDefault(io.deq.fire())
+  val do_enq = WireDefault(io.enq.fire)
+  val do_deq = WireDefault(io.deq.fire)
 
   when (do_enq) {
     ram(enq_ptr.value) := io.enq.bits
@@ -169,7 +169,7 @@ class DebugBufferNode(
   //  addr_cnt = node_cnt * 20.U
 
   val addr_offset = node_cnt * 20.U
-  val addr = addr_offset + (addr_cnt << 2.U).asUInt()
+  val addr = addr_offset + (addr_cnt << 2.U).asUInt
 
 
   st_node.io.GepAddr.bits := DataBundle(addr)
@@ -230,14 +230,14 @@ class UnTypDebugStore(
 
   // GepAddr
   io.GepAddr.ready := ~addr_valid_R
-  when(io.GepAddr.fire()) {
+  when(io.GepAddr.fire) {
     addr_R := io.GepAddr.bits
     addr_valid_R := true.B
   }
 
   // InData
   io.InData.ready := ~data_valid_R
-  when(io.InData.fire()) {
+  when(io.InData.fire) {
     data_R := io.InData.bits
     data_valid_R := true.B
   }
@@ -355,12 +355,12 @@ class DebugVMEBufferNode(BufferLen: Int = 2, ID: Int, Bore_ID: Int)
 
   switch(wState) {
     is(sIdel) {
-      when((writeFinished && LogData.io.deq.valid) || (LogData.io.count.asUInt() === BufferLen.U / 2.U)) {
+      when((writeFinished && LogData.io.deq.valid) || (LogData.io.count.asUInt === BufferLen.U / 2.U)) {
         wState := sReq
       }
     }
     is(sReq) {
-      when(io.vmeOut.cmd.fire()) {
+      when(io.vmeOut.cmd.fire) {
         wState := sBusy
       }
     }
@@ -368,7 +368,7 @@ class DebugVMEBufferNode(BufferLen: Int = 2, ID: Int, Bore_ID: Int)
       when(io.vmeOut.ack) {
         wState := sIdel
         queue_count := 0.U
-        addr_debug_reg := addr_debug_reg + (queue_count * (xlen >> 3).asUInt())
+        addr_debug_reg := addr_debug_reg + (queue_count * (xlen >> 3).asUInt)
       }
     }
   }

@@ -19,8 +19,6 @@ class PhiNodeIO(NumInputs: Int, NumOuts: Int, Debug: Boolean = false)
 
   // Predicate mask comming from the basic block
   val Mask = Flipped(Decoupled(UInt(NumInputs.W)))
-
-  override def cloneType = new PhiNodeIO(NumInputs, NumOuts, Debug).asInstanceOf[this.type]
 }
 
 abstract class PhiFastNodeIO(val NumInputs: Int = 2, val NumOutputs: Int = 1, val ID: Int, Debug: Boolean = false, GuardVal: Int = 0)
@@ -93,7 +91,7 @@ class PhiNode(NumInputs: Int,
 
   //wire up mask
   io.Mask.ready := ~mask_valid_R
-  when(io.Mask.fire()) {
+  when(io.Mask.fire) {
     mask_R := io.Mask.bits
     mask_valid_R := true.B
   }
@@ -101,7 +99,7 @@ class PhiNode(NumInputs: Int,
   //Wire up inputs
   for (i <- 0 until NumInputs) {
     io.InData(i).ready := ~in_data_valid_R(i)
-    when(io.InData(i).fire()) {
+    when(io.InData(i).fire) {
       in_data_R(i) <> io.InData(i).bits
       in_data_valid_R(i) := true.B
     }
@@ -241,14 +239,14 @@ class PhiFastNode(NumInputs: Int = 2, NumOutputs: Int = 1, ID: Int, Res: Boolean
 
   // Latching Mask value
   io.Mask.ready := ~mask_valid_R
-  when(io.Mask.fire()) {
+  when(io.Mask.fire) {
     mask_R := io.Mask.bits
     mask_valid_R := true.B
   }
 
   // Latching enable value
   io.enable.ready := ~enable_valid_R
-  when(io.enable.fire()) {
+  when(io.enable.fire) {
     enable_R <> io.enable.bits
     enable_valid_R := true.B
   }

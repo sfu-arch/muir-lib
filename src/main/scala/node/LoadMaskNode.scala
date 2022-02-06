@@ -78,7 +78,7 @@ class LoadMaskNode(NumPredOps: Int = 1, NumSuccOps: Int = 1)(implicit p: Paramet
   // Latch predecessor valid signals.
   for (i <- 0 until NumPredOps) {
     io.PredOp(i).ready := ~predValid(i)
-    when(io.PredOp(i).fire()) {
+    when(io.PredOp(i).fire) {
       predValid(i) := io.PredOp(i).valid      
     }
   }
@@ -86,7 +86,7 @@ class LoadMaskNode(NumPredOps: Int = 1, NumSuccOps: Int = 1)(implicit p: Paramet
 
   //Latch GEP input if it's fire
   io.Gep.ready   := ~GepValid
-  when(io.Gep.fire()) {
+  when(io.Gep.fire) {
     GepOperand := io.Gep.bits
     GepValid   := io.Gep.valid
   }
@@ -159,7 +159,7 @@ class LoadMaskNode(NumPredOps: Int = 1, NumSuccOps: Int = 1)(implicit p: Paramet
  val Tree = Module(new ArbiterTree(BaseSize = 2, NumOps = 8, UInt(32.W), Locks = 1))
  // val MuxTree = Module(new DeMuxTree(BaseSize = 2, NumOps = 16, new ReadResp()))
  // MuxTree.io.enable := MuxEnable
- // when (Tree.io.out.fire())
+ // when (Tree.io.out.fire)
  // {
  //  MuxEnable := true.B  //MuxEnable
  //  }

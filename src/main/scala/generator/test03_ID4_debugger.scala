@@ -71,22 +71,3 @@ class Debug03DF(implicit p: Parameters) extends Debug03IO()(p) {
 
 }
 
-import java.io.{File, FileWriter}
-
-object Debug03Top extends App {
-  val dir = new File("RTL/Debug03Top");
-  dir.mkdirs
-  //implicit val p = Parameters.root((new MiniConfig).toInstance)
-  implicit val p = new WithAccelConfig(DandelionAccelParams(printLog = true))
-  val chirrtl = firrtl.Parser.parse(chisel3.Driver.emit(() => new Debug03DF()))
-
-  val verilogFile = new File(dir, s"${chirrtl.main}.v")
-  val verilogWriter = new FileWriter(verilogFile)
-  val compileResult = (new firrtl.VerilogCompiler).compileAndEmit(firrtl.CircuitState(chirrtl, firrtl.ChirrtlForm))
-  val compiledStuff = compileResult.getEmittedCircuit
-  verilogWriter.write(compiledStuff.value)
-  verilogWriter.close()
-}
-
-
-

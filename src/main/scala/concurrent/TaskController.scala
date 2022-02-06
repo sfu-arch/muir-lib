@@ -14,7 +14,6 @@ import utility.UniformPrintfs
 class ParentBundle()(implicit p: Parameters) extends AccelBundle {
   val sid = UInt(tlen.W) // Static ID (e.g. parent identifier)
   val did = UInt(tlen.W) // Dynamic ID (e.g. parent's task #)
-  //  override def cloneType: this.type = new ParentBundle(argTypes).asInstanceOf[this.type]
 }
 
 class TaskControllerIO(val argTypes: Seq[Int], val retTypes: Seq[Int], numParent: Int, numChild: Int)(implicit p: Parameters)
@@ -23,9 +22,6 @@ class TaskControllerIO(val argTypes: Seq[Int], val retTypes: Seq[Int], numParent
   val parentOut = Vec(numParent, Decoupled(new Call(retTypes))) // Returns to calling block(s)
   val childIn = Vec(numChild, Flipped(Decoupled(new Call(retTypes)))) // Returns from sub-block
   val childOut = Vec(numChild, Decoupled(new Call(argTypes))) // Requests to sub-block
-
-  // 3.1
-  override def cloneType = new TaskControllerIO(argTypes, retTypes, numParent, numChild).asInstanceOf[this.type]
 }
 
 class TaskController(val argTypes: Seq[Int], val retTypes: Seq[Int], numParent: Int, numChild: Int)
@@ -173,14 +169,14 @@ class TaskController(val argTypes: Seq[Int], val retTypes: Seq[Int], numParent: 
 
   /*
   val activeID = RegInit(VecInit(Seq.fill(1<<tlen)(false.B)))
-  when(exeList.io.deq.fire()) {
+  when(exeList.io.deq.fire) {
     when(activeID(exeList.io.deq.bits.enable.taskID) === true.B) {
       error_flag := true.B
       printf("*** ID re-used active ID error %d\n", error_flag)
     }
     activeID(exeList.io.deq.bits.enable.taskID) := true.B
   }
-  when(ChildArb.io.out.fire()) {
+  when(ChildArb.io.out.fire) {
     when(activeID(ChildArb.io.out.bits.enable.taskID) === false.B) {
       error_flag := true.B
       printf("*** Error: Duplicate ID returned %d\n", error_flag)
@@ -188,13 +184,13 @@ class TaskController(val argTypes: Seq[Int], val retTypes: Seq[Int], numParent: 
     activeID(ChildArb.io.out.bits.enable.taskID) := false.B
   }
   val numOut = RegInit(0.U(16.W))
-  when(ChildArb.io.out.fire() && !retExpand.io.Out(1).fire()) {
+  when(ChildArb.io.out.fire && !retExpand.io.Out(1).fire) {
     when(numOut === 1.U) {
       error_flag := true.B
       printf("*** Error: Lost return in output %d\n", error_flag)
     }
     numOut := numOut + 1.U;
-  }.elsewhen(!ChildArb.io.out.fire() && retExpand.io.Out(1).fire()){
+  }.elsewhen(!ChildArb.io.out.fire && retExpand.io.Out(1).fire){
     when(numOut === 0.U) {
       error_flag := true.B
       printf("*** Error: numOut under-run %d\n", error_flag)

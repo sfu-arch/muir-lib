@@ -16,8 +16,6 @@ class LoadCacheIO(NumPredOps: Int,
   val GepAddr = Flipped(Decoupled(new DataBundle))
   val MemReq = Decoupled(new MemReq)
   val MemResp = Flipped(Valid(new MemResp))
-
-  override def cloneType = new LoadCacheIO(NumPredOps, NumSuccOps, NumOuts, Debug).asInstanceOf[this.type]
 }
 
 /**
@@ -73,7 +71,7 @@ class UnTypLoadCache(NumPredOps: Int,
 
   //Initialization READY-VALIDs for GepAddr and Predecessor memory ops
   io.GepAddr.ready := ~addr_valid_R
-  when(io.GepAddr.fire()) {
+  when(io.GepAddr.fire) {
     addr_R := io.GepAddr.bits
     addr_valid_R := true.B
   }
@@ -168,7 +166,7 @@ class UnTypLoadCache(NumPredOps: Int,
   io.MemReq.bits.iswrite := false.B
 
   // Connect successors outputs to the enable status
-  when(io.enable.fire()) {
+  when(io.enable.fire) {
     succ_bundle_R.foreach(_ := io.enable.bits)
   }
 

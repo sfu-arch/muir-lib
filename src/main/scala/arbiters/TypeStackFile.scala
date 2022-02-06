@@ -44,10 +44,10 @@ class TypeStackFile(ID: Int,
 
   // Write registers
   val WriteReq     = RegNext(next = WriteController.io.MemReq.bits)
-  val WriteValid   = RegNext(init  = false.B,next=WriteController.io.MemReq.fire())
+  val WriteValid   = RegNext(init  = false.B,next=WriteController.io.MemReq.fire)
 
   val ReadReq     = RegNext(next = ReadController.io.MemReq.bits)
-  val ReadValid   = RegNext(init  = false.B, next=ReadController.io.MemReq.fire())
+  val ReadValid   = RegNext(init  = false.B, next=ReadController.io.MemReq.fire)
 
   
   val xlen_bytes = xlen / 8
@@ -81,7 +81,7 @@ class TypeStackFile(ID: Int,
 =            Write Controller.             =
 ==========================================*/
 
-  RegFile.io.wen := WriteController.io.MemReq.fire()
+  RegFile.io.wen := WriteController.io.MemReq.fire
   val waddr = Cat(WriteController.io.MemReq.bits.taskID, WriteController.io.MemReq.bits.addr(wordindex + log2Ceil(Size) - 1, wordindex))
   RegFile.io.waddr := waddr
   RegFile.io.wdata := WriteController.io.MemReq.bits.data

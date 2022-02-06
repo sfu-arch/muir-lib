@@ -54,7 +54,7 @@ class NastiMemSlave(val depth: Int = 1 << 24, latency: Int = 20)(implicit val p:
 
 
   when(io.init.valid) {
-    mem.write((io.init.bits.addr >> 2).asUInt(), io.init.bits.data)
+    mem.write((io.init.bits.addr >> 2).asUInt, io.init.bits.data)
   }
 
   dutMem.ar.ready := false.B
@@ -63,7 +63,7 @@ class NastiMemSlave(val depth: Int = 1 << 24, latency: Int = 20)(implicit val p:
   dutMem.b.valid := memState === sMemWrAck
   dutMem.b.bits := NastiWriteResponseChannel(dutMem.aw.bits.id)
   dutMem.r.valid := memState === sMemRead
-  val rdAddr = (dutMem.ar.bits.addr >> size).asUInt() + rCnt.asUInt()
+  val rdAddr = (dutMem.ar.bits.addr >> size).asUInt + rCnt.asUInt
   dutMem.r.bits := NastiReadDataChannel(dutMem.ar.bits.id, mem.read(rdAddr))
 
   switch(memState) {
@@ -78,7 +78,7 @@ class NastiMemSlave(val depth: Int = 1 << 24, latency: Int = 20)(implicit val p:
       assert(dutMem.aw.bits.size === size)
       assert(dutMem.aw.bits.len === len)
       when(dutMem.w.valid) {
-        val wrAddr = (dutMem.aw.bits.addr >> size).asUInt() + wCnt.asUInt()
+        val wrAddr = (dutMem.aw.bits.addr >> size).asUInt + wCnt.asUInt
         mem.write(wrAddr, dutMem.w.bits.data)
         if (log) {
           printf("[write] mem[%x] <= %x\n", wrAddr, dutMem.w.bits.data)

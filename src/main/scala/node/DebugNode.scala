@@ -18,15 +18,13 @@ class DebugNodeIO(Selection: Boolean = false, Nodes : List[Int], NumNodes : Int)
 
   val Enable = Vec(NumNodes, (new Bool))
 
-  //override def cloneType = new DebugNodeIO(Selection, Nodes).asInstanceOf[this.type]
-
 }
 
 class DebugNode(Selection: Boolean = false, Nodes : List[Int] , NumNodes : Int = 0)
                (Time_B : Boolean = false, Time : List[Int] ,  BB_B : Boolean = false , BB : List[Int])
                  (implicit p: Parameters, name: sourcecode.Name, file: sourcecode.File) extends Module  with UniformPrintfs {
 
-  override lazy val io = IO(new DebugNodeIO(Selection, Nodes, NumNodes = 0)(Time_B , Time ,  BB_B , BB))
+  val io = IO(new DebugNodeIO(Selection, Nodes, NumNodes = 0)(Time_B , Time ,  BB_B , BB))
 
   val node_name = name.value
   val module_name = file.value.split("/").tail.last.split("\\.").head.capitalize

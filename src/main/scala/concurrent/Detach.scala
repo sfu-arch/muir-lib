@@ -14,7 +14,6 @@ import dandelion.config._
 class DetachIO()(implicit p: Parameters)
   extends HandShakingIONPS(NumOuts = 3)(new ControlBundle)(p) {
   //  val incr = Decoupled(new AckBundle)
-  override def cloneType = new DetachIO().asInstanceOf[this.type]
 }
 
 class Detach(ID: Int)
@@ -45,7 +44,7 @@ class Detach(ID: Int)
   /*===============================================*
    *            Latch inputs. Wire up output       *
    *===============================================*/
-  when(io.enable.fire()) {
+  when(io.enable.fire) {
     latchedEnable <> io.enable.bits
   }
   // Wire up Outputs

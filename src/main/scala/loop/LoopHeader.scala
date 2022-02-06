@@ -25,7 +25,6 @@ class LoopOutputBundleIO[+T <: Data](gen: T) extends Bundle() {
   val bits = Output(gen.cloneType)
   val valid = Output(Bool())
 
-  override def cloneType: this.type = new LoopOutputBundleIO(gen).asInstanceOf[this.type]
 }
 
 object LoopOutputBundle {
@@ -56,9 +55,6 @@ class LoopHeaderIO[T <: Data](val NumInputs: Int, val NumOuts: Int)
     * @todo connect the START to entry basic block
     */
   val Start = Output(Bool())
-
-  override def cloneType = new LoopHeaderIO(NumInputs, NumOuts)(gen).asInstanceOf[this.type]
-
 
 }
 
@@ -96,7 +92,7 @@ class LoopHeader(val NumInputs: Int, val NumOuts: Int, val ID: Int)
     valids(i) <> io.inputArg(i).valid
   }
 
-  io.Start := valids.asUInt().andR()
+  io.Start := valids.asUInt.andR()
 
 
 }

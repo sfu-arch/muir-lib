@@ -16,8 +16,6 @@ class CallOutNodeIO(val argTypes: Seq[Int],
                     NumOuts: Int)(implicit p: Parameters)
   extends HandShakingIOPS(NumPredOps, NumSuccOps, NumOuts)(new Call(argTypes)) {
   val In = Flipped(new VariableDecoupledData(argTypes)) // Requests from calling block(s)
-
-  override def cloneType = new CallOutNodeIO(argTypes, NumPredOps, NumSuccOps, NumOuts).asInstanceOf[this.type]
 }
 
 class CallOutNode(ID: Int, val argTypes: Seq[Int], NumSuccOps: Int = 0, NoReturn: Bool = false.B)
@@ -41,13 +39,13 @@ class CallOutNode(ID: Int, val argTypes: Seq[Int], NumSuccOps: Int = 0, NoReturn
 
   for (i <- argTypes.indices) {
     io.In.elements(s"field$i").ready := ~data_valid_R(i)
-    when(io.In(s"field$i").fire()) {
+    when(io.In(s"field$i").fire) {
       data_R(s"field$i") <> io.In(s"field$i").bits
       data_valid_R(i) := true.B
     }
   }
 
-  when(io.enable.fire()) {
+  when(io.enable.fire) {
     succ_bundle_R.foreach(_ := io.enable.bits)
   }
 
@@ -114,14 +112,14 @@ class CallOutNode2(ID: Int, val argTypes: Seq[Int], NumSuccOps: Int = 0, NoRetur
   }))
 
   for (i <- argTypes.indices) {
-    when(io.In(s"field$i").fire()) {
+    when(io.In(s"field$i").fire) {
       data_R(s"field$i") := io.In(s"field$i").bits
       data_valid_R(i) := true.B
     }
     io.In.elements(s"field$i").ready := ~data_valid_R(i)
   }
 
-  when(io.enable.fire()) {
+  when(io.enable.fire) {
     succ_bundle_R.foreach(_ := io.enable.bits)
   }
   io.Out(0).bits.data := data_R
@@ -173,8 +171,6 @@ class CallOutDCRNodeIO(val PtrsTypes: Seq[Int],
   extends HandShakingIOPS(NumPredOps, NumSuccOps, NumOuts)(new CallDCR(PtrsTypes, ValsTypes)) {
   val inPtrs = Flipped(new VariableDecoupledData(PtrsTypes)) // Requests from calling block(s)
   val inVals = Flipped(new VariableDecoupledData(ValsTypes)) // Requests from calling block(s)
-
-  override def cloneType = new CallOutDCRNodeIO(PtrsTypes, ValsTypes, NumPredOps, NumSuccOps, NumOuts).asInstanceOf[this.type]
 }
 
 class CallOutDCRNode(ID: Int, val PtrsTypes: Seq[Int], val ValsTypes: Seq[Int], NumSuccOps: Int = 0, NoReturn: Bool = false.B)
@@ -201,7 +197,7 @@ class CallOutDCRNode(ID: Int, val PtrsTypes: Seq[Int], val ValsTypes: Seq[Int], 
 
   for (i <- PtrsTypes.indices) {
     io.inPtrs.elements(s"field$i").ready := ~ptrs_data_valid_R(i)
-    when(io.inPtrs(s"field$i").fire()) {
+    when(io.inPtrs(s"field$i").fire) {
       ptrs_data_R(s"field$i") <> io.inPtrs(s"field$i").bits
       ptrs_data_valid_R(i) := true.B
     }
@@ -209,13 +205,13 @@ class CallOutDCRNode(ID: Int, val PtrsTypes: Seq[Int], val ValsTypes: Seq[Int], 
 
   for (i <- ValsTypes.indices) {
     io.inVals.elements(s"field$i").ready := ~vals_data_valid_R(i)
-    when(io.inVals(s"field$i").fire()) {
+    when(io.inVals(s"field$i").fire) {
       vals_data_R(s"field$i") <> io.inVals(s"field$i").bits
       vals_data_valid_R(i) := true.B
     }
   }
 
-  when(io.enable.fire()) {
+  when(io.enable.fire) {
     succ_bundle_R.foreach(_ := io.enable.bits)
   }
 

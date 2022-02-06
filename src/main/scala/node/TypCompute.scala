@@ -23,20 +23,16 @@ class Numbers(implicit p: Parameters) extends AccelBundle()(p) with HasAccelPara
 class vecN(val N: Int)(implicit p: Parameters) extends Numbers {
   val data = Vec(N, UInt(xlen.W))
 
-  override def cloneType = new vecN(N).asInstanceOf[this.type]
-
 }
 
 class matNxN(val N: Int)(implicit p: Parameters) extends Numbers {
   val data = Vec(N, Vec(N, UInt(xlen.W)))
 
-  override def cloneType = new matNxN(N).asInstanceOf[this.type]
 }
 
 class FPmatNxN(val N: Int, val t: FType)(implicit p: Parameters) extends Numbers {
   val data = Vec(N, Vec(N, UInt(xlen.W)))
 
-  override def cloneType = new FPmatNxN(N, t).asInstanceOf[this.type]
 }
 
 
@@ -251,7 +247,6 @@ class TypComputeIO(NumOuts: Int)(implicit p: Parameters)
   // RightIO: Right input data for computation
   val RightIO = Flipped(Decoupled(new TypBundle))
 
-  override def cloneType = new TypComputeIO(NumOuts).asInstanceOf[this.type]
 }
 
 class TypCompute[T <: Numbers : OperatorLike](NumOuts: Int, ID: Int, opCode: String)(sign: Boolean)(gen: => T)(implicit p: Parameters)

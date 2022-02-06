@@ -26,8 +26,6 @@ class AllocaNodeIO(NumOuts: Int, Debug: Boolean)(implicit p: Parameters)
   val allocaReqIO = Decoupled(new AllocaReq)
   val allocaRespIO = Flipped(Valid(new AllocaResp))
 
-  override def cloneType = new AllocaNodeIO(NumOuts, Debug).asInstanceOf[this.type]
-
 }
 
 class AllocaNode(NumOuts: Int, ID: Int, RouteID: Int, FrameSize: Int = 16, Debug: Boolean = false)
@@ -76,7 +74,7 @@ class AllocaNode(NumOuts: Int, ID: Int, RouteID: Int, FrameSize: Int = 16, Debug
    *            Latch inputs. Wire up output       *
    *===============================================*/
 
-  when(io.enable.fire()) {
+  when(io.enable.fire) {
     taskID_R := io.enable.bits.taskID
   }
 
@@ -84,7 +82,7 @@ class AllocaNode(NumOuts: Int, ID: Int, RouteID: Int, FrameSize: Int = 16, Debug
   io.allocaInputIO.ready := ~alloca_valid_R
 
   // Input Register
-  when(io.allocaInputIO.fire()) {
+  when(io.allocaInputIO.fire) {
     alloca_R.size := io.allocaInputIO.bits.size
     alloca_R.numByte := io.allocaInputIO.bits.numByte
     alloca_valid_R := true.B
@@ -196,12 +194,12 @@ class AllocaConstNode(value: BigInt = 0, NumOuts: Int = 1, ID: Int)
    *============================================*/
   switch(state) {
     is(s_IDLE) {
-      when(io.enable.fire()) {
+      when(io.enable.fire) {
         ValidOut()
         io.Out.foreach(_.valid := true.B)
-        io.Out.foreach(_.bits := DataBundle(value.asSInt(xlen.W).asUInt()))
+        io.Out.foreach(_.bits := DataBundle(value.asSInt(xlen.W).asUInt))
         when(io.enable.bits.control) {
-          out_data_R := DataBundle(value.asSInt(xlen.W).asUInt())
+          out_data_R := DataBundle(value.asSInt(xlen.W).asUInt)
         }
 
         state := s_COMPUTE

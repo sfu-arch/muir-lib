@@ -224,16 +224,3 @@ class dedup_S3DF(implicit p: Parameters) extends dedup_S3DFIO()(p) {
 
 }
 
-import java.io.{File, FileWriter}
-object dedup_S3Main extends App {
-  val dir = new File("RTL/dedup_S3") ; dir.mkdirs
-  implicit val p = new WithAccelConfig
-  val chirrtl = firrtl.Parser.parse(chisel3.Driver.emit(() => new dedup_S3DF()))
-
-  val verilogFile = new File(dir, s"${chirrtl.main}.v")
-  val verilogWriter = new FileWriter(verilogFile)
-  val compileResult = (new firrtl.VerilogCompiler).compileAndEmit(firrtl.CircuitState(chirrtl, firrtl.ChirrtlForm))
-  val compiledStuff = compileResult.getEmittedCircuit
-  verilogWriter.write(compiledStuff.value)
-  verilogWriter.close()
-}

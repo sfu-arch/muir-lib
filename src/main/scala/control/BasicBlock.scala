@@ -25,7 +25,6 @@ class BasicBlockIO(NumInputs: Int,
 
   val predicateIn = Vec(NumInputs, Flipped(Decoupled(new ControlBundle())))
 
-  override def cloneType = new BasicBlockIO(NumInputs, NumOuts, NumPhi).asInstanceOf[this.type]
 }
 
 /**
@@ -77,7 +76,7 @@ class BasicBlockNode(NumInputs: Int,
   val predicate_task = predicate_in_R.map(_.taskID).reduce(_ | _)
   val predicate_debug = predicate_in_R.map(_.debug).reduce(_ | _)
 
-  val start = (io.predicateIn.map(_.fire()) zip predicate_valid_R) map { case (a, b) => a | b } reduce (_ & _)
+  val start = (io.predicateIn.map(_.fire) zip predicate_valid_R) map { case (a, b) => a | b } reduce (_ & _)
 
   /*===============================================*
    *            Latch inputs. Wire up output       *
@@ -86,7 +85,7 @@ class BasicBlockNode(NumInputs: Int,
 
   for (i <- 0 until NumInputs) {
     io.predicateIn(i).ready := ~predicate_valid_R(i)
-    when(io.predicateIn(i).fire()) {
+    when(io.predicateIn(i).fire) {
       predicate_in_R(i) <> io.predicateIn(i).bits
       predicate_control_R(i) <> io.predicateIn(i).bits.control
       predicate_valid_R(i) := true.B
@@ -102,7 +101,7 @@ class BasicBlockNode(NumInputs: Int,
 
   // Wire up mask output
   for (i <- 0 until NumPhi) {
-    io.MaskBB(i).bits := predicate_control_R.asUInt()
+    io.MaskBB(i).bits := predicate_control_R.asUInt
   }
 
 
@@ -127,7 +126,7 @@ class BasicBlockNode(NumInputs: Int,
         when(predicate) {
           if (log) {
             printf(p"[LOG] [${module_name}] [TID: ${predicate_task}] [BB] " +
-              p"${node_name}] [Mask: 0x${Hexadecimal(predicate_control_R.asUInt())}]\n")
+              p"${node_name}] [Mask: 0x${Hexadecimal(predicate_control_R.asUInt)}]\n")
           }
         }.otherwise {
           if (log) {
@@ -153,7 +152,6 @@ class BasicBlockNoMaskDepIO(NumOuts: Int)
   //  val predicateIn = Vec(NumInputs, Flipped(Decoupled(new ControlBundle())))
   val predicateIn = Flipped(Decoupled(new ControlBundle()))
 
-  override def cloneType = new BasicBlockNoMaskDepIO(NumOuts).asInstanceOf[this.type]
 }
 
 
@@ -173,7 +171,6 @@ class BasicBlockNoMaskFastIO(val NumOuts: Int)(implicit p: Parameters)
   val predicateIn = Flipped(Decoupled(new ControlBundle()))
   val Out = Vec(NumOuts, Decoupled(new ControlBundle))
 
-  override def cloneType = new BasicBlockNoMaskFastIO(NumOuts).asInstanceOf[this.type]
 }
 
 
@@ -183,7 +180,6 @@ class BasicBlockNoMaskFastVecIO(val NumInputs: Int, val NumOuts: Int)(implicit p
   val predicateIn = Vec(NumInputs, Flipped(Decoupled(new ControlBundle())))
   val Out = Vec(NumOuts, Decoupled(new ControlBundle))
 
-  override def cloneType = new BasicBlockNoMaskFastVecIO(NumInputs, NumOuts).asInstanceOf[this.type]
 }
 
 /**
@@ -231,7 +227,7 @@ class BasicBlockNoMaskFastNode(BID: Int, val NumInputs: Int = 1, val NumOuts: In
   //Make sure whenever output is fired we latch it
   for (i <- 0 until NumInputs) {
     io.predicateIn(i).ready := ~in_data_valid_R(i)
-    when(io.predicateIn(i).fire()) {
+    when(io.predicateIn(i).fire) {
       in_data_R(i) <> io.predicateIn(i).bits
       in_data_valid_R(i) := true.B
     }
@@ -243,7 +239,7 @@ class BasicBlockNoMaskFastNode(BID: Int, val NumInputs: Int = 1, val NumOuts: In
 
   //Output connections
   for (i <- 0 until NumOuts) {
-    when(io.Out(i).fire()) {
+    when(io.Out(i).fire) {
       output_fire_R(i) := true.B
       output_valid_R(i) := false.B
     }
@@ -334,7 +330,6 @@ class LoopHeadNodeIO(val NumOuts: Int, val NumPhi: Int)(implicit p: Parameters) 
   val Out = Vec(NumOuts, Decoupled(new ControlBundle))
   val MaskBB = Vec(NumPhi, Decoupled(UInt(2.W)))
 
-  override def cloneType = new LoopHeadNodeIO(NumOuts, NumPhi).asInstanceOf[this.type]
 }
 
 @deprecated("Use new loop node design to capture live-in and live-outs, this is old version to handle loops, this node will be removed from next release", "dandelion-1.0")
@@ -377,13 +372,13 @@ class LoopHead(val BID: Int, val NumOuts: Int, val NumPhi: Int)
   val state = RegInit(s_START)
 
   io.activate.ready := ~active_valid_R
-  when(io.activate.fire()) {
+  when(io.activate.fire) {
     active_R <> io.activate.bits
     active_valid_R := true.B
   }
 
   io.loopBack.ready := true.B //~loop_back_valid_R
-  when(io.loopBack.fire()) {
+  when(io.loopBack.fire) {
     loop_back_R <> io.loopBack.bits
     loop_back_valid_R := true.B
   }
@@ -395,7 +390,7 @@ class LoopHead(val BID: Int, val NumOuts: Int, val NumPhi: Int)
   // Wire up OUT READYs and VALIDs
   for (i <- 0 until NumOuts) {
     io.Out(i).valid := out_valid_R(i)
-    when(io.Out(i).fire()) {
+    when(io.Out(i).fire) {
       // Detecting when to reset
       out_fired_R(i) := true.B;
       // Propagating output
@@ -408,7 +403,7 @@ class LoopHead(val BID: Int, val NumOuts: Int, val NumPhi: Int)
   for (i <- 0 until NumPhi) {
     io.MaskBB(i).bits := mask_value_R
     io.MaskBB(i).valid := mask_valid_R(i)
-    when(io.MaskBB(i).fire()) {
+    when(io.MaskBB(i).fire) {
       // Detecting when to reset
       mask_fired_R(i) := true.B
       // Propagating mask

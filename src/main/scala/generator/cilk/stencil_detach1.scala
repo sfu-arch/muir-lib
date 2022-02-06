@@ -424,18 +424,3 @@ class stencil_detach1DF(implicit p: Parameters) extends stencil_detach1DFIO()(p)
 
 }
 
-import java.io.{File, FileWriter}
-
-object stencil_detach1Top extends App {
-  val dir = new File("RTL/stencil_detach1Top");
-  dir.mkdirs
-  implicit val p = new WithAccelConfig
-  val chirrtl = firrtl.Parser.parse(chisel3.Driver.emit(() => new stencil_detach1DF()))
-
-  val verilogFile = new File(dir, s"${chirrtl.main}.v")
-  val verilogWriter = new FileWriter(verilogFile)
-  val compileResult = (new firrtl.VerilogCompiler).compileAndEmit(firrtl.CircuitState(chirrtl, firrtl.ChirrtlForm))
-  val compiledStuff = compileResult.getEmittedCircuit
-  verilogWriter.write(compiledStuff.value)
-  verilogWriter.close()
-}

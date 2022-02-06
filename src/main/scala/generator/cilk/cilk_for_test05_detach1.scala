@@ -329,18 +329,3 @@ class cilk_for_test05_detach1DF(implicit p: Parameters) extends cilk_for_test05_
 
 }
 
-import java.io.{File, FileWriter}
-
-object cilk_for_test05_detach1Top extends App {
-  val dir = new File("RTL/cilk_for_test05_detach1Top");
-  dir.mkdirs
-  implicit val p = new WithAccelConfig
-  val chirrtl = firrtl.Parser.parse(chisel3.Driver.emit(() => new cilk_for_test05_detach1DF()))
-
-  val verilogFile = new File(dir, s"${chirrtl.main}.v")
-  val verilogWriter = new FileWriter(verilogFile)
-  val compileResult = (new firrtl.VerilogCompiler).compileAndEmit(firrtl.CircuitState(chirrtl, firrtl.ChirrtlForm))
-  val compiledStuff = compileResult.getEmittedCircuit
-  verilogWriter.write(compiledStuff.value)
-  verilogWriter.close()
-}

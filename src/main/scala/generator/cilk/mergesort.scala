@@ -1080,18 +1080,4 @@ class mergesortTop(tiles : Int)(implicit p: Parameters) extends mergesortTopIO {
 
 }
 
-import java.io.{File, FileWriter}
-object mergesortMain extends App {
-  val dir = new File("RTL/mergesortTop") ; dir.mkdirs
-
-  implicit val p = new WithAccelConfig(DandelionAccelParams(taskLen = 11, printLog = false))
-  val chirrtl = firrtl.Parser.parse(chisel3.Driver.emit(() => new mergesortTop(4)(p)))
-
-  val verilogFile = new File(dir, s"${chirrtl.main}.v")
-  val verilogWriter = new FileWriter(verilogFile)
-  val compileResult = (new firrtl.VerilogCompiler).compileAndEmit(firrtl.CircuitState(chirrtl, firrtl.ChirrtlForm))
-  val compiledStuff = compileResult.getEmittedCircuit
-  verilogWriter.write(compiledStuff.value)
-  verilogWriter.close()
-}
 

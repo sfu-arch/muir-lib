@@ -107,7 +107,7 @@ class SplitCall(val argTypes: Seq[Int])(implicit p: Parameters) extends Module {
 
   switch(state) {
     is(s_idle) {
-      when (io.In.fire()) {
+      when (io.In.fire) {
         state := s_latched
         inputReg <> io.In.bits
       }
@@ -145,7 +145,6 @@ class SplitCallNewIO(val argTypes: Seq[Int])(implicit p: Parameters) extends Bun
   val In = Flipped(Decoupled(new Call(Seq.fill(argTypes.length)(32))))
   val Out = new CallDecoupledVec(argTypes)
 
-  override def cloneType = new SplitCallNewIO(argTypes).asInstanceOf[this.type]
 }
 
 class SplitCallNew(val argTypes: Seq[Int])(implicit p: Parameters) extends Module {
@@ -170,7 +169,7 @@ class SplitCallNew(val argTypes: Seq[Int])(implicit p: Parameters) extends Modul
 
   switch(state) {
     is(s_idle) {
-      when (io.In.fire()) {
+      when (io.In.fire) {
         state := s_latched
         inputReg <> io.In.bits
       }
@@ -211,7 +210,6 @@ class SplitCallDCRIO(val ptrsArgTypes: Seq[Int],
   val In = Flipped(Decoupled(new CallDCR(Seq.fill(ptrsArgTypes.length)(xlen), Seq.fill(valsArgTypes.length)(xlen))))
   val Out = new CallDCRDecoupledVec(ptrsArgTypes, valsArgTypes)
 
-  override def cloneType = new SplitCallDCRIO(ptrsArgTypes, valsArgTypes).asInstanceOf[this.type]
 }
 
 class SplitCallDCR(val ptrsArgTypes: Seq[Int], val valsArgTypes: Seq[Int])(implicit p: Parameters) extends Module {
@@ -263,7 +261,7 @@ class SplitCallDCR(val ptrsArgTypes: Seq[Int], val valsArgTypes: Seq[Int])(impli
 
   switch(state) {
     is(s_idle) {
-      when (io.In.fire()) {
+      when (io.In.fire) {
         state := s_latched
         inputReg <> io.In.bits
       }

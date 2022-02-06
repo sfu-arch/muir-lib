@@ -392,18 +392,3 @@ class vector_scaleDF(implicit p: Parameters) extends vector_scaleDFIO()(p) {
 
 }
 
-import java.io.{File, FileWriter}
-
-object vector_scaleTop extends App {
-  val dir = new File("RTL/vector_scaleTop");
-  dir.mkdirs
-  implicit val p = new WithAccelConfig
-  val chirrtl = firrtl.Parser.parse(chisel3.Driver.emit(() => new vector_scaleDF()))
-
-  val verilogFile = new File(dir, s"${chirrtl.main}.v")
-  val verilogWriter = new FileWriter(verilogFile)
-  val compileResult = (new firrtl.VerilogCompiler).compileAndEmit(firrtl.CircuitState(chirrtl, firrtl.ChirrtlForm))
-  val compiledStuff = compileResult.getEmittedCircuit
-  verilogWriter.write(compiledStuff.value)
-  verilogWriter.close()
-}

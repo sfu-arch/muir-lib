@@ -18,14 +18,15 @@ lazy val commonSettings = Seq(
   Test / testOptions += Tests.Argument("-oDF"),
   Test / traceLevel := 15,
   scalacOptions ++= Seq("-deprecation", "-unchecked", "-Xsource:2.11"),
+  addCompilerPlugin("edu.berkeley.cs" % "chisel3-plugin" % "3.5.0" cross CrossVersion.full),
   libraryDependencies ++= Seq("org.scala-lang" % "scala-reflect" % scalaVersion.value),
   libraryDependencies ++= Seq("org.json4s" %% "json4s-jackson" % "3.6.1"),
   libraryDependencies ++= Seq("com.lihaoyi" %% "sourcecode" % "0.1.4"),
   libraryDependencies ++= Seq("org.scalatest" %% "scalatest" % "3.0.1"),
   libraryDependencies ++= Seq("org.scalacheck" %% "scalacheck" % "1.13.4"),
   libraryDependencies ++= Seq("edu.berkeley.cs" %% "chisel-iotesters" % "1.3-SNAPSHOT"),
-  libraryDependencies ++= Seq("edu.berkeley.cs" %% "dsptools" % "1.2-SNAPSHOT"),
-  addCompilerPlugin("org.scalamacros" % "paradise" % "2.1.0" cross CrossVersion.full),
+  libraryDependencies ++= Seq("edu.berkeley.cs" %% "dsptools" % "1.5.0"),
+  addCompilerPlugin("org.scalamacros" % "paradise" % "2.1.1" cross CrossVersion.full),
   resolvers ++= Seq(
     Resolver.sonatypeRepo("snapshots"),
     Resolver.sonatypeRepo("releases"),
@@ -37,13 +38,7 @@ lazy val commonSettings = Seq(
 
 def dependOnChisel(prj: Project) = {
   prj.settings(
-    libraryDependencies ++= Seq("edu.berkeley.cs" %% "chisel3" % "3.3-SNAPSHOT")
-  )
-}
-
-def dependOnIoTesters(prj: Project) = {
-  prj.settings(
-    libraryDependencies ++= Seq("edu.berkeley.cs" %% "chisel-iotesters" % "1.3-SNAPSHOT")
+    libraryDependencies ++= Seq("edu.berkeley.cs" %% "chisel3" % "3.5.0")
   )
 }
 

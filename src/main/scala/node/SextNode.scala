@@ -22,8 +22,6 @@ class SextNodeIO(val src: Int, val des: Int, val nout: Int)
   val Out = Vec(nout, Decoupled(new DataBundle()))
   //val Out = Output(Vec(nout, Decoupled(UInt(des.W))))
 
-  override def cloneType = new ZextNodeIO(src, des, nout).asInstanceOf[this.type]
-
 }
 
 class SextNode(val SrcW: Int = 0, val DesW: Int = 0, val NumOuts: Int = 1, val ID: Int = 0)
@@ -63,13 +61,13 @@ class SextNode(val SrcW: Int = 0, val DesW: Int = 0, val NumOuts: Int = 1, val I
 
 
   io.Input.ready := ~input_valid_R
-  when(io.Input.fire()) {
+  when(io.Input.fire) {
     input_R := io.Input.bits
     input_valid_R := true.B
   }
 
   io.enable.ready := ~enable_valid_R
-  when(io.enable.fire()) {
+  when(io.enable.fire) {
     enable_R <> io.enable.bits
     enable_valid_R := true.B
   }

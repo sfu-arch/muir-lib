@@ -1499,41 +1499,27 @@ class mergesort_mergeDF(implicit p: Parameters) extends mergesort_mergeDFIO()(p)
   io.out <> ret47.io.Out
 
 /*
-  when (lb_L_0.io.endEnable.fire() && lb_L_0.io.endEnable.bits.control) {
+  when (lb_L_0.io.endEnable.fire && lb_L_0.io.endEnable.bits.control) {
     printf("DEBUG: Loop end ID=%d\n",lb_L_0.io.endEnable.bits.taskID)
   }
-  when (load5.io.Out(0).fire()) {printf("DEBUG: iBeg =%d\n",load5.io.Out(0).bits.data)}
-  when (load7.io.Out(0).fire()) {printf("DEBUG: iMid =%d\n",load7.io.Out(0).bits.data)}
-  when (load9.io.Out(0).fire()) {printf("DEBUG: iEnd =%d\n",load9.io.Out(0).bits.data)}
-  when (phi15.io.Out(0).fire() && phi15.io.Out(0).bits.predicate) {printf("DEBUG: i=%d\n",phi15.io.Out(0).bits.data)}
-  when (phi16.io.Out(0).fire() && phi16.io.Out(0).bits.predicate) {printf("DEBUG: j=%d\n",phi16.io.Out(0).bits.data)}
-  when (phi17.io.Out(0).fire() && phi17.io.Out(0).bits.predicate) {printf("DEBUG: k=%d\n",phi17.io.Out(0).bits.data)}
+  when (load5.io.Out(0).fire) {printf("DEBUG: iBeg =%d\n",load5.io.Out(0).bits.data)}
+  when (load7.io.Out(0).fire) {printf("DEBUG: iMid =%d\n",load7.io.Out(0).bits.data)}
+  when (load9.io.Out(0).fire) {printf("DEBUG: iEnd =%d\n",load9.io.Out(0).bits.data)}
+  when (phi15.io.Out(0).fire && phi15.io.Out(0).bits.predicate) {printf("DEBUG: i=%d\n",phi15.io.Out(0).bits.data)}
+  when (phi16.io.Out(0).fire && phi16.io.Out(0).bits.predicate) {printf("DEBUG: j=%d\n",phi16.io.Out(0).bits.data)}
+  when (phi17.io.Out(0).fire && phi17.io.Out(0).bits.predicate) {printf("DEBUG: k=%d\n",phi17.io.Out(0).bits.data)}
 
-  when (load25.io.Out(0).fire()) {printf("DEBUG: lor_lhs A[i]= %d\n",load25.io.Out(0).bits.data)}
-  when (load27.io.Out(0).fire()) {printf("DEBUG: lor_lhs A[j]= %d\n",load27.io.Out(0).bits.data)}
-  when (load31.io.Out(0).fire()) {printf("DEBUG: if_then A[i]= %d\n",load31.io.Out(0).bits.data)}
-  when (load37.io.Out(0).fire()) {printf("DEBUG: if_else A[j]= %d\n",load37.io.Out(0).bits.data)}
+  when (load25.io.Out(0).fire) {printf("DEBUG: lor_lhs A[i]= %d\n",load25.io.Out(0).bits.data)}
+  when (load27.io.Out(0).fire) {printf("DEBUG: lor_lhs A[j]= %d\n",load27.io.Out(0).bits.data)}
+  when (load31.io.Out(0).fire) {printf("DEBUG: if_then A[i]= %d\n",load31.io.Out(0).bits.data)}
+  when (load37.io.Out(0).fire) {printf("DEBUG: if_else A[j]= %d\n",load37.io.Out(0).bits.data)}
 
-  when (br21.io.Out(param.br21_brn_bb("bb_if_else")).fire() && br21.io.Out(param.br21_brn_bb("bb_if_else")).bits.control)   {printf("DEBUG: branch to if_else\n")}
-  when (br29.io.Out(param.br29_brn_bb("bb_if_else")).fire() && br21.io.Out(param.br29_brn_bb("bb_if_else")).bits.control)   {printf("DEBUG: branch to if_else\n")}
-  when (br23.io.Out(param.br23_brn_bb("bb_if_then")).fire() && br23.io.Out(param.br23_brn_bb("bb_if_then")).bits.control)   {printf("DEBUG: branch to if_then\n")}
-  when (br29.io.Out(param.br29_brn_bb("bb_if_then")).fire() && br29.io.Out(param.br29_brn_bb("bb_if_then")).bits.control)   {printf("DEBUG: branch to if_then\n")}
+  when (br21.io.Out(param.br21_brn_bb("bb_if_else")).fire && br21.io.Out(param.br21_brn_bb("bb_if_else")).bits.control)   {printf("DEBUG: branch to if_else\n")}
+  when (br29.io.Out(param.br29_brn_bb("bb_if_else")).fire && br21.io.Out(param.br29_brn_bb("bb_if_else")).bits.control)   {printf("DEBUG: branch to if_else\n")}
+  when (br23.io.Out(param.br23_brn_bb("bb_if_then")).fire && br23.io.Out(param.br23_brn_bb("bb_if_then")).bits.control)   {printf("DEBUG: branch to if_then\n")}
+  when (br29.io.Out(param.br29_brn_bb("bb_if_then")).fire && br29.io.Out(param.br29_brn_bb("bb_if_then")).bits.control)   {printf("DEBUG: branch to if_then\n")}
 
-  when (br44.io.Out(0).fire())   {printf("DEBUG: for_inc fired\n")}
+  when (br44.io.Out(0).fire)   {printf("DEBUG: for_inc fired\n")}
 */
-}
-
-import java.io.{File, FileWriter}
-object mergesort_mergeMain extends App {
-  val dir = new File("RTL/mergesort_merge") ; dir.mkdirs
-  implicit val p = new WithAccelConfig
-  val chirrtl = firrtl.Parser.parse(chisel3.Driver.emit(() => new mergesort_mergeDF()))
-
-  val verilogFile = new File(dir, s"${chirrtl.main}.v")
-  val verilogWriter = new FileWriter(verilogFile)
-  val compileResult = (new firrtl.VerilogCompiler).compileAndEmit(firrtl.CircuitState(chirrtl, firrtl.ChirrtlForm))
-  val compiledStuff = compileResult.getEmittedCircuit
-  verilogWriter.write(compiledStuff.value)
-  verilogWriter.close()
 }
 

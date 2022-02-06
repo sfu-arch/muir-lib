@@ -33,7 +33,6 @@ class StoreIO(NumPredOps: Int,
   // Memory response.
   val memResp = Flipped(Valid(new WriteResp()))
 
-  override def cloneType = new StoreIO(NumPredOps, NumSuccOps, NumOuts, Debug).asInstanceOf[this.type]
 }
 
 /**
@@ -129,15 +128,15 @@ class UnTypStore(NumPredOps: Int,
 
   // ACTION: GepAddr
   io.GepAddr.ready := ~addr_valid_R
-  when(io.GepAddr.fire()) {
+  when(io.GepAddr.fire) {
     addr_R := io.GepAddr.bits
     addr_valid_R := true.B
   }
-  when(io.enable.fire()) {
+  when(io.enable.fire) {
     succ_bundle_R.foreach(_ := io.enable.bits)
   }
   // ACTION: inData
-  when(io.inData.fire()) {
+  when(io.inData.fire) {
     // Latch the data
     data_R := io.inData.bits
     data_valid_R := true.B
@@ -237,7 +236,7 @@ class UnTypStore(NumPredOps: Int,
       case "low" => {
         printfInfo("Cycle %d : { \"Inputs\": {\"GepAddr\": %x},", x, (addr_valid_R))
         printf("\"State\": {\"State\": \"%x\", \"data_R(Valid,Data,Pred)\": \"%x,%x,%x\" },", state, data_valid_R, data_R.data, io.Out(0).bits.predicate)
-        printf("\"Outputs\": {\"Out\": %x}", io.Out(0).fire())
+        printf("\"Outputs\": {\"Out\": %x}", io.Out(0).fire)
         printf("}")
       }
       case everythingElse => {}

@@ -1844,18 +1844,3 @@ class extract_function_harris_f2DF(implicit p: Parameters) extends extract_funct
 
 }
 
-import java.io.{File, FileWriter}
-
-object extract_function_harris_f2Top extends App {
-  val dir = new File("RTL/extract_function_harris_f2Top");
-  dir.mkdirs
-  implicit val p = new WithAccelConfig
-  val chirrtl = firrtl.Parser.parse(chisel3.Driver.emit(() => new extract_function_harris_f2DF()))
-
-  val verilogFile = new File(dir, s"${chirrtl.main}.v")
-  val verilogWriter = new FileWriter(verilogFile)
-  val compileResult = (new firrtl.VerilogCompiler).compileAndEmit(firrtl.CircuitState(chirrtl, firrtl.ChirrtlForm))
-  val compiledStuff = compileResult.getEmittedCircuit
-  verilogWriter.write(compiledStuff.value)
-  verilogWriter.close()
-}
