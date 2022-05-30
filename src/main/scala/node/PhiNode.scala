@@ -338,6 +338,7 @@ class PhiFastNode(NumInputs: Int = 2, NumOutputs: Int = 1, ID: Int, Res: Boolean
   for (i <- 0 until NumOutputs) {
     //TODO: enable for comapring
     //io.Out(i).bits := Mux(isBuggy, in_log_value, in_data_R(sel))
+    //io.Out(i).bits := Mux(isBuggy, DataBundle(in_log_value), in_data_R(sel).data)
     io.Out(i).bits := in_data_R(sel)
     io.Out(i).valid := out_valid_R(i)
   }
